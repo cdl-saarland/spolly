@@ -79,11 +79,6 @@ IgnoreAliasing("polly-ignore-aliasing",
                cl::desc("Ignore possible aliasing of the array bases"),
                cl::Hidden, cl::init(false));
 
-static cl::opt<bool>
-AllowNonAffine("polly-allow-nonaffine",
-               cl::desc("Allow non affine access functions in arrays"),
-               cl::Hidden, cl::init(false));
-
 //===----------------------------------------------------------------------===//
 // Statistics.
 
@@ -132,6 +127,45 @@ BADSCOP_STAT(Scalar,          "Found scalar dependency");
 BADSCOP_STAT(Alias,           "Found base address alias");
 BADSCOP_STAT(SimpleRegion,    "Region not simple");
 BADSCOP_STAT(Other,           "Others");
+BADSCOP_STAT(Phi,             "non canonical phi node");
+
+
+BADSCOP_STAT(Spolly,          "Found speculativ polly hit");
+static bool spolly_hit = false;
+
+
+// CHECKS
+#include <iostream>
+#include <fstream>
+static bool* checks = NULL;
+#define checksNR 6
+
+void readChecksFile () {
+  DEBUG(dbgs() <<"\n\nChecks File\n");
+  if (checks != NULL) return;
+
+  checks = (bool*) malloc (sizeof(bool) * checksNR);
+
+  DEBUG(dbgs() <<"\n\nReading check file\n");
+
+  std::ifstream indata;
+  indata.open("/home/johannes/checks");
+
+  int i, c;
+  for (i = 0; i < checksNR; i++) {
+    indata >> c;
+    if (c == 0) 
+      checks[i] = false;
+    else
+      checks[i] = true;
+  DEBUG(dbgs() << "Check "<< i << " is " << checks[i]<<"\n");
+
+  }
+
+  
+
+}
+
 
 //===----------------------------------------------------------------------===//
 // ScopDetection.
@@ -158,22 +192,36 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
 
   BranchInst *Br = dyn_cast<BranchInst>(TI);
 
-  if (!Br)
+  if (!Br) {
+    DEBUG(dbgs() << "-=-| STATSCOP CFG 1 |-=-\n");
+    DEBUG(dbgs() << "-=-| END CFG 1 |-=-\n");
     INVALID(CFG, "Non branch instruction terminates BB: " + BB.getName());
+  }
 
   if (Br->isUnconditional()) return true;
 
   Value *Condition = Br->getCondition();
 
   // UndefValue is not allowed as condition.
-  if (isa<UndefValue>(Condition))
+  if (isa<UndefValue>(Condition)) {
+    DEBUG(dbgs() << "-=-| STATSCOP AffFunc 1 |-=-\n");
+    DEBUG(dbgs() << "-=-| END AffFunc 1 |-=-\n");
+    // SPOLLY 
+    // we shouldn't allow this either
     INVALID(AffFunc, "Condition based on 'undef' value in BB: "
                      + BB.getName());
+  }
 
   // Only Constant and ICmpInst are allowed as condition.
-  if (!(isa<Constant>(Condition) || isa<ICmpInst>(Condition)))
+  if (!(isa<Constant>(Condition) || isa<ICmpInst>(Condition))) {
+    DEBUG(dbgs() << "-=-| STATSCOP AffFunc 2 |-=-\n");
+    DEBUG(dbgs() << "-=-| END AffFunc 2 |-=-\n");
+    // SPOLLY
+    // allow this (I'm not sure if this is needed for our purpose)
+    //spolly_hit = true;
     INVALID(AffFunc, "Condition in BB '" + BB.getName() + "' neither "
                      "constant nor an icmp instruction");
+  }
 
   // Allow perfectly nested conditions.
   assert(Br->getNumSuccessors() == 2 && "Unexpected number of successors");
@@ -183,22 +231,41 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
     // in the code generation.
     //
     // TODO: This is not sufficient and just hides bugs. However it does pretty
+    // TODO: This is not sufficient and just hides bugs. However it does pretty
     // well.
-    if(ICmp->isUnsigned())
+    if(ICmp->isUnsigned()) {
+      DEBUG(dbgs() << "-=-| STATSCOP Unsigned 1 |-=-\n");
+      DEBUG(dbgs() << "-=-| END Unsigned 1 |-=-\n");
       return false;
-
+    }
     // Are both operands of the ICmp affine?
     if (isa<UndefValue>(ICmp->getOperand(0))
-        || isa<UndefValue>(ICmp->getOperand(1)))
+        || isa<UndefValue>(ICmp->getOperand(1))) {
+      DEBUG(dbgs() << "-=-| STATSCOP AffFunc 3 |-=-\n");
+      DEBUG(dbgs() << "-=-| END AffFunc 3 |-=-\n");
+      // SPOLLY
+      // we don't allow this either
       INVALID(AffFunc, "undef operand in branch at BB: " + BB.getName());
+    }
 
     const SCEV *LHS = SE->getSCEV(ICmp->getOperand(0));
     const SCEV *RHS = SE->getSCEV(ICmp->getOperand(1));
 
     if (!isAffineExpr(&Context.CurRegion, LHS, *SE) ||
-        !isAffineExpr(&Context.CurRegion, RHS, *SE))
-      INVALID(AffFunc, "Non affine branch in BB '" << BB.getName()
+        !isAffineExpr(&Context.CurRegion, RHS, *SE)) {
+      DEBUG(dbgs() << "-=-| STATSCOP AffFunc 4 |-=-\n");
+      DEBUG(dbgs() << "-=-| END AffFunc 4 |-=-\n");
+      // SPOLLY
+      // we allow non affine functions
+      if (checks[0]) {
+        DEBUG(dbgs() << "-=-| AffFunc 4 disabled |-=-\n");
+        spolly_hit = true;
+      } else {
+        DEBUG(dbgs() << "-=-| AffFunc 4 enabled |-=-\n");
+        INVALID(AffFunc, "Non affine branch in BB '" << BB.getName()
                         << "' with LHS: " << *LHS << " and RHS: " << *RHS);
+      }
+    }
   }
 
   // Allow loop exit conditions.
@@ -208,8 +275,11 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
 
   // Allow perfectly nested conditions.
   Region *R = RI->getRegionFor(&BB);
-  if (R->getEntry() != &BB)
+  if (R->getEntry() != &BB) {
+    DEBUG(dbgs() << "-=-| STATSCOP CFG 2 |-=-\n");
+    DEBUG(dbgs() << "-=-|  END CFG 2 |-=-\n");
     INVALID(CFG, "Not well structured condition at BB: " + BB.getName());
+  }
 
   return true;
 }
@@ -240,23 +310,56 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
 
   BasePointer = dyn_cast<SCEVUnknown>(SE->getPointerBase(AccessFunction));
 
-  if (!BasePointer)
-    INVALID(AffFunc, "No base pointer");
+  if (!BasePointer) {
+    DEBUG(dbgs() << "-=-| STATSCOP AffFunc 5 |-=-\n");
+    DEBUG(dbgs() << "No base pointer " << "\n");
+    DEBUG(dbgs() << "-=-| END AffFunc 5 |-=-\n");
+    //STATSCOP(AffFunc);
+    // SPOLLY
+    // we allow non affine memory accesses, but we have to stop here
+    //return false;
+    if (checks[1]) {
+      DEBUG(dbgs() << "-=-| AffFunc 5 disabled |-=-\n");
+      spolly_hit = true;
+      return true;
+    } else {
+      DEBUG(dbgs() << "-=-| AffFunc 5 enabled |-=-\n");
+      INVALID(AffFunc, "No base pointer");
+    }
+  }
 
   BaseValue = BasePointer->getValue();
 
-  if (isa<UndefValue>(BaseValue))
-    INVALID(AffFunc, "Undefined base pointer");
+  if (isa<UndefValue>(BaseValue)) {
+    DEBUG(dbgs() << "-=-| STATSCOP AffFunc 6 |-=-\n");
+    DEBUG(dbgs() << "Bad base values " << *BaseValue << "\n");
+    DEBUG(dbgs() << "-=-| END AffFunc 6 |-=-\n");
+    //STATSCOP(AffFunc);
+    // SPOLLY
+    // we allow non affine memory accesses, but we have to stop here
+    //return false;
+    if (checks[2]) {
+      DEBUG(dbgs() << "-=-| AffFunc 6 disabled |-=-\n");
+      spolly_hit = true;
+      return true;
+    } else {
+      DEBUG(dbgs() << "-=-| AffFunc 6 enabled |-=-\n");
+      INVALID(AffFunc, "Undefined base pointer");
+    }
+  }
 
   AccessFunction = SE->getMinusSCEV(AccessFunction, BasePointer);
 
-  if (!isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue) && !AllowNonAffine)
+  if (!isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue))
     INVALID(AffFunc, "Bad memory address " << *AccessFunction);
 
   // FIXME: Alias Analysis thinks IntToPtrInst aliases with alloca instructions
   // created by IndependentBlocks Pass.
-  if (isa<IntToPtrInst>(BaseValue))
+  if (isa<IntToPtrInst>(BaseValue)) { 
+    DEBUG(dbgs() << "-=-| STATSCOP Other 1 |-=-\n");
+    DEBUG(dbgs() << "-=-| END Other 1 |-=-\n");
     INVALID(Other, "Find bad intToptr prt: " << *BaseValue);
+  }
 
   // Check if the base pointer of the memory access does alias with
   // any other pointer. This cannot be handled at the moment.
@@ -271,10 +374,19 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
   // references which seem to alias, if -basicaa is not available. They actually
   // do not, but as we can not proof this without -basicaa we would fail. We
   // disable this check to not cause irrelevant verification failures.
-  if (!AS.isMustAlias() && !IgnoreAliasing)
-    INVALID_NOVERIFY(Alias,
-                     "Possible aliasing for value: " << BaseValue->getName()
-                     << "\n");
+  if (!AS.isMustAlias() && !IgnoreAliasing) { 
+      DEBUG(dbgs() << "-=-| STATSCOP Alias 1 |-=-\n");
+      DEBUG(dbgs() << "-=-| END Alias 1 |-=-\n");
+      if (checks[3]) {
+        DEBUG(dbgs() << "-=-| Alias 1 disabled |-=-\n");
+        spolly_hit = 1;
+        return true;
+      } else {
+        DEBUG(dbgs() << "-=-| Alias 1 enabled |-=-\n");
+        INVALID_NOVERIFY(Alias,
+                     "Possible aliasing found for value: " << *BaseValue);
+      }
+  }
 
   return true;
 }
@@ -308,28 +420,60 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
                                        DetectionContext &Context) const {
   // Only canonical IVs are allowed.
   if (PHINode *PN = dyn_cast<PHINode>(&Inst))
-    if (!isIndVar(PN, LI))
-      INVALID(IndVar, "Non canonical PHI node: " << Inst);
+    if (!isIndVar(PN, LI)) {
+      DEBUG(dbgs() << "-=-| STATSCOP Phi 1 |-=-\n");
+      DEBUG(dbgs() << "Non canonical PHI node found: "<< Inst);
+      DEBUG(dbgs() << "-=-| END Phi 1 |-=-\n");
+      //STATSCOP(Phi);
+      // Spolly
+      // we need to allow this 
+      if (checks[4]) {
+        DEBUG(dbgs() << "-=-| Phi 1 disabled |-=-\n");
+        spolly_hit = true;
+      } else {
+        DEBUG(dbgs() << "-=-| Phi 1 enabled |-=-\n");
+        INVALID(Phi, "non canonical PHI node found");
+      }//return false;
+    }
 
   // Scalar dependencies are not allowed.
-  if (hasScalarDependency(Inst, Context.CurRegion))
+  if (hasScalarDependency(Inst, Context.CurRegion)) {
+    DEBUG(dbgs() << "-=-| STATSCOP Scalar 1 |-=-\n");
+    DEBUG(dbgs() << "-=-| END Scalar 1 |-=-\n");
     INVALID(Scalar, "Scalar dependency found: " << Inst);
+    //return false;
+  }
+
 
   // We only check the call instruction but not invoke instruction.
   if (CallInst *CI = dyn_cast<CallInst>(&Inst)) {
     if (isValidCallInst(*CI))
       return true;
 
-    INVALID(FuncCall, "Call instruction: " << Inst);
+    DEBUG(dbgs() << "-=-| STATSCOP FuncCall 1 |-=-\n");
+    DEBUG(dbgs() << "-=-| END FuncCall 1 |-=-\n");
+    if (checks[5]) {
+      DEBUG(dbgs() << "-=-| FuncCall 1 disabled |-=-\n");
+      spolly_hit = true;
+    } else {
+      DEBUG(dbgs() << "-=-| FuncCall 1 enabled |-=-\n");
+      INVALID(FuncCall, "Call instruction: " << Inst);
+    }//return false;
   }
 
   if (!Inst.mayWriteToMemory() && !Inst.mayReadFromMemory()) {
     // Handle cast instruction.
-    if (isa<IntToPtrInst>(Inst) || isa<BitCastInst>(Inst))
+    if (isa<IntToPtrInst>(Inst) || isa<BitCastInst>(Inst)) {
+      DEBUG(dbgs() << "-=-| STATSCOP Other 2 |-=-\n");
+      DEBUG(dbgs() << "-=-| END Other 2 |-=-\n");
       INVALID(Other, "Cast instruction: " << Inst);
+    }
 
-    if (isa<AllocaInst>(Inst))
+    if (isa<AllocaInst>(Inst)) {
+      DEBUG(dbgs() << "-=-| STATSCOP Other 3 |-=-\n");
+      DEBUG(dbgs() << "-=-| END Other 3 |-=-\n");
       INVALID(Other, "Alloca instruction: " << Inst);
+    }
 
     return true;
   }
@@ -338,7 +482,9 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
   if (isa<LoadInst>(Inst) || isa<StoreInst>(Inst))
     return isValidMemoryAccess(Inst, Context);
 
+  DEBUG(dbgs() << "-=-| STATSCOP Other 4 |-=-\n");
   // We do not know this instruction, therefore we assume it is invalid.
+  DEBUG(dbgs() << "-=-| END Other 4 |-=-\n");
   INVALID(Other, "Unknown instruction: " << Inst);
 }
 
@@ -346,11 +492,17 @@ bool ScopDetection::isValidBasicBlock(BasicBlock &BB,
                                       DetectionContext &Context) const {
   if (!isValidCFG(BB, Context))
     return false;
+   
+  DEBUG(dbgs() << "... CFG is valid\n");
 
   // Check all instructions, except the terminator instruction.
-  for (BasicBlock::iterator I = BB.begin(), E = --BB.end(); I != E; ++I)
+  for (BasicBlock::iterator I = BB.begin(), E = --BB.end(); I != E; ++I) {
+    DEBUG (dbgs () << "Checking Instruction I: "<< I << " in Context: "<< &Context << "\n");
     if (!isValidInstruction(*I, Context))
       return false;
+  }
+
+  DEBUG(dbgs() << "... Instructions are Valid\n");
 
   Loop *L = LI->getLoopFor(&BB);
   if (L && L->getHeader() == &BB && !isValidLoop(L, Context))
@@ -362,15 +514,23 @@ bool ScopDetection::isValidBasicBlock(BasicBlock &BB,
 bool ScopDetection::isValidLoop(Loop *L, DetectionContext &Context) const {
   PHINode *IndVar = L->getCanonicalInductionVariable();
   // No canonical induction variable.
-  if (!IndVar)
+  if (!IndVar) {
+    DEBUG(dbgs() << "-=-| STATSCOP IndVar 1 |-=-\n");
     INVALID(IndVar, "No canonical IV at loop header: "
                     << L->getHeader()->getName());
 
+  }
+
   // Is the loop count affine?
   const SCEV *LoopCount = SE->getBackedgeTakenCount(L);
-  if (!isAffineExpr(&Context.CurRegion, LoopCount, *SE))
+
+  if (!isAffineExpr(&Context.CurRegion, LoopCount, *SE)) {
+  //if (!isValidAffineFunction(LoopCount, Context.CurRegion)) {
+    DEBUG(dbgs() << "-=-| STATSCOP LoopBound 1 |-=-\n");
+    DEBUG(dbgs() << "-=-| END LoopBound 1 |-=-\n");
     INVALID(LoopBound, "Non affine loop bound '" << *LoopCount << "' in loop: "
                        << L->getHeader()->getName());
+  }
 
   return true;
 }
@@ -418,7 +578,10 @@ void ScopDetection::findScops(Region &R) {
   LastFailure = "";
 
   if (isValidRegion(Context)) {
+
+    DEBUG(dbgs() << "-=-| STATSCOP ValidRegion |-=-\n");
     ++ValidRegion;
+    DEBUG(dbgs() << "-=-| END ValidRegion |-=-\n");
     ValidRegions.insert(&R);
     return;
   }
@@ -480,8 +643,11 @@ bool ScopDetection::isValidExit(DetectionContext &Context) const {
   // PHI nodes are not allowed in the exit basic block.
   if (BasicBlock *Exit = R.getExit()) {
     BasicBlock::iterator I = Exit->begin();
-    if (I != Exit->end() && isa<PHINode> (*I))
+    if (I != Exit->end() && isa<PHINode> (*I)) {
+      DEBUG(dbgs() << "-=-| STATSCOP Phi 2 |-=-\n");
+      DEBUG(dbgs() << "-=-| END Phi 2 |-=-\n");
       INVALID(Other, "PHI node in exit BB");
+    }
   }
 
   return true;
@@ -490,6 +656,14 @@ bool ScopDetection::isValidExit(DetectionContext &Context) const {
 bool ScopDetection::isValidRegion(DetectionContext &Context) const {
   Region &R = Context.CurRegion;
 
+  // read checks file
+  readChecksFile();
+
+  // init spolly_hit
+  // not thread save ...
+  spolly_hit = false;
+
+  DEBUG(dbgs() << "------------------------------------------------------\n");
   DEBUG(dbgs() << "Checking region: " << R.getNameStr() << "\n\t");
 
   // The toplevel region is no valid region.
@@ -501,18 +675,40 @@ bool ScopDetection::isValidRegion(DetectionContext &Context) const {
 
   // SCoP can not contains the entry block of the function, because we need
   // to insert alloca instruction there when translate scalar to array.
-  if (R.getEntry() == &(R.getEntry()->getParent()->getEntryBlock()))
+  if (R.getEntry() == &(R.getEntry()->getParent()->getEntryBlock())) {
+    DEBUG(dbgs() << "-=-| STATSCOP Other 5 |-=-\n");
+    DEBUG(dbgs() << "-=-| END Other 5 |-=-\n");
     INVALID(Other, "Region containing entry block of function is invalid!");
+  }
 
   // Only a simple region is allowed.
-  if (!R.isSimple())
+  if (!R.isSimple()) {
+    DEBUG(dbgs() << "-=-| STATSCOP SimpleRegion 1 |-=-\n");
+    DEBUG(dbgs() << "-=-| END SimpleRegion 1 |-=-\n");
     INVALID(SimpleRegion, "Region not simple: " << R.getNameStr());
-
-  if (!allBlocksValid(Context))
+  }
+  
+  DEBUG(dbgs() << "Region is good, checking Blocks ...\n");
+  if (!allBlocksValid(Context)) {
+    DEBUG(dbgs() << "... not all blocks are valid\n");
+    DEBUG(dbgs() << "=====================================================\n\n");
     return false;
+  }
 
-  if (!isValidExit(Context))
+  DEBUG(dbgs() << "Blocks are good, checking Exit ...\n");
+  if (!isValidExit(Context)) {
+    DEBUG(dbgs() << "... Exit is not valid\n");
+    DEBUG(dbgs() << "=====================================================\n\n");
     return false;
+  }
+
+  // save spolly hit if present
+  if (spolly_hit) {
+    DEBUG(dbgs() << "-=-| STATSCOP Spolly 1 |-=-\n");
+    DEBUG(dbgs() << "Found spolly hit " << R.getNameStr() << '\n');
+    DEBUG(dbgs() << "-=-| END Spolly 1 |-=-\n");
+    //STATSCOP(Spolly);
+  }
 
   DEBUG(dbgs() << "OK\n");
   return true;
