@@ -60,6 +60,8 @@ namespace polly {
 
   extern char &IndependentBlocksID;
   extern char &CodePreparationID;
+  
+  Pass *createScopSpeculationPass();
 }
 
 using namespace polly;
@@ -102,6 +104,8 @@ namespace {
        createScopLibExporterPass();
        createScopLibImporterPass();
 #endif
+
+       createScopSpeculationPass();
 
     }
   } PollyForcePassLinking; // Force link by creating a global definition.

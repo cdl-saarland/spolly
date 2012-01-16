@@ -47,6 +47,8 @@
 #ifndef POLLY_SCOP_DETECTION_H
 #define POLLY_SCOP_DETECTION_H
 
+#include "polly/RegionSpeculation.h"
+
 #include "llvm/Pass.h"
 #include "llvm/Analysis/AliasSetTracker.h"
 
@@ -58,6 +60,7 @@ using namespace llvm;
 namespace llvm {
   class RegionInfo;
   class Region;
+  class LoopInfo;
   class LoopInfo;
   class Loop;
   class ScalarEvolution;
@@ -90,6 +93,9 @@ class ScopDetection : public FunctionPass {
   AliasAnalysis *AA;
   //@}
 
+  RegionSpeculation *RS;
+  friend class RegionSpeculation;
+
   /// @brief Context variables for SCoP detection.
   struct DetectionContext {
     Region &CurRegion;    // The region to check.
@@ -104,7 +110,8 @@ class ScopDetection : public FunctionPass {
   RegionSet ValidRegions;
 
   // Invalid regions and the reason they fail.
-  std::map<const Region*, std::string> InvalidRegions;
+  typedef std::map<const Region*, std::string> InvalidRegionMap;
+  InvalidRegionMap InvalidRegions;
 
   // Remember the invalid functions producted by backends;
   typedef std::set<const Function*> FunctionSet;
@@ -206,7 +213,7 @@ class ScopDetection : public FunctionPass {
 
 public:
   static char ID;
-  explicit ScopDetection() : FunctionPass(ID) {}
+  explicit ScopDetection() : FunctionPass(ID), RS(new RegionSpeculation(this)) {}
 
   /// @brief Get the RegionInfo stored in this pass.
   ///
@@ -240,6 +247,19 @@ public:
 
   const_iterator begin() const { return ValidRegions.begin(); }
   const_iterator end()   const { return ValidRegions.end();   }
+  //@}
+
+  /// @name 
+  ///
+  //@{
+  typedef InvalidRegionMap::iterator invalid_iterator;
+  typedef InvalidRegionMap::const_iterator const_invalid_iterator;
+
+  invalid_iterator invalid_begin()  { return InvalidRegions.begin(); }
+  invalid_iterator invalid_end()    { return InvalidRegions.end();   }
+
+  const_invalid_iterator invalid_begin() const { return InvalidRegions.begin(); }
+  const_invalid_iterator invalid_end()   const { return InvalidRegions.end();   }
   //@}
 
   /// @brief Mark the function as invalid so we will not extract any scop from
