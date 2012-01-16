@@ -268,6 +268,8 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
       // we allow non affine functions
       if (SPECCHECK(0)) {
         DEBUG(dbgs() << "-=-| AffFunc 4 disabled |-=-\n");
+        DEBUG(dbgs() << "Non affine branch in BB '" << BB.getName()
+                        << "' with LHS: " << *LHS << " and RHS: " << *RHS);
         spolly_hit = true;
         violations[VIOLATION_AFFFUNC]++;
       } else {

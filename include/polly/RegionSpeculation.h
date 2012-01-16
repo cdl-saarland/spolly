@@ -20,6 +20,7 @@
 using namespace llvm;
 
 namespace llvm {
+  class Loop;
   class BasicBlock;
   class Region;
   class Function;
@@ -36,15 +37,18 @@ class RegionSpeculation {
   ScopDetection *SD;
   Function *func;
 
+  int* violations;
+  Region *currentRegion;
+
   bool regionIsLoop(Region *R);
 
-  int scoreBasicBlock(BasicBlock *B, int *&violations);
+  int scoreBasicBlock(BasicBlock *B);
 
-  int scoreLoop(Region *R, int *&violations);
+  int scoreLoop(Loop *L);
 
-  int scoreConditional(Region *R, int *&violations);
+  int scoreConditional(Region *R);
 
-  int scoreRegion(Region *R, int *&violations);
+  int scoreRegion(Region *R);
   
   typedef std::pair<BasicBlock*, BasicBlock*> RegionScoreKey;
   typedef std::map<RegionScoreKey, int> RegionScoreMap;
