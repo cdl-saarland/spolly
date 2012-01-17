@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include "polly/RegionSpeculation.h"
 
@@ -39,10 +40,11 @@
 #define LI SD->LI
 
 #define VIOLATION_COUNT 4
-static int violationCosts[VIOLATION_COUNT] = { 10, 10, 10, 10 };
+static int violationCosts[VIOLATION_COUNT] = { 2, 2, 2, 2 };
 
-#define INSTRUCTION_VALUE 2
-
+// How much is each instruction "worth"
+#define INSTRUCTION_VALUE 4
+#define ITERATION_TRESHOLD 10
 
 using namespace llvm;
 using namespace polly;
@@ -54,6 +56,95 @@ SPollyDumpCandidates("spolly-dump",
        cl::value_desc("Dump all speculative candidates"),
        cl::init(false));
 
+static cl::opt<bool>
+SPollyProbabilityOnbranch0("spolly-prob-br0",
+       cl::desc(""),
+       cl::Hidden,
+       cl::value_desc(""),
+       cl::init(false));
+
+static cl::opt<bool>
+SPollyProbabilityOnbranch1("spolly-prob-br1",
+       cl::desc(""),
+       cl::Hidden,
+       cl::value_desc(""),
+       cl::init(false));
+
+
+static cl::opt<bool>
+SPollyViolationProbabilityHigh("spolly-viol-high",
+       cl::desc(""),
+       cl::Hidden,
+       cl::value_desc(""),
+       cl::init(false));
+
+static cl::opt<bool>
+SPollyViolationProbabilityLow("spolly-viol-low",
+       cl::desc("TODO"),
+       cl::Hidden,
+       cl::value_desc("TODO"),
+       cl::init(false));
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  getFileName 
+ *  Description:  
+ * =====================================================================================
+ */
+static std::string getFileName(Region *R) {
+  std::string FunctionName =
+    R->getEntry()->getParent()->getName();
+  std::string FileName = "spolly_" + FunctionName + ".score";
+  return FileName;
+}
+
+
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  getViolationProbability
+ *  Description:  
+ * =====================================================================================
+ */
+static int violPerc = -1;
+static int getViolationProbability(Region *R) {
+  if (violPerc == -1) {
+    if (SPollyViolationProbabilityHigh)
+     violPerc = 10000;
+    else if (SPollyViolationProbabilityLow)
+     violPerc = 1;
+    else
+     violPerc = 20;
+  } 
+
+  return violPerc;
+}		/* -----  end of function getViolationProbability  ----- */
+
+
+
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  getExecutionProbability
+ *  Description:  
+ * =====================================================================================
+ */
+static int exPerc = -1;
+static int getExecutionProbability(BasicBlock *B) {
+  if (exPerc == -1) {
+    if (SPollyProbabilityOnbranch0)
+      exPerc = 10;
+    else if (SPollyProbabilityOnbranch1)
+      exPerc = 90;
+    else
+      exPerc = 50;
+  } 
+
+  return (exPerc = 100 - exPerc);
+}		/* -----  end of function getExecutionProbability  ----- */
 
 
 
@@ -63,11 +154,14 @@ SPollyDumpCandidates("spolly-dump",
  *  Description:  
  * =============================================================================
  */
-static inline int calculateScoreFromViolations(int *v) {
+static inline int calculateScoreFromViolations(int *v, Region *R) {
   int score = 0;
   for (int i = 0; i < VIOLATION_COUNT; i++) {
     score += v[i] * violationCosts[i];
   }
+  
+  score *= getViolationProbability(R);
+
   return score;
 }		/* -----  end of function calculateScoreFromViolations  ----- */
 
@@ -77,8 +171,22 @@ static inline int calculateScoreFromViolations(int *v) {
 
 /* 
  * ===  FUNCTION  ==============================================================
- *         Name:  regionIsLoop
+ *         Name:  getLoopIterationCount 
  *  Description:  
+ * =============================================================================
+ */
+static inline int getLoopIterationCount(Region *R) {
+  // -1 to indicate no information available 
+  return 20;
+}		/* -----  end of function getLoopIterationCount  ----- */
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  regionIsLoop
+ *    Arguments:  A Region pointer R
+ *      Returns:  true iff R describes a loop 
  * =============================================================================
  */
 bool RegionSpeculation::regionIsLoop(Region *R) {
@@ -94,6 +202,8 @@ bool RegionSpeculation::regionIsLoop(Region *R) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  scoreBasicBlock
+ *    Arguments:
+ *      Returns:  
  *  Description:  
  * =============================================================================
  */
@@ -101,7 +211,7 @@ int RegionSpeculation::scoreBasicBlock(BasicBlock *B) {
 
   // Start with an initial value which is not accurate for this block
   // but in the end all violations not contained in this block are substracted
-  int blockScore = calculateScoreFromViolations(violations);
+  int blockScore = calculateScoreFromViolations(violations, currentRegion);
 
   DEBUG(dbgs() << "@\t    Computing score of the BasicBlock " 
         << B->getName() << " \n");
@@ -114,7 +224,7 @@ int RegionSpeculation::scoreBasicBlock(BasicBlock *B) {
   SD->isValidBasicBlock(*B, Context);
 
   // This will take all violations within this block into account
-  blockScore -= calculateScoreFromViolations(violations);
+  blockScore -= calculateScoreFromViolations(violations, currentRegion);
 
   DEBUG(dbgs() << "@\t    -- blockScore is " << blockScore << " \n");
   return blockScore;
@@ -127,16 +237,69 @@ int RegionSpeculation::scoreBasicBlock(BasicBlock *B) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  scoreLoop
- *  Description:  
+ *    Arguments:
+ *      Returns:  
+ *  Description: 
+ *
+ *  -----------------------------------------
+ *  |                              Region R |
+ *  |                                       |
+ *  |           ==========                  |
+ *  |           | Header |<---|             |
+ *  |           ==========    |             |
+ *  |              |          |             |
+ *  |         |----|          |             |
+ *  |         V               |             |
+ *  |     ========            |             |
+ *  |     | Body |            |             |
+ *  |     ========            |             |
+ *  |         |               |             |
+ *  |         |----|          |             |
+ *  |              V          |             |
+ *  |           ==========    |             |
+ *  |           |        |----|             |
+ *  |           ==========                  |
+ *  |                                       |
+ *  -----------------------------------------
+ *
  * =============================================================================
  */
-int RegionSpeculation::scoreLoop(Loop *L) {
-  int score = 0;
+int RegionSpeculation::scoreLoop(Region *R) {
+  int loopScore = 0, iterationCount;
 
+  // Get the iteration count if computable or via profiling information  
+  iterationCount = getLoopIterationCount(R);
+  // 
+  if (iterationCount > 0) {
+    
+    // Test if it is worth to speculativelly parallelize this loop since 
+    if (iterationCount < ITERATION_TRESHOLD) {
+      // The loopCount was under the treshold, so stop speculating
+      return - (1 << 20);
+    }
+  }
 
+  // Handle all subregions and basicBlocks within this region
+  for (Region::element_iterator bb = R->element_begin(), be = R->element_end();
+       bb != be; ++bb) {
 
-  DEBUG(dbgs() << "@\t  -- Loop score is " << score << " \n");
-  return score;
+    if ((*bb)->isSubRegion()) {
+      DEBUG(dbgs() << "@\t-- and the subregion " << 
+            (*bb)->getNodeAs<Region>()->getNameStr() << " \n");
+      loopScore += scoreRegion((*bb)->getNodeAs<Region>());
+    } else {
+      DEBUG(dbgs() << "@\t-- and the BasicBlock " << 
+            (*bb)->getNodeAs<BasicBlock>()->getName() << " \n");
+      loopScore += scoreBasicBlock((*bb)->getNodeAs<BasicBlock>());
+    }
+  }
+
+  // Use the iteration count if available and high enough to influence 
+  if (iterationCount > 0) 
+    loopScore *= iterationCount;
+
+  DEBUG(dbgs() << "@\t  -- Loop score is " << loopScore << " \n");
+  return loopScore;
 }		/* -----  end of function scoreLoop  ----- */
 
 
@@ -146,77 +309,86 @@ int RegionSpeculation::scoreLoop(Loop *L) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  scoreConditional
- *  Description:  
+ *    Arguments:
+ *      Returns:  
+ *
+ * -----------------------------------------    
+ * |                              Region R |
+ * |              =========                |  To score a conditional, first the
+ * |              I entry I -- entryScore  |  entry BasicBlock is scored, and 
+ * |              I-------I                |  afterwards the branch0 and br1-
+ * |              I guard I                |  ernative, but only if such a block
+ * |              ==|===|==                |  exitst. The branch1 or the 
+ * |                |   |                  |  branch0 (but not both) could be 
+ * |     |- second -|   |- first -|        |  the same as the Exit block. In 
+ * |     V                        V        |  such a case no score is added.
+ * | ===========             ============  |  Before we sum up all computed 
+ * | I branch1 I             I br0quent I  |  scores, we use profiling data
+ * | ===========             ============  |  to weight the scores computed
+ * |       | br1Score   br0Scrore |        |  for the branches. The exit node
+ * ------- | -------------------- | --------  Is handled by the scoreRegion.
+ *         |                      |       
+ *         |                      |           
+ *         |      ==========      |           
+ *         |----->I  exit  I<-----|           
+ *                ==========                  
+ *    
+ *        br0Score = ((br0 * p(br0)) / (101 - p(br0)))     
+ *        br0Score = ((br1  * p(br1))  / (101 - p(br1)))     
+ *        where p(block) := execution probability of block
+ *
+ *        conditionlScore = entryScore + br1Score + br0Score
+ *
  * =============================================================================
  */
 int RegionSpeculation::scoreConditional(Region *R) {
   Region *tempRegion; 
-  BasicBlock *consequent, *alternative, *guard;
-  int conditionalScore = 0, guardScore = 0, consScore = 0, altScore = 0;
+  BasicBlock *branch0, *branch1, *entry, *exit;
+  int conditionalScore = 0, entryScore = 0, br0Score = 0, br1Score = 0;
+  int probability;
   
-  guard = R->getEntry(); 
-  guardScore = scoreBasicBlock(guard);
+  exit  = R->getExit();
+  entry = R->getEntry(); 
+  entryScore = scoreBasicBlock(entry);
 
-  TerminatorInst *branch = guard->getTerminator();
 
-  assert(branch->getNumSuccessors() == 2 
+  TerminatorInst *guard = entry->getTerminator();
+  assert(guard->getNumSuccessors() == 2 
          && "Branch with two successors expected");
 
-  consequent  = branch->getSuccessor(0);
-  alternative = branch->getSuccessor(1);
+  branch0 = guard->getSuccessor(0);
+  branch1  = guard->getSuccessor(1);
  
-  // TODO check if there is a real consequence and alternative 
-  if (true) {
-/*-----------------------------------------------------------------------------
- *             ---------
- *             | guard |
- *             ---------
- *               |   |
- *      |-- no --|   |-- yes --|
- *      |                      V 
- *      |                  -------------
- *     ???                 | consquent | << This block exists
- *      |                  -------------
- *      |                      |
- *      |      ---------       |
- *      |----->|       |<------|
- *             ---------
- *-----------------------------------------------------------------------------*/
-    if ((tempRegion = RI->getRegionFor(consequent)) == R) {
-      // The consequent is just one BasicBlock   
-      consScore = scoreBasicBlock(consequent);
+  probability = getExecutionProbability(branch0);
+  while (branch0 != exit) {
+    if ((tempRegion = RI->getRegionFor(branch0)) == R) {
+      // The branch0 is a BasicBlock in the region R 
+      br0Score += scoreBasicBlock(branch0);
+      branch0 = branch0->getTerminator()->getSuccessor(0);
     } else {
-      // The consequent contains another region
-      consScore = scoreRegion(tempRegion);
+      // The branch0 is contained in another region
+      br0Score += scoreRegion(tempRegion);
+      branch0 = tempRegion->getExit();
     }
   }
+  br0Score = (br0Score * probability) / (101 - probability);
 
-  // TODO check if there is a real consequence and alternative 
-  if (true) {
-/*-----------------------------------------------------------------------------
- *             ---------
- *             | guard |
- *             ---------
- *               |   |
- *      |-- no --|   |-- yes -------------------|
- *      V                                       | 
- * ---------------                              |
- * | alternative | << This block exists        ???
- * ---------------                              |
- *      |                                       |
- *      |      ---------                        |
- *      |----->|       |<-----------------------|
- *             ---------
- *-----------------------------------------------------------------------------*/
-    if ((tempRegion = RI->getRegionFor(alternative)) == R) {
-      // The alternative is just one BasicBlock   
-      altScore = scoreBasicBlock(alternative);
+  // probability = 100 - probability 
+  probability = getExecutionProbability(branch1); 
+  while (branch1 != exit) {
+    if ((tempRegion = RI->getRegionFor(branch1)) == R) {
+      // The branch1 is just one BasicBlock   
+      br1Score   += scoreBasicBlock(branch1);
+      branch1 = branch1->getTerminator()->getSuccessor(0);
     } else {
-      // The alternative contains another region
-      altScore = scoreRegion(tempRegion);
+      // The branch1 contains another region
+      br1Score   += scoreRegion(tempRegion);
+      branch1 = tempRegion->getExit();
     }
   }
+  br1Score = (br1Score * probability) / (101 - probability);
 
+  conditionalScore = entryScore + br0Score + br1Score;
 
   DEBUG(dbgs() << "@\t  -- Conditional score is " << conditionalScore << " \n");
   return conditionalScore;
@@ -230,14 +402,26 @@ int RegionSpeculation::scoreConditional(Region *R) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  scoreRegion
- *  Description:  
+ *    Arguments:
+ *      Returns:  
+ *
+ *  -----------------------------------------
+ *  |                                       |
+ *  |                                       |
+ *  |                                       |
+ *  |                                       |
+ *  |                                       |
+ *  |                                       |
+ *  |                                       |
+ *  -----------------------------------------
+ *
  * =============================================================================
  */
 int RegionSpeculation::scoreRegion(Region *R) {
   RegionScoreKey RSK= std::make_pair(R->getEntry(), R->getExit());
   RegionScoreMap::iterator it;
   Region *tempRegion; 
-  int i, regionScore = 0, exitScore = 0;
+  int regionScore = 0, exitScore = 0;
 
   tempRegion    = currentRegion;
   currentRegion = R;
@@ -248,31 +432,32 @@ int RegionSpeculation::scoreRegion(Region *R) {
   // Score this region as loop or conditional 
   if (regionIsLoop(R)) {
     DEBUG(dbgs() << "@\t-- which is a loop \n");
-    regionScore += scoreLoop(LI->getLoopFor(RSK.first));
+    regionScore += scoreLoop(R);
   } else {
     DEBUG(dbgs() << "@\t-- which is a conditional \n");
     regionScore += scoreConditional(R);
   }
 
   // Handle all subregions and basicBlocks within this region
-  for (Region::element_iterator bb = R->element_begin(), be = R->element_end();
-       bb != be; ++bb) {
+  //for (Region::element_iterator bb = R->element_begin(), be = R->element_end();
+       //bb != be; ++bb) {
 
-    if ((*bb)->isSubRegion()) {
-      DEBUG(dbgs() << "@\t-- and the subregion " << 
-            (*bb)->getNodeAs<Region>()->getNameStr() << " \n");
-      regionScore += scoreRegion((*bb)->getNodeAs<Region>());
-    } else {
+    //if ((*bb)->isSubRegion()) {
+      //DEBUG(dbgs() << "@\t-- and the subregion " << 
+            //(*bb)->getNodeAs<Region>()->getNameStr() << " \n");
+      //regionScore += scoreRegion((*bb)->getNodeAs<Region>());
+    //} else {
       //DEBUG(dbgs() << "@\t-- and the BasicBlock " << 
             //(*bb)->getNodeAs<BasicBlock>()->getName() << " \n");
       //score += scoreBasicBlock((*bb)->getNodeAs<BasicBlock>());
-    }
+    //}
 
-  }
+  //}
  
   // Score the exit block of the region 
-  exitScore = scoreBasicBlock(R->getExit());
+  //exitScore = scoreBasicBlock(R->getExit());
   
+  //regionScore += exitScore;
 
   // Save the score and leave 
   RegionScores[RSK] = regionScore;
@@ -309,7 +494,7 @@ bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
 
   // TODO change output file according to the current function
   if (SPollyDumpCandidates) {
-    std::ofstream outfile ("speculativeRegions", std::ios_base::app);
+    std::ofstream outfile (getFileName(&R).c_str(), std::ios_base::app);
     outfile << R.getNameStr() << ":\t\t" << score << "\n";
     outfile.close();
   }

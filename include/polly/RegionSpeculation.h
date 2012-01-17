@@ -44,7 +44,7 @@ class RegionSpeculation {
 
   int scoreBasicBlock(BasicBlock *B);
 
-  int scoreLoop(Loop *L);
+  int scoreLoop(Region *R);
 
   int scoreConditional(Region *R);
 
