@@ -40,11 +40,18 @@
 #define LI SD->LI
 
 #define VIOLATION_COUNT 4
-static int violationCosts[VIOLATION_COUNT] = { 2, 2, 2, 2 };
+static int violationCosts[VIOLATION_COUNT] = { 1, 1, 1, 1 };
 
 // How much is each instruction "worth"
 #define INSTRUCTION_VALUE 4
 #define ITERATION_TRESHOLD 10
+#define ITERATIONCOUNTCONSTANT 20
+
+#define SPECULATIVETRESHOLD 500
+
+// Probabilities is spolly-branch-{best,worst} is set
+#define BRANCHPROBABILITYHIGHT  99
+#define BRANCHPROBABILITYLOW   100 - BRANCHPROBABILITYHIGHT
 
 using namespace llvm;
 using namespace polly;
@@ -57,14 +64,14 @@ SPollyDumpCandidates("spolly-dump",
        cl::init(false));
 
 static cl::opt<bool>
-SPollyProbabilityOnbranch0("spolly-prob-br0",
+SPollyBranchWorst("spolly-branch-worst",
        cl::desc(""),
        cl::Hidden,
        cl::value_desc(""),
        cl::init(false));
 
 static cl::opt<bool>
-SPollyProbabilityOnbranch1("spolly-prob-br1",
+SPollyBranchBest("spolly-branch-best",
        cl::desc(""),
        cl::Hidden,
        cl::value_desc(""),
@@ -72,14 +79,14 @@ SPollyProbabilityOnbranch1("spolly-prob-br1",
 
 
 static cl::opt<bool>
-SPollyViolationProbabilityHigh("spolly-viol-high",
+SPollyViolationProbabilityHigh("spolly-violation-high",
        cl::desc(""),
        cl::Hidden,
        cl::value_desc(""),
        cl::init(false));
 
 static cl::opt<bool>
-SPollyViolationProbabilityLow("spolly-viol-low",
+SPollyViolationProbabilityLow("spolly-violation-low",
        cl::desc("TODO"),
        cl::Hidden,
        cl::value_desc("TODO"),
@@ -132,18 +139,13 @@ static int getViolationProbability(Region *R) {
  *  Description:  
  * =====================================================================================
  */
-static int exPerc = -1;
 static int getExecutionProbability(BasicBlock *B) {
-  if (exPerc == -1) {
-    if (SPollyProbabilityOnbranch0)
-      exPerc = 10;
-    else if (SPollyProbabilityOnbranch1)
-      exPerc = 90;
-    else
-      exPerc = 50;
-  } 
+  int exPerc = 50;
 
-  return (exPerc = 100 - exPerc);
+  // TODO 
+  // use profiling information here
+   
+  return exPerc;
 }		/* -----  end of function getExecutionProbability  ----- */
 
 
@@ -172,12 +174,20 @@ static inline int calculateScoreFromViolations(int *v, Region *R) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  getLoopIterationCount 
- *  Description:  
+ *     Argument:  Region *R
+ *  Description:  Return the iteration Count of the Region R or 
+ *                ITERATIONCOUNTCONSTANT if not available 
  * =============================================================================
  */
 static inline int getLoopIterationCount(Region *R) {
-  // -1 to indicate no information available 
-  return 20;
+  Loop *loop = LI->getLoopFor(R->getEntry());
+  unsigned iterationCount = loop->getSmallConstantTripCount()
+  
+  if (iterationCount == 0) {
+    return ITERATIONCOUNTCONSTANT;
+  } else {
+    return iterationCount;
+  }
 }		/* -----  end of function getLoopIterationCount  ----- */
 
 
@@ -202,8 +212,8 @@ bool RegionSpeculation::regionIsLoop(Region *R) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  scoreBasicBlock
- *    Arguments:
- *      Returns:  
+ *    Arguments:  The BasicBlock for which a score should be computed
+ *      Returns:  The computed score
  *  Description:  
  * =============================================================================
  */
@@ -237,9 +247,10 @@ int RegionSpeculation::scoreBasicBlock(BasicBlock *B) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  scoreLoop
- *    Arguments:
- *      Returns:  
- *  Description: 
+ *    Arguments:  A Region R containing a loop
+ *      Returns:  A score for this Region
+ *  Description:  Use the iterationCount and score from BasicBlocks as well
+ *                as SubRegions to compute a score for this Region
  *
  *  -----------------------------------------
  *  |                              Region R |
@@ -269,14 +280,14 @@ int RegionSpeculation::scoreLoop(Region *R) {
 
   // Get the iteration count if computable or via profiling information  
   iterationCount = getLoopIterationCount(R);
-  // 
-  if (iterationCount > 0) {
+  
+  assume(iterationCount > 0 && "invalid iteration count");
+
     
-    // Test if it is worth to speculativelly parallelize this loop since 
-    if (iterationCount < ITERATION_TRESHOLD) {
-      // The loopCount was under the treshold, so stop speculating
-      return - (1 << 20);
-    }
+  // Test if it is worth to speculativelly parallelize this loop since 
+  if (iterationCount < ITERATION_TRESHOLD) {
+    // The loopCount was under the treshold, so stop speculating
+    return - (1 << 20);
   }
 
   // Handle all subregions and basicBlocks within this region
@@ -309,8 +320,8 @@ int RegionSpeculation::scoreLoop(Region *R) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  scoreConditional
- *    Arguments:
- *      Returns:  
+ *    Arguments:  The Region R containing a contitional
+ *      Returns:  A score computed for the whole Region
  *
  * -----------------------------------------    
  * |                              Region R |
@@ -345,7 +356,7 @@ int RegionSpeculation::scoreConditional(Region *R) {
   Region *tempRegion; 
   BasicBlock *branch0, *branch1, *entry, *exit;
   int conditionalScore = 0, entryScore = 0, br0Score = 0, br1Score = 0;
-  int probability;
+  int probability0, probability1;
   
   exit  = R->getExit();
   entry = R->getEntry(); 
@@ -359,7 +370,7 @@ int RegionSpeculation::scoreConditional(Region *R) {
   branch0 = guard->getSuccessor(0);
   branch1  = guard->getSuccessor(1);
  
-  probability = getExecutionProbability(branch0);
+  probability0 = getExecutionProbability(branch0);
   while (branch0 != exit) {
     if ((tempRegion = RI->getRegionFor(branch0)) == R) {
       // The branch0 is a BasicBlock in the region R 
@@ -371,10 +382,9 @@ int RegionSpeculation::scoreConditional(Region *R) {
       branch0 = tempRegion->getExit();
     }
   }
-  br0Score = (br0Score * probability) / (101 - probability);
 
-  // probability = 100 - probability 
-  probability = getExecutionProbability(branch1); 
+  // probability1 = 100 - probability0 
+  probability1 = getExecutionProbability(branch1); 
   while (branch1 != exit) {
     if ((tempRegion = RI->getRegionFor(branch1)) == R) {
       // The branch1 is just one BasicBlock   
@@ -386,7 +396,35 @@ int RegionSpeculation::scoreConditional(Region *R) {
       branch1 = tempRegion->getExit();
     }
   }
-  br1Score = (br1Score * probability) / (101 - probability);
+
+  // If commandline flags are set, orverwrite the probabilities
+  if (SPollyBranchWorst) {
+    if (br0Score < br1Score) {
+      probability0 = BRANCHPROBABILITYHIGHT;
+      probability1 = BRANCHPROBABILITYLOW;
+    } else {
+      probability1 = BRANCHPROBABILITYHIGHT;
+      probability0 = BRANCHPROBABILITYLOW;
+    }
+  } else if (SPollyBranchBest) {
+    if (br0Score < br1Score) {
+      probability1 = BRANCHPROBABILITYHIGHT;
+      probability0 = BRANCHPROBABILITYLOW;
+    } else {
+      probability0 = BRANCHPROBABILITYHIGHT;
+      probability1 = BRANCHPROBABILITYLOW;
+    }
+  }
+
+  assert(probability0 >=   0 && "probability <   0% ");
+  assert(probability0 <= 100 && "probability > 100% ");
+  assert(probability1 >=   0 && "probability <   0% ");
+  assert(probability1 <= 100 && "probability > 100% ");
+
+  // Score the first branch
+  br0Score = (br0Score * probability0) / (101 - probability0);
+  // Score the first branch
+  br1Score = (br1Score * probability1) / (101 - probability1);
 
   conditionalScore = entryScore + br0Score + br1Score;
 
@@ -438,27 +476,6 @@ int RegionSpeculation::scoreRegion(Region *R) {
     regionScore += scoreConditional(R);
   }
 
-  // Handle all subregions and basicBlocks within this region
-  //for (Region::element_iterator bb = R->element_begin(), be = R->element_end();
-       //bb != be; ++bb) {
-
-    //if ((*bb)->isSubRegion()) {
-      //DEBUG(dbgs() << "@\t-- and the subregion " << 
-            //(*bb)->getNodeAs<Region>()->getNameStr() << " \n");
-      //regionScore += scoreRegion((*bb)->getNodeAs<Region>());
-    //} else {
-      //DEBUG(dbgs() << "@\t-- and the BasicBlock " << 
-            //(*bb)->getNodeAs<BasicBlock>()->getName() << " \n");
-      //score += scoreBasicBlock((*bb)->getNodeAs<BasicBlock>());
-    //}
-
-  //}
- 
-  // Score the exit block of the region 
-  //exitScore = scoreBasicBlock(R->getExit());
-  
-  //regionScore += exitScore;
-
   // Save the score and leave 
   RegionScores[RSK] = regionScore;
 
@@ -506,7 +523,7 @@ bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
            //&& "All violations should be found in subRegions and BasicBlocks.");
   }
 
-  return score > 200;
+  return score > SPECULATIVETRESHOLD;
 }		/* -----  end of function speculateOnRegion  ----- */
 
 
