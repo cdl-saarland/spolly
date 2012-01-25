@@ -145,7 +145,8 @@ bool IndependentBlocks::isSafeToMove(Instruction *Inst) {
       Inst->mayWriteToMemory())
     return false;
 
-  return isSafeToSpeculativelyExecute(Inst);
+  return Inst->isSafeToSpeculativelyExecute();
+  //return isSafeToSpeculativelyExecute(Inst);
 }
 
 void IndependentBlocks::moveOperandTree(Instruction *Inst, const Region *R,

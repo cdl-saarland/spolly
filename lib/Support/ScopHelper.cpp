@@ -231,7 +231,8 @@ BasicBlock *polly::createSingleExitEdge(Region *R, Pass *P) {
     if (R->contains(*PI))
       Preds.push_back(*PI);
 
-  return SplitBlockPredecessors(BB, Preds, ".region", P);
+  //return SplitBlockPredecessors(BB, Preds, ".region", P);
+  return SplitBlockPredecessors(BB, Preds.data(), Preds.size(), ".region", P);
 }
 
 void polly::splitEntryBlockForAlloca(BasicBlock *EntryBlock, Pass *P) {
