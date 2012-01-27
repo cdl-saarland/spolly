@@ -30,6 +30,7 @@
 #include "llvm/Analysis/ScalarEvolutionExpressions.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Assembly/Writer.h"
+#include "llvm/Transform/Utils/BasicBlockUtils.h"
 
 #define DEBUG_TYPE "spolly-detect"
 #include "llvm/Support/Debug.h"
@@ -38,6 +39,7 @@
 #define AA SD->AA
 #define RI SD->RI
 #define LI SD->LI
+#define SE SD->SE
 
 #define VIOLATION_COUNT 4
 static int violationCosts[VIOLATION_COUNT] = { 1, 1, 10, 1 };
@@ -183,7 +185,6 @@ static inline int calculateScoreFromViolations(int *v, Region *R) {
 
 
 
-
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  getLoopIterationCount 
@@ -194,11 +195,15 @@ static inline int calculateScoreFromViolations(int *v, Region *R) {
  */
 int RegionSpeculation::getLoopIterationCount(Region *R) {
   Loop *loop = LI->getLoopFor(R->getEntry());
-
+  
+  
   unsigned iterationCount = loop->getSmallConstantTripCount();
   
   DEBUG(dbgs() << "@\t    -- Loop " << R->getNameStr() << " has iteration count " 
                << iterationCount << "\n");
+  DEBUG(dbgs() << "@\t   ------ " << SE->hasLoopInvariantBackedgeTakenCount(loop)
+               << "   " << SE->getBackedgeTakenCount(loop)  
+               << "\n");
 
   if (iterationCount == 0) {
     // FIXME test if profiling information is available
@@ -222,6 +227,89 @@ bool RegionSpeculation::regionIsLoop(Region *R) {
 
   return (LI->getLoopDepth(RSK.first) - LI->getLoopDepth(RSK.second));
 }		/* -----  end of function regionIsLoop  ----- */
+
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  addViolatingInstruction 
+ *    Arguments:  A violating Instruction I
+ *  Description:  Add the Instruction I to the list of all violating
+ *                instructions. If this Region should be executed speculatively
+ *                the replaceViolatingInstructions call will replace it with 
+ *                a unique function call
+ * =============================================================================
+ */
+void RegionSpeculation::addViolatingInstruction(Instruction *I) {
+  DEBUG(dbgs() << "@\t Add violating instruction " << *I << "\n");
+
+  // Save the instruction in the list of violating ones
+  violatingInstructions.pushBack(I);
+
+  // The corresponding call is created as needed
+}		/* -----  end of function addViolatingInstruction  ----- */
+
+
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  replaceViolatingInstructions
+ *    Arguments:  
+ *      Returns:  
+ * =============================================================================
+ */
+void RegionSpeculation::replaceViolatingInstructions() {
+  DEBUG(dbgs() << "@\t Replace violating instructions "<< "\n");
+  std::list<Instruction*>::iterator vIit;
+
+  LLVMContext context;
+  IRBuilder<> builder(context);
+  //Type *voidTy = Type::getVoidTy(context);
+
+  // void -> void
+  FunctionType *FT = FunctionType::get(builder.getVoidTy(), false);
+  Function *FN;
+  CallInst *callInst;
+   
+
+  int i = 0;
+  // foreach violating instruction
+  for (vIit = violatingInstructions.begin(); vIit != violatingInstructions.end();
+       vIit++) {
+    // create the corresponding call instruction and add it to
+    // the replacementInstructions list
+  
+    // The IRBuilder for the basic block with the violating instruction
+    //IRBuilder<> builder((*vIit)->getParent());
+     
+    // create a function with a type void -> void 
+    FN = Function::Create(FT, Function::ExternalLinkage,
+                          "_spolly_call_" + (i++), NULL);
+
+    // Set some attributes to allow Polly to handle this function
+    FN->setOnlyReadsMemory(true);
+    FN->setDoesNotThrow(true);
+
+    // the new call inst
+    callInst = builder.CreateCall(FN); 
+    
+    // Save the call in the replacementInstructions list
+    // #x of violatingInstructions <<==>> #x of replacementInstructions
+    replacementInstructions.pushBack(callInst);
+   
+    // Replace the violating instruction with the created call 
+    ReplaceInstWithInst((*vIit), callInst);
+  
+  } /* -----  end foreach violating instruction  ----- */
+
+
+
+
+}		/* -----  end of function replaceViolatingInstruction ----- */
+
 
 
 
@@ -397,11 +485,11 @@ int RegionSpeculation::scoreConditional(Region *R) {
     if ((tempRegion = RI->getRegionFor(branch0)) == R) {
       // The branch0 is a BasicBlock in the region R 
       br0Score += scoreBasicBlock(branch0);
-      branch0 = branch0->getTerminator()->getSuccessor(0);
+      branch0   = branch0->getTerminator()->getSuccessor(0);
     } else {
       // The branch0 is contained in another region
       br0Score += scoreRegion(tempRegion);
-      branch0 = tempRegion->getExit();
+      branch0   = tempRegion->getExit();
     }
   }
 
@@ -410,12 +498,12 @@ int RegionSpeculation::scoreConditional(Region *R) {
   while (branch1 != exit) {
     if ((tempRegion = RI->getRegionFor(branch1)) == R) {
       // The branch1 is just one BasicBlock   
-      br1Score   += scoreBasicBlock(branch1);
-      branch1 = branch1->getTerminator()->getSuccessor(0);
+      br1Score += scoreBasicBlock(branch1);
+      branch1   = branch1->getTerminator()->getSuccessor(0);
     } else {
       // The branch1 contains another region
-      br1Score   += scoreRegion(tempRegion);
-      branch1 = tempRegion->getExit();
+      br1Score += scoreRegion(tempRegion);
+      branch1   = tempRegion->getExit();
     }
   }
 
@@ -484,7 +572,6 @@ int RegionSpeculation::scoreRegion(Region *R) {
     
   DEBUG(dbgs() << "\n@\tCompute score for region "<<  R->getNameStr() << "\n");
 
-  // TODO foreach Subregion do:
   // Score this region as loop or conditional 
   if (regionIsLoop(R)) {
     DEBUG(dbgs() << "@\t-- which is a loop \n");

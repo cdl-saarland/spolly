@@ -15,7 +15,7 @@
 
 #include "llvm/Support/CommandLine.h"
 
-#include <map>
+#include <list>
 
 using namespace llvm;
 
@@ -24,6 +24,7 @@ namespace llvm {
   class BasicBlock;
   class Region;
   class Function;
+  class Instruction;
 }
 
 namespace polly {
@@ -36,6 +37,9 @@ class RegionSpeculation {
 
   ScopDetection *SD;
   Function *func;
+
+  std::list<Instruction*> violatingInstructions; 
+  std::list<Instruction*> replacementInstructions; 
 
   int* violations;
   Region *currentRegion;
@@ -62,6 +66,8 @@ public:
   bool speculateOnRegion(Region &R, int *violations);
 
   void setFunction(Function &F) { func = &F; };
+
+  void addViolatingInstruction(Instruction &I);
 
 };
 

@@ -271,7 +271,10 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
         DEBUG(dbgs() << "Non affine branch in BB '" << BB.getName()
                         << "' with LHS: " << *LHS << " and RHS: " << *RHS);
         spolly_hit = true;
+      
+        addViolatingInstruction(&ICmp);
         violations[VIOLATION_AFFFUNC]++;
+      
       } else {
         DEBUG(dbgs() << "-=-| AffFunc 4 enabled |-=-\n");
         INVALID(AffFunc, "Non affine branch in BB '" << BB.getName()
@@ -333,7 +336,10 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     if (SPECCHECK(1)) {
       DEBUG(dbgs() << "-=-| AffFunc 5 disabled |-=-\n");
       spolly_hit = true;
+
       violations[VIOLATION_AFFFUNC]++;
+      addViolatingInstruction(&Inst);
+
       return true;
     } else {
       DEBUG(dbgs() << "-=-| AffFunc 5 enabled |-=-\n");
@@ -354,7 +360,10 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     if (SPECCHECK(2)) {
       DEBUG(dbgs() << "-=-| AffFunc 6 disabled |-=-\n");
       spolly_hit = true;
+      
       violations[VIOLATION_AFFFUNC]++;
+      addViolatingInstruction(&Inst);
+      
       return true;
     } else {
       DEBUG(dbgs() << "-=-| AffFunc 6 enabled |-=-\n");
@@ -398,7 +407,10 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
       if (SPECCHECK(3)) {
         DEBUG(dbgs() << "-=-| Alias 1 disabled |-=-\n");
         spolly_hit = true;
+        
         violations[VIOLATION_ALIAS]++;
+        addViolatingInstruction(&Inst);
+
         return true;
       } else {
         DEBUG(dbgs() << "-=-| Alias 1 enabled |-=-\n");
@@ -449,7 +461,10 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       if (SPECCHECK(4)) {
         DEBUG(dbgs() << "-=-| Phi 1 disabled |-=-\n");
         spolly_hit = true;
+        
+        addViolatingInstruction(&Inst);
         violations[VIOLATION_PHI]++;
+      
       } else {
         DEBUG(dbgs() << "-=-| Phi 1 enabled |-=-\n");
         INVALID(Phi, "non canonical PHI node found");
@@ -475,6 +490,8 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
     if (SPECCHECK(5)) {
       DEBUG(dbgs() << "-=-| FuncCall 1 disabled |-=-\n");
       spolly_hit = true;
+      
+      addViolatingInstruction(&Inst);
       violations[VIOLATION_FUNCCALL]++;
     
       return true;
