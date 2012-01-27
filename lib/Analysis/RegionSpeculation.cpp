@@ -40,7 +40,7 @@
 #define LI SD->LI
 
 #define VIOLATION_COUNT 4
-static int violationCosts[VIOLATION_COUNT] = { 1, 1, 1, 1 };
+static int violationCosts[VIOLATION_COUNT] = { 1, 1, 10, 1 };
 
 // How much is each instruction "worth"
 #define INSTRUCTION_VALUE 4
@@ -56,6 +56,7 @@ static int violationCosts[VIOLATION_COUNT] = { 1, 1, 1, 1 };
 using namespace llvm;
 using namespace polly;
 
+
 static cl::opt<bool>
 SPollyDumpCandidates("spolly-dump",
        cl::desc("Dump all speculative candidates"),
@@ -65,14 +66,14 @@ SPollyDumpCandidates("spolly-dump",
 
 static cl::opt<bool>
 SPollyBranchWorst("spolly-branch-worst",
-       cl::desc(""),
+       cl::desc("Assume the worst branch is taken most of the time"),
        cl::Hidden,
        cl::value_desc(""),
        cl::init(false));
 
 static cl::opt<bool>
 SPollyBranchBest("spolly-branch-best",
-       cl::desc(""),
+       cl::desc("Assume the best branch is taken most of the time"),
        cl::Hidden,
        cl::value_desc(""),
        cl::init(false));
@@ -80,18 +81,22 @@ SPollyBranchBest("spolly-branch-best",
 
 static cl::opt<bool>
 SPollyViolationProbabilityHigh("spolly-violation-high",
-       cl::desc(""),
+       cl::desc("Assume a hight probability for violations"),
        cl::Hidden,
        cl::value_desc(""),
        cl::init(false));
 
 static cl::opt<bool>
 SPollyViolationProbabilityLow("spolly-violation-low",
-       cl::desc("TODO"),
+       cl::desc("Assume a low probability for violations"),
        cl::Hidden,
-       cl::value_desc("TODO"),
+       cl::value_desc(""),
        cl::init(false));
 
+
+// Variable to mark that we are within a branch and thus possibly
+//  not executing some Blocks
+static unsigned withinBranch = 0;
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -126,6 +131,8 @@ static int getViolationProbability(Region *R) {
      violPerc = 20;
   } 
 
+  // FIXME add profiling information here
+
   return violPerc;
 }		/* -----  end of function getViolationProbability  ----- */
 
@@ -140,10 +147,16 @@ static int getViolationProbability(Region *R) {
  * =====================================================================================
  */
 static int getExecutionProbability(BasicBlock *B) {
-  int exPerc = 50;
+  int exPerc;
 
-  // TODO 
-  // use profiling information here
+  // Test whether we are within a branch or not
+  if (withinBranch) {
+    exPerc = 50;
+  } else {
+    exPerc = 100;
+  }
+  
+  // FIXME use profiling information here
    
   return exPerc;
 }		/* -----  end of function getExecutionProbability  ----- */
@@ -161,7 +174,7 @@ static inline int calculateScoreFromViolations(int *v, Region *R) {
   for (int i = 0; i < VIOLATION_COUNT; i++) {
     score += v[i] * violationCosts[i];
   }
-  
+   
   score *= getViolationProbability(R);
 
   return score;
@@ -179,11 +192,16 @@ static inline int calculateScoreFromViolations(int *v, Region *R) {
  *                ITERATIONCOUNTCONSTANT if not available 
  * =============================================================================
  */
-static inline int getLoopIterationCount(Region *R) {
+int RegionSpeculation::getLoopIterationCount(Region *R) {
   Loop *loop = LI->getLoopFor(R->getEntry());
-  unsigned iterationCount = loop->getSmallConstantTripCount()
+
+  unsigned iterationCount = loop->getSmallConstantTripCount();
   
+  DEBUG(dbgs() << "@\t    -- Loop " << R->getNameStr() << " has iteration count " 
+               << iterationCount << "\n");
+
   if (iterationCount == 0) {
+    // FIXME test if profiling information is available
     return ITERATIONCOUNTCONSTANT;
   } else {
     return iterationCount;
@@ -281,14 +299,18 @@ int RegionSpeculation::scoreLoop(Region *R) {
   // Get the iteration count if computable or via profiling information  
   iterationCount = getLoopIterationCount(R);
   
-  assume(iterationCount > 0 && "invalid iteration count");
+  assert(iterationCount > 0 && "invalid iteration count");
 
-    
+  // The iteration count influences the score
+  loopScore = (loopScore * iterationCount) / ITERATION_TRESHOLD;
+
   // Test if it is worth to speculativelly parallelize this loop since 
-  if (iterationCount < ITERATION_TRESHOLD) {
-    // The loopCount was under the treshold, so stop speculating
-    return - (1 << 20);
-  }
+  //if (iterationCount < ITERATION_TRESHOLD) {
+    //// The loopCount was under the treshold, so stop speculating
+    //return - (1 << 20);
+  //} else {
+    //// if so, use the iterationCount for the score computation
+  //}
 
   // Handle all subregions and basicBlocks within this region
   for (Region::element_iterator bb = R->element_begin(), be = R->element_end();
@@ -305,9 +327,6 @@ int RegionSpeculation::scoreLoop(Region *R) {
     }
   }
 
-  // Use the iteration count if available and high enough to influence 
-  if (iterationCount > 0) 
-    loopScore *= iterationCount;
 
   DEBUG(dbgs() << "@\t  -- Loop score is " << loopScore << " \n");
   return loopScore;
@@ -334,7 +353,7 @@ int RegionSpeculation::scoreLoop(Region *R) {
  * |     |- second -|   |- first -|        |  the same as the Exit block. In 
  * |     V                        V        |  such a case no score is added.
  * | ===========             ============  |  Before we sum up all computed 
- * | I branch1 I             I br0quent I  |  scores, we use profiling data
+ * | I branch1 I             I branch0  I  |  scores, we use profiling data
  * | ===========             ============  |  to weight the scores computed
  * |       | br1Score   br0Scrore |        |  for the branches. The exit node
  * ------- | -------------------- | --------  Is handled by the scoreRegion.
@@ -357,6 +376,9 @@ int RegionSpeculation::scoreConditional(Region *R) {
   BasicBlock *branch0, *branch1, *entry, *exit;
   int conditionalScore = 0, entryScore = 0, br0Score = 0, br1Score = 0;
   int probability0, probability1;
+
+  // Increase withinBranch to indicate that we probably not execute every Block
+  withinBranch++;
   
   exit  = R->getExit();
   entry = R->getEntry(); 
@@ -428,6 +450,9 @@ int RegionSpeculation::scoreConditional(Region *R) {
 
   conditionalScore = entryScore + br0Score + br1Score;
 
+  // Decrease withinBranch to indicate that we left a Branch
+  withinBranch--;
+  
   DEBUG(dbgs() << "@\t  -- Conditional score is " << conditionalScore << " \n");
   return conditionalScore;
 
@@ -443,15 +468,6 @@ int RegionSpeculation::scoreConditional(Region *R) {
  *    Arguments:
  *      Returns:  
  *
- *  -----------------------------------------
- *  |                                       |
- *  |                                       |
- *  |                                       |
- *  |                                       |
- *  |                                       |
- *  |                                       |
- *  |                                       |
- *  -----------------------------------------
  *
  * =============================================================================
  */
@@ -459,14 +475,16 @@ int RegionSpeculation::scoreRegion(Region *R) {
   RegionScoreKey RSK= std::make_pair(R->getEntry(), R->getExit());
   RegionScoreMap::iterator it;
   Region *tempRegion; 
-  int regionScore = 0, exitScore = 0;
+  int regionScore = 0;
 
+  // Save the currentRegion
   tempRegion    = currentRegion;
+  // And set R as (temporary) new one
   currentRegion = R;
     
   DEBUG(dbgs() << "\n@\tCompute score for region "<<  R->getNameStr() << "\n");
 
-    
+  // TODO foreach Subregion do:
   // Score this region as loop or conditional 
   if (regionIsLoop(R)) {
     DEBUG(dbgs() << "@\t-- which is a loop \n");
@@ -479,6 +497,7 @@ int RegionSpeculation::scoreRegion(Region *R) {
   // Save the score and leave 
   RegionScores[RSK] = regionScore;
 
+  // Restore the currentRegion
   currentRegion = tempRegion;
   
   DEBUG(dbgs() << "@\t-- Region score is " << regionScore << " \n");
@@ -493,7 +512,12 @@ int RegionSpeculation::scoreRegion(Region *R) {
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  speculateOnRegion
- *  Description:  
+ *    Arguments:  The speculative valid Region &R
+ *                The violation array (counter for each violation)
+ *  Description:  This function is the entry point for the region speculation.
+ *                If Pollys SCoP detections detects some SCoP which would be 
+ *                valid except for the restrictions we speculate on, it calls
+ *                this function.
  * =============================================================================
  */
 bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
@@ -512,7 +536,7 @@ bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
   // TODO change output file according to the current function
   if (SPollyDumpCandidates) {
     std::ofstream outfile (getFileName(&R).c_str(), std::ios_base::app);
-    outfile << R.getNameStr() << ":\t\t" << score << "\n";
+    outfile << func << R.getNameStr() << ":\t\t" << score << "\n";
     outfile.close();
   }
   

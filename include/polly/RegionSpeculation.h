@@ -49,6 +49,8 @@ class RegionSpeculation {
   int scoreConditional(Region *R);
 
   int scoreRegion(Region *R);
+
+  int getLoopIterationCount(Region *R);
   
   typedef std::pair<BasicBlock*, BasicBlock*> RegionScoreKey;
   typedef std::map<RegionScoreKey, int> RegionScoreMap;
