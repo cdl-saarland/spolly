@@ -1,4 +1,4 @@
-//===--- RegionSpeculation.h - Create Speculative Information -----*- C++ -*-===//
+//===--- RegionSpeculation.h - Create Speculative Information ----*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -101,10 +101,10 @@ SPollyViolationProbabilityLow("spolly-violation-low",
 static unsigned withinBranch = 0;
 
 /* 
- * ===  FUNCTION  ======================================================================
+ * ===  FUNCTION  ==============================================================
  *         Name:  getFileName 
  *  Description:  
- * =====================================================================================
+ * =============================================================================
  */
 static std::string getFileName(Region *R) {
   std::string FunctionName =
@@ -117,10 +117,10 @@ static std::string getFileName(Region *R) {
 
 
 /* 
- * ===  FUNCTION  ======================================================================
+ * ===  FUNCTION  ==============================================================
  *         Name:  getViolationProbability
  *  Description:  
- * =====================================================================================
+ * =============================================================================
  */
 static int violPerc = -1;
 static int getViolationProbability(Region *R) {
@@ -143,10 +143,10 @@ static int getViolationProbability(Region *R) {
 
 
 /* 
- * ===  FUNCTION  ======================================================================
+ * ===  FUNCTION  ==============================================================
  *         Name:  getExecutionProbability
  *  Description:  
- * =====================================================================================
+ * =============================================================================
  */
 static int getExecutionProbability(BasicBlock *B) {
   int exPerc;
@@ -274,13 +274,13 @@ void RegionSpeculation::replaceViolatingInstructions() {
   Function *FN;
   CallInst *callInst;
    
-
   int i = 0;
   // foreach violating instruction
   for (vIit = violatingInstructions.begin(); vIit != violatingInstructions.end();
        vIit++) {
     // create the corresponding call instruction and add it to
     // the replacementInstructions list
+    DEBUG(dbgs() << "@\t\t replace " << (*vIit));
   
     // The IRBuilder for the basic block with the violating instruction
     //IRBuilder<> builder((*vIit)->getParent());
@@ -295,6 +295,8 @@ void RegionSpeculation::replaceViolatingInstructions() {
 
     // the new call inst
     callInst = builder.CreateCall(FN); 
+
+    DEBUG(dbgs() << "with " << (*callInst) << "\n");
     
     // Save the call in the replacementInstructions list
     // #x of violatingInstructions <<==>> #x of replacementInstructions
@@ -391,14 +393,6 @@ int RegionSpeculation::scoreLoop(Region *R) {
 
   // The iteration count influences the score
   loopScore = (loopScore * iterationCount) / ITERATION_TRESHOLD;
-
-  // Test if it is worth to speculativelly parallelize this loop since 
-  //if (iterationCount < ITERATION_TRESHOLD) {
-    //// The loopCount was under the treshold, so stop speculating
-    //return - (1 << 20);
-  //} else {
-    //// if so, use the iterationCount for the score computation
-  //}
 
   // Handle all subregions and basicBlocks within this region
   for (Region::element_iterator bb = R->element_begin(), be = R->element_end();
@@ -595,6 +589,39 @@ int RegionSpeculation::scoreRegion(Region *R) {
 
 
 
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  prepareRegion
+ *  Description:  
+ * =============================================================================
+ */
+void RegionSpeculation::prepareRegion( Region &R ) {
+  DEBUG(dbgs() << "\n@\tPrepare region "<<  R.getNameStr() << "\n");
+
+  // if gatherViolatingInstructions is set we are preparing the region right now
+  assert (!SD->gatherViolatingInstructions &&
+          "Called prepare Region during preparation");
+
+  // Indicate that all violating instructions should be added by calling
+  // addViolatingInstruction(Instruction *I)
+  SD->gatherViolatingInstructions = true;
+
+  // check the region again, but this time invalid instructions are gathered
+  DetectionContext Context(R, *AA, false /*verifying*/);
+  SD->isValidRegion(Context);
+
+  // replace the gathered instructions
+  replaceViolatingInstruction();
+
+  // After the region is prepared we do not want to gather instructions anymore
+  SD->gatherViolatingInstructions = false;
+
+  DEBUG(dbgs() << "\n@\t== Prepared region "<<  R.getNameStr() << "\n");
+  
+}		/* -----  end of function prepareRegion  ----- */
+
+
+
 
 /* 
  * ===  FUNCTION  ==============================================================
@@ -608,10 +635,11 @@ int RegionSpeculation::scoreRegion(Region *R) {
  * =============================================================================
  */
 bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
-  int i;
+  DEBUG(dbgs() << "\n@\tSpeculate on region "<<  R.getNameStr() << "\n");
 
   violations = v;
 
+  int i;
   // revert the violation count 
   for (i = 0; i < VIOLATION_COUNT; i++) {
     DEBUG(dbgs() << "@i: " << i << "  v[i]: " << violations[i] << "\n");

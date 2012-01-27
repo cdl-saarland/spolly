@@ -56,6 +56,8 @@ class RegionSpeculation {
 
   int getLoopIterationCount(Region *R);
   
+  void replaceViolatingInstructions();
+
   typedef std::pair<BasicBlock*, BasicBlock*> RegionScoreKey;
   typedef std::map<RegionScoreKey, int> RegionScoreMap;
   RegionScoreMap RegionScores;
@@ -63,11 +65,13 @@ class RegionSpeculation {
 public:
   RegionSpeculation(ScopDetection *SD) : SD(SD) {};
 
+  void prepareRegion( Region &R );
+  
   bool speculateOnRegion(Region &R, int *violations);
 
   void setFunction(Function &F) { func = &F; };
 
-  void addViolatingInstruction(Instruction &I);
+  void addViolatingInstruction(Instruction *I);
 
 };
 

@@ -93,6 +93,7 @@ class ScopDetection : public FunctionPass {
   AliasAnalysis *AA;
   //@}
 
+  bool gatherViolatingInstructions;
   RegionSpeculation *RS;
   friend class RegionSpeculation;
 
