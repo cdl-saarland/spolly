@@ -15,6 +15,7 @@
 
 #include "llvm/Support/CommandLine.h"
 
+#include <map>
 #include <list>
 
 using namespace llvm;
@@ -23,8 +24,10 @@ namespace llvm {
   class Loop;
   class BasicBlock;
   class Region;
-  class Function;
   class Instruction;
+  class CallInst;
+  class Function;
+  class Value;
 }
 
 namespace polly {
@@ -56,7 +59,11 @@ class RegionSpeculation {
 
   int getLoopIterationCount(Region *R);
   
-  void replaceViolatingInstructions();
+  void replaceViolatingInstructions(Region &R);
+
+  Value *insertPseudoInstructionsPre(Region &R);
+
+  CallInst *createCall(Instruction *I);
 
   typedef std::pair<BasicBlock*, BasicBlock*> RegionScoreKey;
   typedef std::map<RegionScoreKey, int> RegionScoreMap;

@@ -23,6 +23,7 @@
 
 #include "llvm/LLVMContext.h"
 #include "llvm/ADT/Statistic.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/RegionIterator.h"
@@ -30,7 +31,8 @@
 #include "llvm/Analysis/ScalarEvolutionExpressions.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Assembly/Writer.h"
-#include "llvm/Transform/Utils/BasicBlockUtils.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/Support/IRBuilder.h"
 
 #define DEBUG_TYPE "spolly-detect"
 #include "llvm/Support/Debug.h"
@@ -57,6 +59,13 @@ static int violationCosts[VIOLATION_COUNT] = { 1, 1, 10, 1 };
 
 using namespace llvm;
 using namespace polly;
+
+static cl::opt<bool>
+SPollyRemoveViolatingInstructions("spolly-remove-violating-instructions",
+       cl::desc("Remove all violating instructions"),
+       cl::Hidden,
+       cl::value_desc("Remove all violating instructions"),
+       cl::init(false));
 
 
 static cl::opt<bool>
@@ -176,7 +185,7 @@ static inline int calculateScoreFromViolations(int *v, Region *R) {
   for (int i = 0; i < VIOLATION_COUNT; i++) {
     score += v[i] * violationCosts[i];
   }
-   
+  
   score *= getViolationProbability(R);
 
   return score;
@@ -242,13 +251,114 @@ bool RegionSpeculation::regionIsLoop(Region *R) {
  * =============================================================================
  */
 void RegionSpeculation::addViolatingInstruction(Instruction *I) {
-  DEBUG(dbgs() << "@\t Add violating instruction " << *I << "\n");
+  DEBUG(dbgs() << "@\t Add violating instruction " << I << " "<< *I << "\n");
 
   // Save the instruction in the list of violating ones
-  violatingInstructions.pushBack(I);
+  violatingInstructions.push_back(I);
 
   // The corresponding call is created as needed
 }		/* -----  end of function addViolatingInstruction  ----- */
+
+
+
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  insertPseudoInstructionsPre
+ *  Description:  
+ * =============================================================================
+ */
+Value *RegionSpeculation::insertPseudoInstructionsPre(Region &R) {
+
+  DEBUG(dbgs() << "@\tInsertPseudoSum in block "
+        << R.getEntry()->getNameStr() << "\n");
+
+  LLVMContext &context = getGlobalContext();
+  Type *int32 = Type::getInt32Ty(context);
+
+  IRBuilder<> builder(R.getEntry());
+  Value *pseudoSum = builder.Insert(Constant::getNullValue(int32));
+  
+  return pseudoSum;
+}		/* -----  end of function insertPseudoInstructionsPre  ----- */
+
+
+
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  createCall
+ *    Arguments:  
+ *      Returns:  
+ * =============================================================================
+ */
+CallInst *RegionSpeculation::createCall(Instruction *I) {
+  
+  FunctionType *FT; 
+  Function *FN = NULL;
+  CallInst *callInst = NULL;
+
+  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
+  // The IRBuilder for the basic block with the violating instruction
+  //IRBuilder<> builder(context);
+  //Module *M = builder.GetInsertBlock()->getParent()->getParent();
+  Module *M = I->getParent()->getParent()->getParent();
+  
+  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
+  DEBUG(dbgs() << *I->getType() << "\t" << I->getNumOperands() << "\n"
+        << *I->getOperand(0));
+  
+  unsigned argsC = I->getNumOperands();
+
+  // Remove the called function operand from call instructions
+  if (I->getOpcode() == Instruction::Call) {
+    argsC -= 1;
+  }
+  
+  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
+
+  std::vector<Type *> argsT(argsC);
+  std::vector<Value *> argsV(argsC);
+  for (unsigned i = 0; i < argsC; i++) {
+    argsV[i] = I->getOperand(i);
+    argsT[i] = I->getOperand(i)->getType();
+  }
+  
+  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
+  // Create the function which has the same return type as the instruction
+  // and uses the same operands as the instruction (as arguments)
+  FT = FunctionType::get(I->getType(), argsT, false);
+  FN = Function::Create(FT, Function::ExternalLinkage,
+                        "spolly_call", M);
+
+  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
+  ArrayRef<Value*> Args(argsV);
+  //callInst = builder.CreateCall(FN, Args); 
+  callInst = CallInst::Create(FN, Args);
+
+  // Set some attributes to allow Polly to handle this function
+  FN->setDoesNotThrow(true);
+  FN->setDoesNotReturn(false);
+
+  // TODO see ScopDetection::isValidCallInst
+  //FN->setOnlyReadsMemory(true);
+  //FN->setDoesNotAccessMemory(true);
+
+
+  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
+
+  assert(callInst && "Call Instruction was NULL");
+
+  // the new call inst
+  //callInst->removeFromParent(); 
+  
+  return  callInst;
+
+}		/* -----  end of function createCall  ----- */
 
 
 
@@ -261,49 +371,43 @@ void RegionSpeculation::addViolatingInstruction(Instruction *I) {
  *      Returns:  
  * =============================================================================
  */
-void RegionSpeculation::replaceViolatingInstructions() {
+void RegionSpeculation::replaceViolatingInstructions(Region &R) {
   DEBUG(dbgs() << "@\t Replace violating instructions "<< "\n");
   std::list<Instruction*>::iterator vIit;
 
-  LLVMContext context;
-  IRBuilder<> builder(context);
-  //Type *voidTy = Type::getVoidTy(context);
-
-  // void -> void
-  FunctionType *FT = FunctionType::get(builder.getVoidTy(), false);
-  Function *FN;
   CallInst *callInst;
-   
-  int i = 0;
+  
   // foreach violating instruction
   for (vIit = violatingInstructions.begin(); vIit != violatingInstructions.end();
        vIit++) {
     // create the corresponding call instruction and add it to
     // the replacementInstructions list
-    DEBUG(dbgs() << "@\t\t replace " << (*vIit));
+    DEBUG(dbgs() << "@\t\t replace " << (**vIit) << "\n");
+    //DEBUG(dbgs() << " " << (**vIit)) << "\n";
   
-    // The IRBuilder for the basic block with the violating instruction
-    //IRBuilder<> builder((*vIit)->getParent());
-     
-    // create a function with a type void -> void 
-    FN = Function::Create(FT, Function::ExternalLinkage,
-                          "_spolly_call_" + (i++), NULL);
+    if (SPollyRemoveViolatingInstructions) {
+      (*vIit)->eraseFromParent(); 
+    } else {
+      callInst = createCall(*vIit);
+    }
+    
+    assert(callInst && "Replacement call is NULL");
 
-    // Set some attributes to allow Polly to handle this function
-    FN->setOnlyReadsMemory(true);
-    FN->setDoesNotThrow(true);
-
-    // the new call inst
-    callInst = builder.CreateCall(FN); 
-
-    DEBUG(dbgs() << "with " << (*callInst) << "\n");
+    DEBUG(dbgs() << "@\t\t with " << (*callInst) << "\n");
     
     // Save the call in the replacementInstructions list
     // #x of violatingInstructions <<==>> #x of replacementInstructions
-    replacementInstructions.pushBack(callInst);
-   
+    replacementInstructions.push_back(callInst);
+    
     // Replace the violating instruction with the created call 
+    //callInst->moveBefore(*vIit);
+    //(*vIit)->replaceAllUsesWith(callInst);
     ReplaceInstWithInst((*vIit), callInst);
+    //(*vIit)->eraseFromParent(); 
+    
+    // Add the result of the new call to the pseudo sum 
+    // else it would vanish if it is not used 
+    
   
   } /* -----  end foreach violating instruction  ----- */
 
@@ -605,13 +709,17 @@ void RegionSpeculation::prepareRegion( Region &R ) {
   // Indicate that all violating instructions should be added by calling
   // addViolatingInstruction(Instruction *I)
   SD->gatherViolatingInstructions = true;
+  
+  // Clear the list of violating and replacement instructions
+  violatingInstructions.clear();
+  replacementInstructions.clear();
 
   // check the region again, but this time invalid instructions are gathered
-  DetectionContext Context(R, *AA, false /*verifying*/);
+  ScopDetection::DetectionContext Context(R, *AA, false /*verifying*/);
   SD->isValidRegion(Context);
 
   // replace the gathered instructions
-  replaceViolatingInstruction();
+  replaceViolatingInstructions(R);
 
   // After the region is prepared we do not want to gather instructions anymore
   SD->gatherViolatingInstructions = false;
@@ -662,7 +770,12 @@ bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
            //&& "All violations should be found in subRegions and BasicBlocks.");
   }
 
-  return score > SPECULATIVETRESHOLD;
+  // TODO remove me
+  prepareRegion(R);
+  //return false;
+  return true;
+
+  //return score > SPECULATIVETRESHOLD;
 }		/* -----  end of function speculateOnRegion  ----- */
 
 

@@ -272,7 +272,7 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
                         << "' with LHS: " << *LHS << " and RHS: " << *RHS);
         spolly_hit = true;
       
-        if (gatherViolatingInstructions) addViolatingInstruction(&ICmp);
+        if (gatherViolatingInstructions) RS->addViolatingInstruction(ICmp);
         violations[VIOLATION_AFFFUNC]++;
       
       } else {
@@ -305,7 +305,7 @@ bool ScopDetection::isValidCallInst(CallInst &CI) {
 
   if (CI.doesNotAccessMemory())
     return true;
-
+    
   Function *CalledFunction = CI.getCalledFunction();
 
   // Indirect calls are not supported.
@@ -338,7 +338,7 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
       spolly_hit = true;
 
       violations[VIOLATION_AFFFUNC]++;
-      if (gatherViolatingInstructions) addViolatingInstruction(&Inst);
+      if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
 
       return true;
     } else {
@@ -362,7 +362,7 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
       spolly_hit = true;
       
       violations[VIOLATION_AFFFUNC]++;
-      if (gatherViolatingInstructions) addViolatingInstruction(&Inst);
+      if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
       
       return true;
     } else {
@@ -409,7 +409,7 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
         spolly_hit = true;
         
         violations[VIOLATION_ALIAS]++;
-        if (gatherViolatingInstructions) addViolatingInstruction(&Inst);
+        if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
 
         return true;
       } else {
@@ -462,7 +462,7 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
         DEBUG(dbgs() << "-=-| Phi 1 disabled |-=-\n");
         spolly_hit = true;
         
-        if (gatherViolatingInstructions) addViolatingInstruction(&Inst);
+        if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
         violations[VIOLATION_PHI]++;
       
       } else {
@@ -491,7 +491,7 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       DEBUG(dbgs() << "-=-| FuncCall 1 disabled |-=-\n");
       spolly_hit = true;
       
-      if (gatherViolatingInstructions) addViolatingInstruction(&Inst);
+      if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
       violations[VIOLATION_FUNCCALL]++;
     
       return true;
@@ -761,18 +761,20 @@ bool ScopDetection::isValidRegion(DetectionContext &Context) const {
     DEBUG(dbgs() << "-=-| STATSCOP Spolly 1 |-=-\n");
     DEBUG(dbgs() << "Found spolly hit " << R.getNameStr() << '\n');
     DEBUG(dbgs() << "-=-| END Spolly 1 |-=-\n");
-    if (!RS->speculateOnRegion(R, violations)) {
+    if (!gatherViolatingInstructions) {
+      if (!RS->speculateOnRegion(R, violations)) {
     
-      INVALID(Spolly, "Speculativ valid Region: " << spolly_hit << 
-              " (not interested)");
-    
-    } else {
+        INVALID(Spolly, "Speculativ valid Region: " << spolly_hit << 
+                " (not interested)");
       
-      DEBUG(dbgs() << "Speculativ valid Region (interested)\n"); 
-      // if gatherViolatingInstructions is set we are preparing the region right
-      // now
-      if (!gatherViolatingInstructions) RS->prepareRegion(R);  
+      } else {
+        
+        DEBUG(dbgs() << "Speculativ valid Region (interested)\n"); 
+        // if gatherViolatingInstructions is set we are preparing the region right
+        // now
+        RS->prepareRegion(R);  
 
+      }
     }
   }
 
