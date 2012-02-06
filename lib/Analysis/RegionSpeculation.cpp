@@ -44,7 +44,7 @@
 #define SE SD->SE
 
 #define VIOLATION_COUNT 4
-static int violationCosts[VIOLATION_COUNT] = { 1, 1, 10, 1 };
+static int violationCosts[VIOLATION_COUNT] = { 2, 2, 2, 2 };
 
 // How much is each instruction "worth"
 #define INSTRUCTION_VALUE 4
@@ -59,6 +59,30 @@ static int violationCosts[VIOLATION_COUNT] = { 1, 1, 10, 1 };
 
 using namespace llvm;
 using namespace polly;
+
+static cl::opt<bool>
+SPollyDisabled("spolly-disable",
+       cl::desc("Disable speculative polly"),
+       cl::Hidden,
+       cl::value_desc("Disable speculative polly"),
+       cl::init(false));
+
+
+static cl::opt<bool>
+SPollyEnabled("spolly-enable",
+       cl::desc("Enable speculative polly"),
+       cl::Hidden,
+       cl::value_desc("Enable speculative polly"),
+       cl::init(false));
+
+
+static cl::opt<bool>
+SPollyJustScore("spolly-just-score",
+       cl::desc("Enable speculative polly score computation"),
+       cl::Hidden,
+       cl::value_desc("Enable speculative polly score computation"),
+       cl::init(false));
+
 
 static cl::opt<bool>
 SPollyRemoveViolatingInstructions("spolly-remove-violating-instructions",
@@ -125,24 +149,47 @@ static std::string getFileName(Region *R) {
 
 
 
+
 /* 
  * ===  FUNCTION  ==============================================================
  *         Name:  getViolationProbability
  *  Description:  
  * =============================================================================
  */
-static int violPerc = -1;
-static int getViolationProbability(Region *R) {
-  if (violPerc == -1) {
-    if (SPollyViolationProbabilityHigh)
-     violPerc = 10000;
-    else if (SPollyViolationProbabilityLow)
-     violPerc = 1;
-    else
-     violPerc = 20;
-  } 
+int RegionSpeculation::getViolationProbability(BasicBlock *B, Region *R) {
+  int violPerc;
 
-  // FIXME add profiling information here
+  if (SPollyViolationProbabilityHigh)
+   violPerc = 100;
+  else if (SPollyViolationProbabilityLow)
+   violPerc = 1;
+  else
+   violPerc = 10;
+
+  int exPerc = getExecutionProbability(B);
+
+  DEBUG(dbgs() << "@\t  Execution probability for " << R->getNameStr()
+               << " is " << exPerc << "\n");
+
+  assert(exPerc >= 0 && exPerc <= 100
+         && "Execution Probability should < 0 or > 100");
+
+  // Decrease the violation probability based on the execution probability
+  // Since the execution probability is based on profiling information ther 
+  // are used to compute this result
+  violPerc = violPerc * exPerc;
+
+  // But violation probability is not only based on the execution probability.
+  // If there was an test inserted the results can be used to get a better result
+  ViolationProbabilityMap::iterator it = ViolationProbability.find(R);
+  
+  if (it != ViolationProbability.end()) {
+    DEBUG(dbgs() << "@\t  Found violation probability for " << R->getNameStr()
+                 << " " << (*it).second << "\n");
+
+    violPerc = violPerc * (*it).second;
+  }
+
 
   return violPerc;
 }		/* -----  end of function getViolationProbability  ----- */
@@ -157,17 +204,21 @@ static int getViolationProbability(Region *R) {
  *  Description:  
  * =============================================================================
  */
-static int getExecutionProbability(BasicBlock *B) {
+int RegionSpeculation::getExecutionProbability(BasicBlock *B) {
   int exPerc;
 
-  // Test whether we are within a branch or not
-  if (withinBranch) {
-    exPerc = 50;
+ 
+  // Profiling information is mapped for each BasicBlock
+  // Other functions can update this information and it will be used here 
+  if (ExecutionProbability[B]) {
+    exPerc = ExecutionProbability[B];
   } else {
-    exPerc = 100;
+    // Test whether we are within a branch or not
+    assert(withinBranch >= 0 && "WithinBranch should not be < 0");
+
+    exPerc = 100 / (withinBranch + 1);
+    ExecutionProbability[B] = exPerc;
   }
-  
-  // FIXME use profiling information here
    
   return exPerc;
 }		/* -----  end of function getExecutionProbability  ----- */
@@ -180,13 +231,13 @@ static int getExecutionProbability(BasicBlock *B) {
  *  Description:  
  * =============================================================================
  */
-static inline int calculateScoreFromViolations(int *v, Region *R) {
+int RegionSpeculation::calculateScoreFromViolations(BasicBlock *B, int *v, Region *R){
   int score = 0;
   for (int i = 0; i < VIOLATION_COUNT; i++) {
     score += v[i] * violationCosts[i];
   }
   
-  score *= getViolationProbability(R);
+  score *= getViolationProbability(B, R);
 
   return score;
 }		/* -----  end of function calculateScoreFromViolations  ----- */
@@ -202,23 +253,17 @@ static inline int calculateScoreFromViolations(int *v, Region *R) {
  *                ITERATIONCOUNTCONSTANT if not available 
  * =============================================================================
  */
-int RegionSpeculation::getLoopIterationCount(Region *R) {
+int64_t RegionSpeculation::getLoopIterationCount(Region *R) {
   Loop *loop = LI->getLoopFor(R->getEntry());
-  
-  
-  unsigned iterationCount = loop->getSmallConstantTripCount();
-  
-  DEBUG(dbgs() << "@\t    -- Loop " << R->getNameStr() << " has iteration count " 
-               << iterationCount << "\n");
-  DEBUG(dbgs() << "@\t   ------ " << SE->hasLoopInvariantBackedgeTakenCount(loop)
-               << "   " << SE->getBackedgeTakenCount(loop)  
-               << "\n");
+ 
+  DEBUG(dbgs() << "@\t     -- Loop trip count " << loop->getTripCount() << "\n");
+  if (SCEVConstant const *c = dyn_cast<SCEVConstant>(SE->getBackedgeTakenCount(loop))){
+    DEBUG(dbgs() << "@\t    -- Loop iteration count is constant "
+          << c->getValue()->getSExtValue());
 
-  if (iterationCount == 0) {
-    // FIXME test if profiling information is available
-    return ITERATIONCOUNTCONSTANT;
+    return c->getValue()->getSExtValue();
   } else {
-    return iterationCount;
+    return ITERATIONCOUNTCONSTANT;
   }
 }		/* -----  end of function getLoopIterationCount  ----- */
 
@@ -242,19 +287,81 @@ bool RegionSpeculation::regionIsLoop(Region *R) {
 
 /* 
  * ===  FUNCTION  ==============================================================
+ *         Name:  insertAliasCheck
+ *    Arguments:  
+ *      Returns:  
+ * =============================================================================
+ */
+void insertAliasCheck(Instruction *I) {
+
+}		/* -----  end of function insertAliasCheck  ----- */
+
+
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  insertFunctionCheck
+ *    Arguments:  
+ *      Returns:  
+ * =============================================================================
+ */
+void insertFunctionCheck(Instruction *I) {
+
+}		/* -----  end of function insertFunctionCheck  ----- */
+
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  insertRollbackCall
+ *    Arguments:  
+ *      Returns:  
+ * =============================================================================
+ */
+void insertRollbackCall(Instruction *I) {
+
+}		/* -----  end of function insertRollbackCall  ----- */
+
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
  *         Name:  addViolatingInstruction 
- *    Arguments:  A violating Instruction I
+ *    Arguments:  A violating Instruction I, the kind of the violation
  *  Description:  Add the Instruction I to the list of all violating
  *                instructions. If this Region should be executed speculatively
  *                the replaceViolatingInstructions call will replace it with 
  *                a unique function call
  * =============================================================================
  */
-void RegionSpeculation::addViolatingInstruction(Instruction *I) {
-  DEBUG(dbgs() << "@\t Add violating instruction " << I << " "<< *I << "\n");
+void RegionSpeculation::addViolatingInstruction(Instruction *I, unsigned viol) {
+  DEBUG(dbgs() << "@\t Add violating instruction " << viol << " "<< *I << "\n");
 
   // Save the instruction in the list of violating ones
   violatingInstructions.push_back(I);
+
+  switch (viol) {
+    case VIOLATION_ALIAS:
+      insertAliasCheck(I);
+      break;
+
+    case VIOLATION_AFFFUNC:
+      break;
+
+    case VIOLATION_FUNCCALL:
+      insertFunctionCheck(I);
+      break;
+
+    case VIOLATION_PHI:
+      break;
+
+    default:
+      assert(0 && "Cannot determine violation kind");
+  }
 
   // The corresponding call is created as needed
 }		/* -----  end of function addViolatingInstruction  ----- */
@@ -387,9 +494,15 @@ void RegionSpeculation::replaceViolatingInstructions(Region &R) {
   
     if (SPollyRemoveViolatingInstructions) {
       (*vIit)->eraseFromParent(); 
-    } else {
-      callInst = createCall(*vIit);
+      continue;
+    } else if ((*vIit)->getOpcode() == Instruction::PHI) {
+      // Skip Phi nodes since they dominate theirsef 
+      continue;
     }
+   
+    // vIit is not a PHI instruction and we should not remove it, so we 
+    // create a call instruction which will be used to replace vIit  
+    callInst = createCall(*vIit);
     
     assert(callInst && "Replacement call is NULL");
 
@@ -433,7 +546,7 @@ int RegionSpeculation::scoreBasicBlock(BasicBlock *B) {
 
   // Start with an initial value which is not accurate for this block
   // but in the end all violations not contained in this block are substracted
-  int blockScore = calculateScoreFromViolations(violations, currentRegion);
+  int blockScore = calculateScoreFromViolations(B, violations, currentRegion);
 
   DEBUG(dbgs() << "@\t    Computing score of the BasicBlock " 
         << B->getName() << " \n");
@@ -446,7 +559,7 @@ int RegionSpeculation::scoreBasicBlock(BasicBlock *B) {
   SD->isValidBasicBlock(*B, Context);
 
   // This will take all violations within this block into account
-  blockScore -= calculateScoreFromViolations(violations, currentRegion);
+  blockScore  -= calculateScoreFromViolations(B, violations, currentRegion);
 
   DEBUG(dbgs() << "@\t    -- blockScore is " << blockScore << " \n");
   return blockScore;
@@ -743,8 +856,10 @@ void RegionSpeculation::prepareRegion( Region &R ) {
  * =============================================================================
  */
 bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
-  DEBUG(dbgs() << "\n@\tSpeculate on region "<<  R.getNameStr() << "\n");
+  if (SPollyDisabled && !SPollyEnabled) return false;
 
+  DEBUG(dbgs() << "\n@\tSpeculate on region "<<  R.getNameStr() << "\n");
+  
   violations = v;
 
   int i;
@@ -759,7 +874,7 @@ bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
   // TODO change output file according to the current function
   if (SPollyDumpCandidates) {
     std::ofstream outfile (getFileName(&R).c_str(), std::ios_base::app);
-    outfile << func << R.getNameStr() << ":\t\t" << score << "\n";
+    outfile << func->getParent() << "\t\t" <<  R.getNameStr() << ":\t\t" << score << "\n";
     outfile.close();
   }
   
@@ -769,6 +884,8 @@ bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
     //assert(violations[i] == 0 
            //&& "All violations should be found in subRegions and BasicBlocks.");
   }
+
+  if (SPollyJustScore) return false;
 
   // TODO remove me
   prepareRegion(R);

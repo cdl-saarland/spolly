@@ -18,6 +18,8 @@
 #include <map>
 #include <list>
 
+#define VIOLATION_COUNT 4
+
 using namespace llvm;
 
 namespace llvm {
@@ -44,6 +46,12 @@ class RegionSpeculation {
   std::list<Instruction*> violatingInstructions; 
   std::list<Instruction*> replacementInstructions; 
 
+  int getExecutionProbability(BasicBlock *B);
+
+  int getViolationProbability(BasicBlock *B, Region *R);
+
+  int calculateScoreFromViolations(BasicBlock *B, int *v, Region *R);
+
   int* violations;
   Region *currentRegion;
 
@@ -57,9 +65,15 @@ class RegionSpeculation {
 
   int scoreRegion(Region *R);
 
-  int getLoopIterationCount(Region *R);
+  int64_t getLoopIterationCount(Region *R);
   
   void replaceViolatingInstructions(Region &R);
+
+  void insertAliasCheck(Instruction *I);
+
+  void insertFunctionCheck(Instruction *I);
+
+  void insertRollbackCall(Instruction *I);
 
   Value *insertPseudoInstructionsPre(Region &R);
 
@@ -69,7 +83,23 @@ class RegionSpeculation {
   typedef std::map<RegionScoreKey, int> RegionScoreMap;
   RegionScoreMap RegionScores;
 
+  std::map<BasicBlock*, int> ExecutionProbability;
+
+  typedef std::map<Region*, int> ViolationProbabilityMap;
+  ViolationProbabilityMap ViolationProbability;
+
 public:
+
+  enum Violations {
+    
+    VIOLATION_PHI,
+    VIOLATION_ALIAS,
+    VIOLATION_FUNCCALL,
+    VIOLATION_AFFFUNC
+
+  };
+
+
   RegionSpeculation(ScopDetection *SD) : SD(SD) {};
 
   void prepareRegion( Region &R );
@@ -78,7 +108,7 @@ public:
 
   void setFunction(Function &F) { func = &F; };
 
-  void addViolatingInstruction(Instruction *I);
+  void addViolatingInstruction(Instruction *I, unsigned violation);
 
 };
 

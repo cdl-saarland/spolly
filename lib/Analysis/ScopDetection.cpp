@@ -134,11 +134,7 @@ BADSCOP_STAT(Spolly,          "Found speculativ polly hit");
 static bool spolly_hit = false;
 int *violations;
 
-#define VIOLATION_COUNT 4
-#define VIOLATION_PHI 0
-#define VIOLATION_ALIAS 1
-#define VIOLATION_FUNCCALL 2
-#define VIOLATION_AFFFUNC 3
+
 
 #if 0
 //#define SPECCHECK(n) checks[n]
@@ -272,8 +268,9 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
                         << "' with LHS: " << *LHS << " and RHS: " << *RHS);
         spolly_hit = true;
       
-        if (gatherViolatingInstructions) RS->addViolatingInstruction(ICmp);
-        violations[VIOLATION_AFFFUNC]++;
+        if (gatherViolatingInstructions) 
+          RS->addViolatingInstruction(ICmp, RS->VIOLATION_AFFFUNC);
+        violations[RS->VIOLATION_AFFFUNC]++;
       
       } else {
         DEBUG(dbgs() << "-=-| AffFunc 4 enabled |-=-\n");
@@ -337,8 +334,9 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
       DEBUG(dbgs() << "-=-| AffFunc 5 disabled |-=-\n");
       spolly_hit = true;
 
-      violations[VIOLATION_AFFFUNC]++;
-      if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
+      if (gatherViolatingInstructions) 
+        RS->addViolatingInstruction(&Inst, RS->VIOLATION_AFFFUNC);
+      violations[RS->VIOLATION_AFFFUNC]++;
 
       return true;
     } else {
@@ -361,8 +359,10 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
       DEBUG(dbgs() << "-=-| AffFunc 6 disabled |-=-\n");
       spolly_hit = true;
       
-      violations[VIOLATION_AFFFUNC]++;
-      if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
+      if (gatherViolatingInstructions) 
+        RS->addViolatingInstruction(&Inst, RS->VIOLATION_AFFFUNC);
+      violations[RS->VIOLATION_AFFFUNC]++;
+
       
       return true;
     } else {
@@ -408,8 +408,10 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
         DEBUG(dbgs() << "-=-| Alias 1 disabled |-=-\n");
         spolly_hit = true;
         
-        violations[VIOLATION_ALIAS]++;
-        if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
+        if (gatherViolatingInstructions) 
+          RS->addViolatingInstruction(&Inst, RS->VIOLATION_ALIAS);
+        violations[RS->VIOLATION_ALIAS]++;
+
 
         return true;
       } else {
@@ -462,8 +464,9 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
         DEBUG(dbgs() << "-=-| Phi 1 disabled |-=-\n");
         spolly_hit = true;
         
-        if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
-        violations[VIOLATION_PHI]++;
+        if (gatherViolatingInstructions) 
+          RS->addViolatingInstruction(&Inst, RS->VIOLATION_PHI);
+        violations[RS->VIOLATION_PHI]++;
       
       } else {
         DEBUG(dbgs() << "-=-| Phi 1 enabled |-=-\n");
@@ -491,8 +494,9 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       DEBUG(dbgs() << "-=-| FuncCall 1 disabled |-=-\n");
       spolly_hit = true;
       
-      if (gatherViolatingInstructions) RS->addViolatingInstruction(&Inst);
-      violations[VIOLATION_FUNCCALL]++;
+      if (gatherViolatingInstructions) 
+        RS->addViolatingInstruction(&Inst, RS->VIOLATION_FUNCCALL);
+      violations[RS->VIOLATION_FUNCCALL]++;
     
       return true;
 
