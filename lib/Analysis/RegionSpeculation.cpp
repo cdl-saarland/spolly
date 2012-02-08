@@ -21,6 +21,7 @@
 #include "polly/Support/ScopHelper.h"
 #include "polly/Support/SCEVValidator.h"
 
+#include "llvm/BasicBlock.h"
 #include "llvm/LLVMContext.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/ADT/ArrayRef.h"
@@ -33,6 +34,8 @@
 #include "llvm/Assembly/Writer.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Support/IRBuilder.h"
+#include "llvm/Support/CFG.h"
+
 
 #define DEBUG_TYPE "spolly-detect"
 #include "llvm/Support/Debug.h"
@@ -132,6 +135,8 @@ SPollyViolationProbabilityLow("spolly-violation-low",
 // Variable to mark that we are within a branch and thus possibly
 //  not executing some Blocks
 static unsigned withinBranch = 0;
+
+
 
 /* 
  * ===  FUNCTION  ==============================================================
@@ -285,14 +290,155 @@ bool RegionSpeculation::regionIsLoop(Region *R) {
 
 
 
+
+
 /* 
  * ===  FUNCTION  ==============================================================
- *         Name:  insertAliasCheck
+ *         Name:  
  *    Arguments:  
  *      Returns:  
  * =============================================================================
  */
-void insertAliasCheck(Instruction *I) {
+void RegionSpeculation::collectAliasSets(Instruction *I) {
+
+  Value *Ptr = getPointerOperand(*I);
+  const SCEV *AccessFunction = SE->getSCEV(Ptr);
+  assert(AccessFunction && "Scop detection should have checked access function");
+
+  const SCEVUnknown *BasePointer = 
+    dyn_cast<SCEVUnknown>(SE->getPointerBase(AccessFunction));
+  assert(BasePointer && "Scop detection should have checked base pointer");
+
+  Value *BaseValue = BasePointer->getValue();
+  assert(BaseValue && "Scop detection should have checked base value");
+
+  //AliasSetTracker AST(AA);
+
+  //AliasSet *AS =
+       //AST.getAliasSetForPointerIfExists(BaseValue, AliasAnalysis::UnknownSize,
+                                      //I->getMetadata(LLVMContext::MD_tbaa));
+ 
+  //assert(AS && "Scop detection should have checked alias set");
+
+  //DEBUG(dbgs() << "@\t Add AliasSet " << AS << " \n");
+  //AS->print(dbgs());
+
+  aliasingValues[BaseValue] = I;
+}
+
+
+
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  insertAliasCheck
+ *  
+ * ---------------------------------       --------------------------------- 
+ * | ----------         ---------- |       | ----------         ---------- |
+ * | | pred_1 |   ...   | pred_n | |       | | pred_1 |   ...   | pred_n | | 
+ * | ----------         ---------- |       | ----------         ---------- |
+ * |     |                   |     |       |     |                   |     |
+ * |     \-------\   /-------/     |       |     \-------\   /-------/     |
+ * |             |   |             |       |             |   |             |
+ * |             V   V             |       |             V   V             | 
+ * |         -------------         |       |        --------------         | 
+ * |         |   entry   |         |       |        | alias_test |         | 
+ * |         -------------         |       |        --------------         |
+ * |               |               |       |           |      |            |
+ * |               V               |       |           V      |            |
+ * ---------------------------------       |    ------------  |            |
+ *                                         |    | rollback |  |            |
+ *                                         |    ------------  |            |
+ *                                         |                  |            |
+ *                                         |                  V            |
+ *                                         |             -------------     |
+ *                                         |             |   entry   |     |
+ *                                         |             -------------     |
+ *                                         ---------------------------------
+ *
+ * =============================================================================
+ */
+void RegionSpeculation::insertAliasChecks() {
+  BasicBlock *entry = currentRegion->getEntry();
+
+  DEBUG(dbgs() << entry << "\n");
+
+  IRBuilder<> builder(entry);
+
+  DEBUG(dbgs() << "\n\n\n@\t----------------123456---------------------------\n\n");
+
+  // An iterator over the aliasing values
+  std::map<Value*, Instruction*>::iterator avit;
+  // An iterator over the elements within the alias set
+  AliasSet::iterator asit;
+  AliasSetTracker AST(*AA);
+
+  // Iterate over all predecessors
+  for (pred_iterator it = pred_begin(entry),
+       end = pred_end(entry); it != end; it ++) {
+     
+    // Exclude all BasicBlocks within this loop 
+    if ( currentRegion->contains(*it) ) continue;
+
+    // One or more BasicBlock (*it) will reach this point
+    // All of them are predesecessors of the loop
+    DEBUG(dbgs() << "@\tProcessing loop predecessor "<< (*it)->getName()<< "\n");
+
+    // The alias test basic block
+    BasicBlock *BBAT = BasicBlock::Create(entry->getContext(), 
+                                         Twine("AliasTest"),
+                                         entry->getParent(), *it);
+
+    // The builder for the alias test basic block 
+    IRBuilder<> builder(BBAT);
+
+    // TODO we need a cond branch here
+    // this is just for debugging
+    builder.CreateBr(entry);
+    
+    // Insert checks for each alias set into this BasicBlock
+    for (avit = aliasingValues.begin(); avit != aliasingValues.end(); avit++) {
+      DEBUG(dbgs() << "@\t  -- Base value is " << avit->first 
+            << " and Instruction is " << avit->second << "\n");
+
+      AliasSet &AS = 
+        AST.getAliasSetForPointer(avit->first, AliasAnalysis::UnknownSize,
+                                  avit->second->getMetadata(LLVMContext::MD_tbaa));
+
+      DEBUG(dbgs() << "@\t   -- avit: \n");
+      AS.print(dbgs());
+
+      assert(!AS.empty() && " alias set is empty ");
+      
+      for (asit = AS.begin(); asit != AS.end(); asit++) {
+        DEBUG(dbgs() << "@\t asit value: " <<   asit->getValue()->getName()
+              << "\n");
+
+
+        // Just find out which successor the entry block is
+        unsigned u;
+        TerminatorInst *itTerm = (*it)->getTerminator();
+        for (u = 0; u < itTerm->getNumSuccessors(); u++) {
+          if (itTerm->getSuccessor(u) == entry) break;
+        }
+
+        // assertion is that the u'th successor of itTerm is the entry block
+        // of the current region
+        assert(itTerm->getSuccessor(u) == entry
+               && "Could not find the successor number of the entry block");
+
+        // insert the ne alias test before the real entry
+        itTerm->setSuccessor(u, BBAT);
+
+        
+      }
+    }
+
+  }
+  
+  DEBUG(dbgs() << "\n\n\n-----------------------------------------------\n\n");
+
 
 }		/* -----  end of function insertAliasCheck  ----- */
 
@@ -307,7 +453,7 @@ void insertAliasCheck(Instruction *I) {
  *      Returns:  
  * =============================================================================
  */
-void insertFunctionCheck(Instruction *I) {
+void RegionSpeculation::insertFunctionCheck(Instruction *I) {
 
 }		/* -----  end of function insertFunctionCheck  ----- */
 
@@ -321,7 +467,7 @@ void insertFunctionCheck(Instruction *I) {
  *      Returns:  
  * =============================================================================
  */
-void insertRollbackCall(Instruction *I) {
+void RegionSpeculation::insertRollbackCall(Instruction *I) {
 
 }		/* -----  end of function insertRollbackCall  ----- */
 
@@ -346,7 +492,7 @@ void RegionSpeculation::addViolatingInstruction(Instruction *I, unsigned viol) {
 
   switch (viol) {
     case VIOLATION_ALIAS:
-      insertAliasCheck(I);
+      collectAliasSets(I);      
       break;
 
     case VIOLATION_AFFFUNC:
@@ -371,30 +517,6 @@ void RegionSpeculation::addViolatingInstruction(Instruction *I, unsigned viol) {
 
 
 
-/* 
- * ===  FUNCTION  ==============================================================
- *         Name:  insertPseudoInstructionsPre
- *  Description:  
- * =============================================================================
- */
-Value *RegionSpeculation::insertPseudoInstructionsPre(Region &R) {
-
-  DEBUG(dbgs() << "@\tInsertPseudoSum in block "
-        << R.getEntry()->getNameStr() << "\n");
-
-  LLVMContext &context = getGlobalContext();
-  Type *int32 = Type::getInt32Ty(context);
-
-  IRBuilder<> builder(R.getEntry());
-  Value *pseudoSum = builder.Insert(Constant::getNullValue(int32));
-  
-  return pseudoSum;
-}		/* -----  end of function insertPseudoInstructionsPre  ----- */
-
-
-
-
-
 
 /* 
  * ===  FUNCTION  ==============================================================
@@ -409,13 +531,11 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
   Function *FN = NULL;
   CallInst *callInst = NULL;
 
-  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
   // The IRBuilder for the basic block with the violating instruction
   //IRBuilder<> builder(context);
   //Module *M = builder.GetInsertBlock()->getParent()->getParent();
   Module *M = I->getParent()->getParent()->getParent();
   
-  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
   DEBUG(dbgs() << *I->getType() << "\t" << I->getNumOperands() << "\n"
         << *I->getOperand(0));
   
@@ -426,7 +546,6 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
     argsC -= 1;
   }
   
-  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
 
   std::vector<Type *> argsT(argsC);
   std::vector<Value *> argsV(argsC);
@@ -435,14 +554,12 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
     argsT[i] = I->getOperand(i)->getType();
   }
   
-  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
   // Create the function which has the same return type as the instruction
   // and uses the same operands as the instruction (as arguments)
   FT = FunctionType::get(I->getType(), argsT, false);
   FN = Function::Create(FT, Function::ExternalLinkage,
-                        "spolly_call", M);
+                        "$spolly_call", M);
 
-  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
   ArrayRef<Value*> Args(argsV);
   //callInst = builder.CreateCall(FN, Args); 
   callInst = CallInst::Create(FN, Args);
@@ -456,7 +573,6 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
   //FN->setDoesNotAccessMemory(true);
 
 
-  DEBUG(dbgs() << "\n\n" << *I << "\n\n");
 
   assert(callInst && "Call Instruction was NULL");
 
@@ -819,6 +935,9 @@ void RegionSpeculation::prepareRegion( Region &R ) {
   assert (!SD->gatherViolatingInstructions &&
           "Called prepare Region during preparation");
 
+  // We need to access the region later on to create the checks
+  currentRegion = &R;
+  
   // Indicate that all violating instructions should be added by calling
   // addViolatingInstruction(Instruction *I)
   SD->gatherViolatingInstructions = true;
@@ -826,10 +945,14 @@ void RegionSpeculation::prepareRegion( Region &R ) {
   // Clear the list of violating and replacement instructions
   violatingInstructions.clear();
   replacementInstructions.clear();
+  aliasingValues.clear();
 
   // check the region again, but this time invalid instructions are gathered
   ScopDetection::DetectionContext Context(R, *AA, false /*verifying*/);
   SD->isValidRegion(Context);
+
+  // insert Alias checks
+  insertAliasChecks();
 
   // replace the gathered instructions
   replaceViolatingInstructions(R);
@@ -881,14 +1004,12 @@ bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
   // Sanity check 
   for (i = 0; i < VIOLATION_COUNT; i++) {
     DEBUG(dbgs() << "@i: " << i << "  v[i]: " << violations[i] << "\n");
-    //assert(violations[i] == 0 
-           //&& "All violations should be found in subRegions and BasicBlocks.");
+    assert(violations[i] == 0 
+           && "All violations should be found in subRegions and BasicBlocks.");
   }
 
   if (SPollyJustScore) return false;
 
-  // TODO remove me
-  prepareRegion(R);
   //return false;
   return true;
 

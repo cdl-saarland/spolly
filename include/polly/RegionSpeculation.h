@@ -17,6 +17,7 @@
 
 #include <map>
 #include <list>
+#include <set>
 
 #define VIOLATION_COUNT 4
 
@@ -30,6 +31,7 @@ namespace llvm {
   class CallInst;
   class Function;
   class Value;
+  class AliasSet;
 }
 
 namespace polly {
@@ -45,10 +47,13 @@ class RegionSpeculation {
 
   std::list<Instruction*> violatingInstructions; 
   std::list<Instruction*> replacementInstructions; 
+  std::map<Value*, Instruction*> aliasingValues;
 
   int getExecutionProbability(BasicBlock *B);
 
   int getViolationProbability(BasicBlock *B, Region *R);
+
+  void collectAliasSets(Instruction *I);
 
   int calculateScoreFromViolations(BasicBlock *B, int *v, Region *R);
 
@@ -69,7 +74,7 @@ class RegionSpeculation {
   
   void replaceViolatingInstructions(Region &R);
 
-  void insertAliasCheck(Instruction *I);
+  void insertAliasChecks();
 
   void insertFunctionCheck(Instruction *I);
 

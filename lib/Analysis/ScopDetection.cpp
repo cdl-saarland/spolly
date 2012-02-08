@@ -492,6 +492,14 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
     DEBUG(dbgs() << "-=-| END FuncCall 1 |-=-\n");
     if (SPECCHECK(5)) {
       DEBUG(dbgs() << "-=-| FuncCall 1 disabled |-=-\n");
+      
+      StringRef sr = CI->getCalledFunction()->getName();
+      DEBUG(dbgs() << "@\t func call to " << sr << "\n");
+      if (sr.startswith("$spolly_call")) {
+        DEBUG(dbgs() << "@\t ignore spolly call \n");
+        return true;
+      }
+
       spolly_hit = true;
       
       if (gatherViolatingInstructions) 
@@ -774,8 +782,8 @@ bool ScopDetection::isValidRegion(DetectionContext &Context) const {
       } else {
         
         DEBUG(dbgs() << "Speculativ valid Region (interested)\n"); 
-        // if gatherViolatingInstructions is set we are preparing the region right
-        // now
+        // if gatherViolatingInstructions is set we are preparing
+        // the region right now
         RS->prepareRegion(R);  
 
       }
