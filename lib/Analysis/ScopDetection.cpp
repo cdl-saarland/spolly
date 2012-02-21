@@ -255,6 +255,10 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
 
     const SCEV *LHS = SE->getSCEV(ICmp->getOperand(0));
     const SCEV *RHS = SE->getSCEV(ICmp->getOperand(1));
+    DEBUG(dbgs() << " Is affine LHS: "
+          << isAffineExpr(&Context.CurRegion, LHS, *SE) 
+          << " Is affine RHS: "
+          << isAffineExpr(&Context.CurRegion, RHS, *SE) << "\n");
 
     if (!isAffineExpr(&Context.CurRegion, LHS, *SE) ||
         !isAffineExpr(&Context.CurRegion, RHS, *SE)) {
@@ -265,7 +269,7 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
       if (SPECCHECK(0)) {
         DEBUG(dbgs() << "-=-| AffFunc 4 disabled |-=-\n");
         DEBUG(dbgs() << "Non affine branch in BB '" << BB.getName()
-                        << "' with LHS: " << *LHS << " and RHS: " << *RHS);
+                        << "' with LHS: " << *LHS << " and RHS: " << *RHS << "\n");
         spolly_hit = true;
       
         if (gatherViolatingInstructions) 
@@ -371,7 +375,9 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     }
   }
 
-  DEBUG(dbgs() << "Base value " << *BaseValue << "\n");
+  DEBUG(dbgs() << "Base value " << BaseValue << " " << *BaseValue << "\n");
+  DEBUG(dbgs() << "Instruction " << &Inst << " " << Inst << "\n");
+  //RS->addBaseValue(BaseValue);
 
   AccessFunction = SE->getMinusSCEV(AccessFunction, BasePointer);
   
@@ -388,11 +394,16 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     INVALID(Other, "Find bad intToptr prt: " << *BaseValue);
   }
 
+
+  // Help the RegionSpeculation
+  RS->registerMemoryInstruction(&Inst, BaseValue);
+
   // Check if the base pointer of the memory access does alias with
   // any other pointer. This cannot be handled at the moment.
   AliasSet &AS =
     Context.AST.getAliasSetForPointer(BaseValue, AliasAnalysis::UnknownSize,
                                       Inst.getMetadata(LLVMContext::MD_tbaa));
+ 
 
   // INVALID triggers an assertion in verifying mode, if it detects that a SCoP
   // was detected by SCoP detection and that this SCoP was invalidated by a pass
@@ -404,6 +415,8 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
   if (!AS.isMustAlias() && !IgnoreAliasing) { 
       DEBUG(dbgs() << "-=-| STATSCOP Alias 1 |-=-\n");
       DEBUG(dbgs() << "-=-| END Alias 1 |-=-\n");
+      AS.print(dbgs());
+
       if (SPECCHECK(3)) {
         DEBUG(dbgs() << "-=-| Alias 1 disabled |-=-\n");
         spolly_hit = true;
@@ -495,7 +508,7 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       
       StringRef sr = CI->getCalledFunction()->getName();
       DEBUG(dbgs() << "@\t func call to " << sr << "\n");
-      if (sr.startswith("$spolly_call")) {
+      if (sr.startswith("_spolly_call")) {
         DEBUG(dbgs() << "@\t ignore spolly call \n");
         return true;
       }

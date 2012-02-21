@@ -1507,6 +1507,8 @@ class CodeGeneration : public ScopPass {
     BasicBlock *splitBlock = splitEdgeAdvanced(region);
 
     splitBlock->setName("polly.enterScop");
+    // Introduce test for aliases and invariants
+    SD->RS->postPrepareRegion(splitBlock);
 
     Function *function = splitBlock->getParent();
     BasicBlock *startBlock = BasicBlock::Create(function->getContext(),

@@ -32,6 +32,7 @@ namespace llvm {
   class Function;
   class Value;
   class AliasSet;
+  class SCEV;
 }
 
 namespace polly {
@@ -44,9 +45,13 @@ class RegionSpeculation {
 
   ScopDetection *SD;
   Function *func;
+ 
 
-  std::list<Instruction*> violatingInstructions; 
-  std::list<Instruction*> replacementInstructions; 
+  std::set<Value*> loadInstructions;
+  std::set<Value*> storeInstructions;
+  void insertInvariantChecks(BasicBlock *BBAT);
+
+  std::map<Instruction*, Instruction*> violatingInstructions; 
   std::map<Value*, Instruction*> aliasingValues;
 
   int getExecutionProbability(BasicBlock *B);
@@ -70,11 +75,17 @@ class RegionSpeculation {
 
   int scoreRegion(Region *R);
 
+  void insertTripCount(SCEV const *tripCount);
+  Value *scevToValue(SCEV const *scev);
   int64_t getLoopIterationCount(Region *R);
+  std::list<SCEV const *> maxTripCounts;
   
   void replaceViolatingInstructions(Region &R);
 
-  void insertAliasChecks();
+  BasicBlock *createTestBlock();
+
+  void insertAliasChecks(void* Context, BasicBlock* BBAT);
+  Value *insertAliasCheck(BasicBlock *BBAT, Value *v1, Value *v2, Value* res);
 
   void insertFunctionCheck(Instruction *I);
 
@@ -82,17 +93,20 @@ class RegionSpeculation {
 
   Value *insertPseudoInstructionsPre(Region &R);
 
+  bool containsCalls;
   CallInst *createCall(Instruction *I);
 
   typedef std::pair<BasicBlock*, BasicBlock*> RegionScoreKey;
   typedef std::map<RegionScoreKey, int> RegionScoreMap;
   RegionScoreMap RegionScores;
+  std::set<RegionScoreKey> preparedRegions;
 
   std::map<BasicBlock*, int> ExecutionProbability;
 
   typedef std::map<Region*, int> ViolationProbabilityMap;
   ViolationProbabilityMap ViolationProbability;
 
+  
 public:
 
   enum Violations {
@@ -105,7 +119,9 @@ public:
   };
 
 
-  RegionSpeculation(ScopDetection *SD) : SD(SD) {};
+  void registerMemoryInstruction(Instruction *I, Value *BV);
+
+  RegionSpeculation(ScopDetection *SD);
 
   void prepareRegion( Region &R );
   
@@ -114,6 +130,8 @@ public:
   void setFunction(Function &F) { func = &F; };
 
   void addViolatingInstruction(Instruction *I, unsigned violation);
+
+  void postPrepareRegion(BasicBlock *testBlock);
 
 };
 

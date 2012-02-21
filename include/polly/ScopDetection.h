@@ -94,7 +94,6 @@ class ScopDetection : public FunctionPass {
   //@}
 
   bool gatherViolatingInstructions;
-  RegionSpeculation *RS;
   friend class RegionSpeculation;
 
   /// @brief Context variables for SCoP detection.
@@ -215,6 +214,8 @@ class ScopDetection : public FunctionPass {
 public:
   static char ID;
   explicit ScopDetection() : FunctionPass(ID), RS(new RegionSpeculation(this)) {}
+
+  RegionSpeculation *RS;
 
   /// @brief Get the RegionInfo stored in this pass.
   ///
