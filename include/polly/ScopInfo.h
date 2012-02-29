@@ -315,6 +315,12 @@ public:
     return *InstructionToAccess[Inst];
   }
 
+  void setAccessFor(const Instruction *oldInst, const Instruction *newInst) {
+    MemoryAccess* MA = InstructionToAccess[oldInst];
+    InstructionToAccess.erase(oldInst);
+    InstructionToAccess[newInst] = MA;
+  }
+
   void setBasicBlock(BasicBlock *Block) { BB = Block; }
 
   typedef MemoryAccessVec::iterator memacc_iterator;

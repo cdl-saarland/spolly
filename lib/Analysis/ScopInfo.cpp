@@ -202,6 +202,7 @@ public:
     assert(Expr->isAffine() && "Only affine AddRecurrences allowed");
     assert(scop->getRegion().contains(Expr->getLoop())
            && "Scop does not contain the loop referenced in this AddRec");
+    dbgs() << "\n\n" << *Expr  << "\n\n";
 
     isl_pw_aff *Start = visit(Expr->getStart());
     isl_pw_aff *Step = visit(Expr->getOperand(1));
@@ -237,6 +238,19 @@ public:
     Value *Value = Expr->getValue();
 
     isl_space *Space;
+    
+
+    // SPOLLY HACK
+    Type *t;
+    if (Expr->isSizeOf(t)) {
+      ScalarEvolution &SE = *scop->getSE();
+      IntegerType *IT = dyn_cast<IntegerType>(Value->getType());
+      assert(IT && "Integer type expected");
+
+      // TODO
+      const SCEV *sizeOf = SE.getConstant(ConstantInt::get(IT, 64));
+      return visit(sizeOf);
+    }
 
     std::string ValueName = Value->getName();
     isl_id *ID = isl_id_alloc(ctx, ValueName.c_str(), Value);
@@ -585,6 +599,8 @@ void ScopStmt::buildAccesses(TempScop &tempScop, const Region &CurRegion) {
   for (AccFuncSetType::const_iterator I = AccFuncs->begin(),
        E = AccFuncs->end(); I != E; ++I) {
     MemAccs.push_back(new MemoryAccess(I->first, this));
+    DEBUG(dbgs() << "@-----------------------------\n@ " << *(I->second) 
+          << "\n@ " << MemAccs.back() << "\n");
     InstructionToAccess[I->second] = MemAccs.back();
   }
 }
@@ -1082,6 +1098,7 @@ void ScopInfo::getAnalysisUsage(AnalysisUsage &AU) const {
 }
 
 bool ScopInfo::runOnRegion(Region *R, RGPassManager &RGM) {
+  dbgs() << "SI run on Region " << R << "  " << R->getNameStr() << "\n";
   LoopInfo &LI = getAnalysis<LoopInfo>();
   ScalarEvolution &SE = getAnalysis<ScalarEvolution>();
 
@@ -1090,6 +1107,7 @@ bool ScopInfo::runOnRegion(Region *R, RGPassManager &RGM) {
   // This region is no Scop.
   if (!tempScop) {
     scop = 0;
+    dbgs() << "SI end run on Region (no Scop) \n";
     return false;
   }
 
@@ -1099,6 +1117,7 @@ bool ScopInfo::runOnRegion(Region *R, RGPassManager &RGM) {
 
   scop = new Scop(*tempScop, LI, SE, ctx);
 
+  dbgs() << "SI end run on Region scop! \n"; 
   return false;
 }
 

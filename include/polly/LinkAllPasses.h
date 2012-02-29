@@ -16,6 +16,8 @@
 #define POLLY_LINKALLPASSES_H
 
 #include "polly/Config/config.h"
+#include "polly/ScopDetection.h"
+#include "polly/CodeGeneration.h"
 #include <cstdlib>
 
 namespace llvm {
@@ -28,10 +30,10 @@ namespace llvm {
 using namespace llvm;
 
 namespace polly {
-  Pass *createAffSCEVItTesterPass();
+  //Pass *createAffSCEVItTesterPass();
   Pass *createCloogExporterPass();
   Pass *createCloogInfoPass();
-  Pass *createCodeGenerationPass();
+  //Pass *createCodeGenerationPass();
   Pass *createCodePreparationPass();
   Pass *createDependencesPass();
   Pass *createDOTOnlyPrinterPass();
@@ -42,7 +44,7 @@ namespace polly {
   Pass *createJSONExporterPass();
   Pass *createJSONImporterPass();
   Pass *createRegionSimplifyPass();
-  Pass *createScopDetectionPass();
+  //Pass *createScopDetectionPass();
   Pass *createScopInfoPass();
   Pass *createIslScheduleOptimizerPass();
   Pass *createTempScopInfoPass();
@@ -61,7 +63,6 @@ namespace polly {
   extern char &IndependentBlocksID;
   extern char &CodePreparationID;
   
-  Pass *createScopSpeculationPass();
 }
 
 using namespace polly;
@@ -76,7 +77,7 @@ namespace {
       if (std::getenv("bar") != (char*) -1)
         return;
 
-       createAffSCEVItTesterPass();
+       //createAffSCEVItTesterPass();
        createCloogExporterPass();
        createCloogInfoPass();
        createCodeGenerationPass();
@@ -105,15 +106,13 @@ namespace {
        createScopLibImporterPass();
 #endif
 
-       createScopSpeculationPass();
-
     }
   } PollyForcePassLinking; // Force link by creating a global definition.
 }
 
 namespace llvm {
   class PassRegistry;
-  void initializeCodeGenerationPass(llvm::PassRegistry&);
+  //void initializeCodeGenerationPass(llvm::PassRegistry&);
   void initializeCodePreparationPass(llvm::PassRegistry&);
   void initializeIndependentBlocksPass(llvm::PassRegistry&);
   void initializeJSONExporterPass(llvm::PassRegistry&);

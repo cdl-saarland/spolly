@@ -298,6 +298,7 @@ void CloogInfo::releaseMemory() {
 }
 
 bool CloogInfo::runOnScop(Scop &S) {
+  dbgs() << "CI run on &scop " << &S << "\n";
   if (C)
     delete C;
 
@@ -311,6 +312,7 @@ bool CloogInfo::runOnScop(Scop &S) {
   DEBUG(dbgs() << " : " << S.getRegion().getNameStr() << "\n");;
   DEBUG(C->pprint(dbgs()));
 
+  dbgs() << "CI end run on &scop " << &S << "\n";
   return false;
 }
 

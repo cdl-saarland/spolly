@@ -22,7 +22,7 @@
 
 #define DEBUG_TYPE "polly-codegen"
 
-#include "polly/LinkAllPasses.h"
+//#include "polly/LinkAllPasses.h"
 #include "polly/Support/GICHelper.h"
 #include "polly/Support/ScopHelper.h"
 #include "polly/Cloog.h"
@@ -412,6 +412,20 @@ public:
   Value *generateLocationAccessed(const Instruction *Inst,
                                   const Value *Pointer, ValueMapT &BBMap ) {
     MemoryAccess &Access = statement.getAccessFor(Inst);
+    DEBUG(dbgs() << "@\t generateLocationAccessed " << *Inst << " " 
+          << *Pointer << " " << &Access << "\n" );
+
+    //if (!(&Access)) {
+      ////Value *pointer = const_cast<Value *>(Pointer);
+      ////Instruction *pointerInstruction = dyn_cast<Instruction>(pointer);
+      ////assert(pointerInstruction && "Pointer was no instruction");
+      ////return pointerInstruction;
+      //Value *I =  getOperand(Pointer, BBMap);
+      //DEBUG(dbgs() << "@\t\t --- I: " << I << "  " << *I << "\n");
+      //return I;
+    //} 
+
+
     isl_map *CurrentAccessRelation = Access.getAccessRelation();
     isl_map *NewAccessRelation = Access.getNewAccessRelation();
 
@@ -419,6 +433,8 @@ public:
            && "Current and new access function use different spaces");
 
     Value *NewPointer;
+    
+    DEBUG(dbgs() << "@\t New Access Relation: " << NewAccessRelation << "\n" );
 
     if (!NewAccessRelation) {
       NewPointer = getOperand(Pointer, BBMap);
@@ -558,6 +574,7 @@ public:
 
     Builder.Insert(NewInst);
     BBMap[Inst] = NewInst;
+    DEBUG(dbgs() << "@\t BBMap["<< *Inst << "] = "<<*NewInst<<"\n");
 
     if (!NewInst->getType()->isVoidTy())
       NewInst->setName("p_" + Inst->getName());
@@ -582,6 +599,8 @@ public:
   void copyInstruction(const Instruction *Inst, ValueMapT &BBMap,
                        ValueMapT &vectorMap, VectorValueMapT &scalarMaps,
                        int vectorDimension, int vectorWidth) {
+    DEBUG(dbgs() << "@\t\t copyInstruction " << *Inst << "\n");
+    
     // Terminator instructions control the control flow. They are explicitally
     // expressed in the clast and do not need to be copied.
     if (Inst->isTerminator())
@@ -628,6 +647,9 @@ public:
   //                For new statements a relation old->new is inserted in this
   //                map.
   void copyBB(BasicBlock *BB, DominatorTree *DT) {
+    // SPOLLY TODO
+    DEBUG(dbgs() << "@\t\t copyBB " << *BB << "\n");
+
     Function *F = Builder.GetInsertBlock()->getParent();
     LLVMContext &Context = F->getContext();
     BasicBlock *CopyBB = BasicBlock::Create(Context,
@@ -895,6 +917,9 @@ public:
                const char *iterator = NULL, isl_set *scatteringDomain = 0) {
     ScopStmt *Statement = (ScopStmt *)u->statement->usr;
     BasicBlock *BB = Statement->getBasicBlock();
+    
+    // Replace spolly calls by real instructions 
+    SD->RS->replaceScopStatements(Statement);
 
     if (u->substitutions)
       codegenSubstitutions(u->substitutions, Statement);
@@ -914,8 +939,10 @@ public:
       }
     }
 
+
     BlockGenerator Generator(Builder, ValueMap, VectorValueMap, *Statement,
                              scatteringDomain);
+
     Generator.copyBB(BB, DT);
   }
 
@@ -1396,27 +1423,27 @@ public:
     ExpGen(Builder, NULL) {}
 
 };
-}
+//}
 
-namespace {
-class CodeGeneration : public ScopPass {
-  Region *region;
-  Scop *S;
-  DominatorTree *DT;
-  ScalarEvolution *SE;
-  ScopDetection *SD;
-  TargetData *TD;
-  RegionInfo *RI;
+//namespace {
+//class CodeGeneration : public ScopPass {
+  //Region *region;
+  //Scop *S;
+  //DominatorTree *DT;
+  //ScalarEvolution *SE;
+  //ScopDetection *SD;
+  //TargetData *TD;
+  //RegionInfo *RI;
 
-  std::vector<std::string> parallelLoops;
+  //std::vector<std::string> parallelLoops;
 
-  public:
-  static char ID;
+  //public:
+  //static char ID;
 
-  CodeGeneration() : ScopPass(ID) {}
+  //CodeGeneration() : ScopPass(ID) {}
 
   // Adding prototypes required if OpenMP is enabled.
-  void addOpenMPDefinitions(IRBuilder<> &Builder)
+  void CodeGeneration::addOpenMPDefinitions(IRBuilder<> &Builder)
   {
     Module *M = Builder.GetInsertBlock()->getParent()->getParent();
     LLVMContext &Context = Builder.getContext();
@@ -1471,7 +1498,7 @@ class CodeGeneration : public ScopPass {
   // edge. This function also updates ScopInfo and RegionInfo.
   //
   // @param region The region where the entry edge will be splitted.
-  BasicBlock *splitEdgeAdvanced(Region *region) {
+  BasicBlock *CodeGeneration::splitEdgeAdvanced(Region *region) {
     BasicBlock *newBlock;
     BasicBlock *splitBlock;
 
@@ -1503,12 +1530,11 @@ class CodeGeneration : public ScopPass {
   // @param builder A builder that will be set to point to a basic block, where
   //                the new code can be generated.
   // @return The split basic block.
-  BasicBlock *addSplitAndStartBlock(IRBuilder<> *builder) {
+  BasicBlock *CodeGeneration::addSplitAndStartBlock(IRBuilder<> *builder) {
     BasicBlock *splitBlock = splitEdgeAdvanced(region);
+    DEBUG(dbgs() << "@\t add Splitblock \n");
 
     splitBlock->setName("polly.enterScop");
-    // Introduce test for aliases and invariants
-    SD->RS->postPrepareRegion(splitBlock);
 
     Function *function = splitBlock->getParent();
     BasicBlock *startBlock = BasicBlock::Create(function->getContext(),
@@ -1529,7 +1555,7 @@ class CodeGeneration : public ScopPass {
   //                   old and new version of the Scop.
   // @param builder    An IRBuilder that points to the last instruction of the
   //                   newly generated code.
-  void mergeControlFlow(BasicBlock *splitBlock, IRBuilder<> *builder) {
+  void CodeGeneration::mergeControlFlow(BasicBlock *splitBlock, IRBuilder<> *builder) {
     BasicBlock *mergeBlock;
     Region *R = region;
 
@@ -1551,14 +1577,17 @@ class CodeGeneration : public ScopPass {
       DT->changeImmediateDominator(mergeBlock, splitBlock);
   }
 
-  bool runOnScop(Scop &scop) {
+  bool CodeGeneration::runOnScop(Scop &scop) {
+    dbgs() << "CG run on &scop " << &scop << "  ";
     S = &scop;
     region = &S->getRegion();
+    dbgs() << "  " << region->getNameStr() << "  ";
+    TD = new TargetData(region->getEntry()->getParent()->getParent());
+    dbgs() << TD << "  \n";
     DT = &getAnalysis<DominatorTree>();
     Dependences *DP = &getAnalysis<Dependences>();
     SE = &getAnalysis<ScalarEvolution>();
     SD = &getAnalysis<ScopDetection>();
-    TD = &getAnalysis<TargetData>();
     RI = &getAnalysis<RegionInfo>();
 
     parallelLoops.clear();
@@ -1597,12 +1626,17 @@ class CodeGeneration : public ScopPass {
 
     // The builder will be set to startBlock.
     BasicBlock *splitBlock = addSplitAndStartBlock(&builder);
-
+    
+    // Introduce test for aliases and invariants
+    // Replace dummy call instructions with the original ones
+    SD->RS->postPrepareRegion(splitBlock);
+    
     if (OpenMP)
       addOpenMPDefinitions(builder);
 
     ClastStmtCodeGen CodeGen(S, *SE, DT, SD, DP, TD, builder);
     CloogInfo &C = getAnalysis<CloogInfo>();
+
     CodeGen.codegen(C.getClast());
 
     parallelLoops.insert(parallelLoops.begin(),
@@ -1611,16 +1645,20 @@ class CodeGeneration : public ScopPass {
 
     mergeControlFlow(splitBlock, &builder);
 
+
+    dbgs() << "CG run on scop end\n";
+    delete TD;
+    dbgs() << "CG run on scop end\n";
     return true;
   }
 
-  virtual void printScop(raw_ostream &OS) const {
+  void CodeGeneration::printScop(raw_ostream &OS) const {
     for (std::vector<std::string>::const_iterator PI = parallelLoops.begin(),
          PE = parallelLoops.end(); PI != PE; ++PI)
       OS << "Parallel loop with iterator '" << *PI << "' generated\n";
   }
 
-  virtual void getAnalysisUsage(AnalysisUsage &AU) const {
+  void CodeGeneration::getAnalysisUsage(AnalysisUsage &AU) const {
     AU.addRequired<CloogInfo>();
     AU.addRequired<Dependences>();
     AU.addRequired<DominatorTree>();
@@ -1628,7 +1666,6 @@ class CodeGeneration : public ScopPass {
     AU.addRequired<ScalarEvolution>();
     AU.addRequired<ScopDetection>();
     AU.addRequired<ScopInfo>();
-    AU.addRequired<TargetData>();
 
     AU.addPreserved<CloogInfo>();
     AU.addPreserved<Dependences>();
@@ -1646,10 +1683,26 @@ class CodeGeneration : public ScopPass {
     AU.addPreserved<ScopInfo>();
     AU.addPreservedID(IndependentBlocksID);
   }
-};
+//};
+
+ 
+  bool CodeGeneration::doFinalization() {
+    dbgs() << "CG do   Finalization \n";
+    dbgs() << "CG done Finalization \n";
+
+    return false;
+  }
+
+  bool CodeGeneration::doInitialization(Region *R, RGPassManager &RGM) {
+    dbgs() << "CG do   Initialization \n";
+    dbgs() << "CG done Initialization \n";
+
+    return false;
+  }
+
 }
 
-char CodeGeneration::ID = 1;
+char polly::CodeGeneration::ID = 1;
 
 INITIALIZE_PASS_BEGIN(CodeGeneration, "polly-codegen",
                       "Polly - Create LLVM-IR form SCoPs", false, false)
@@ -1659,7 +1712,6 @@ INITIALIZE_PASS_DEPENDENCY(DominatorTree)
 INITIALIZE_PASS_DEPENDENCY(RegionInfo)
 INITIALIZE_PASS_DEPENDENCY(ScalarEvolution)
 INITIALIZE_PASS_DEPENDENCY(ScopDetection)
-INITIALIZE_PASS_DEPENDENCY(TargetData)
 INITIALIZE_PASS_END(CodeGeneration, "polly-codegen",
                       "Polly - Create LLVM-IR form SCoPs", false, false)
 

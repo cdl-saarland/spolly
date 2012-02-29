@@ -57,6 +57,7 @@
 #include "llvm/Analysis/RegionIterator.h"
 #include "llvm/Analysis/ScalarEvolution.h"
 #include "llvm/Analysis/ScalarEvolutionExpressions.h"
+#include "llvm/Target/TargetData.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Assembly/Writer.h"
 
@@ -381,7 +382,7 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
 
   AccessFunction = SE->getMinusSCEV(AccessFunction, BasePointer);
   
-  DEBUG(dbgs() << "AccessFunction " << AccessFunction << "\n");
+  DEBUG(dbgs() << "AccessFunction " << *AccessFunction << " " << Context.CurRegion  << " " << SE << "\n");
 
   if (!isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue))
     INVALID(AffFunc, "Bad memory address " << *AccessFunction);
@@ -473,7 +474,7 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       //STATSCOP(Phi);
       // Spolly
       // we need to allow this 
-      if (SPECCHECK(4)) {
+      if (SPECCHECK(4) && false) {
         DEBUG(dbgs() << "-=-| Phi 1 disabled |-=-\n");
         spolly_hit = true;
         
@@ -650,11 +651,11 @@ Region *ScopDetection::expandRegion(Region &R) {
 
 
 void ScopDetection::findScops(Region &R) {
-  DetectionContext Context(R, *AA, false /*verifying*/);
+  detectionContext = new DetectionContext(R, *AA, false /*verifying*/);
 
   LastFailure = "";
 
-  if (isValidRegion(Context)) {
+  if (isValidRegion(*detectionContext)) {
 
     DEBUG(dbgs() << "-=-| STATSCOP ValidRegion |-=-\n");
     ++ValidRegion;
@@ -797,7 +798,7 @@ bool ScopDetection::isValidRegion(DetectionContext &Context) const {
         DEBUG(dbgs() << "Speculativ valid Region (interested)\n"); 
         // if gatherViolatingInstructions is set we are preparing
         // the region right now
-        RS->prepareRegion(R);  
+        //RS->prepareRegion(R);  
 
       }
     }
@@ -812,6 +813,7 @@ bool ScopDetection::isValidFunction(llvm::Function &F) {
 }
 
 bool ScopDetection::runOnFunction(llvm::Function &F) {
+  DEBUG(dbgs() << "\n\n\n Run on Function " << F.getName() << "\n\n\n");
   AA = &getAnalysis<AliasAnalysis>();
   SE = &getAnalysis<ScalarEvolution>();
   LI = &getAnalysis<LoopInfo>();
@@ -833,10 +835,27 @@ bool ScopDetection::runOnFunction(llvm::Function &F) {
   findScops(*TopRegion);
 
   if (spolly_hit) 
-    return true;
+    return false;
 
   return false;
 }
+
+bool ScopDetection::doFinalization(Module &M) {
+  dbgs() << "do   Finalization \n";
+  delete TD;
+  dbgs() << "done Finalization \n";
+
+  return false;
+}
+
+bool ScopDetection::doInitialization(Module &M) {
+  dbgs() << "do   Initialization \n";
+  TD = new TargetData(&M);
+  dbgs() << "done Initialization \n";
+
+  return false;
+}
+
 
 void polly::ScopDetection::verifyRegion(const Region &R) const {
   assert(isMaxRegionInScop(R) && "Expect R is a valid region.");
@@ -872,6 +891,7 @@ void ScopDetection::print(raw_ostream &OS, const Module *) const {
 void ScopDetection::releaseMemory() {
   ValidRegions.clear();
   InvalidRegions.clear();
+  //delete detectionContext;
   // Do not clear the invalid function set.
 }
 

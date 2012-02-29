@@ -77,12 +77,14 @@ void TempScop::printDetail(llvm::raw_ostream &OS, ScalarEvolution *SE,
 
 void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
   AccFuncSetType Functions;
+  const SCEV *pseudoAccessFunction = SE->getConstant(APInt::getNullValue(1u));
 
   for (BasicBlock::iterator I = BB.begin(), E = --BB.end(); I != E; ++I) {
     Instruction &Inst = *I;
+    unsigned Size;
+    enum IRAccess::TypeKind Type;
+    
     if (isa<LoadInst>(&Inst) || isa<StoreInst>(&Inst)) {
-      unsigned Size;
-      enum IRAccess::TypeKind Type;
 
       if (LoadInst *Load = dyn_cast<LoadInst>(&Inst)) {
         Size = TD->getTypeStoreSize(Load->getType());
@@ -108,6 +110,51 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
                                                   AccessFunction, Size,
                                                   IsAffine),
                                          &Inst));
+    } else {
+      // Pseudo calls introduced by the region speculation should be considered
+      // here if the original instruction was a load or a store. 
+
+      std::map<Instruction*, unsigned>::iterator vIit;
+      vIit = SD->RS->violatingInstructionsMap.find(&Inst);
+      if (vIit != SD->RS->violatingInstructionsMap.end()) {
+        unsigned opcode = vIit->second;
+        Value *ptr; 
+        llvm::Type *type;
+        switch (opcode) {
+          default:
+            DEBUG(dbgs() << "@\n@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@ " << Inst << "\n");
+            break;
+
+          case Instruction::Load:
+            ptr  = Inst.getOperand(0);
+            type = (cast<PointerType>(ptr->getType()))->getElementType();
+            Size = TD->getTypeStoreSize(type);
+            Type = IRAccess::READ;
+
+            Functions.push_back(std::make_pair(IRAccess(Type, ptr,
+                                                  pseudoAccessFunction, Size,
+                                                  false /* isAffine */),
+                                         &Inst));
+
+            break;
+
+          case Instruction::Store:
+            Value *val = Inst.getOperand(0);
+            ptr  = Inst.getOperand(1);
+            type = val->getType();
+            Size = TD->getTypeStoreSize(type);
+            Type = IRAccess::WRITE;
+
+            Functions.push_back(std::make_pair(IRAccess(Type, ptr,
+                                                  pseudoAccessFunction, Size,
+                                                  false /* isAffine */),
+                                         &Inst));
+
+            break;
+        }
+      } else {
+        DEBUG(dbgs() << "@\n@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@ " << Inst << "\n");
+      }
     }
   }
 
@@ -256,24 +303,25 @@ void TempScopInfo::print(raw_ostream &OS, const Module *) const {
 }
 
 bool TempScopInfo::runOnFunction(Function &F) {
+  dbgs() << "TSI run on Function " << F.getName() << " \n";
+    
   DT = &getAnalysis<DominatorTree>();
   PDT = &getAnalysis<PostDominatorTree>();
   SE = &getAnalysis<ScalarEvolution>();
   LI = &getAnalysis<LoopInfo>();
   SD = &getAnalysis<ScopDetection>();
   AA = &getAnalysis<AliasAnalysis>();
-  TD = &getAnalysis<TargetData>();
 
   for (ScopDetection::iterator I = SD->begin(), E = SD->end(); I != E; ++I) {
     Region *R = const_cast<Region*>(*I);
     TempScops.insert(std::make_pair(R, buildTempScop(*R)));
   }
 
+  dbgs() << "TSI end run on Function \n";
   return false;
 }
 
 void TempScopInfo::getAnalysisUsage(AnalysisUsage &AU) const {
-  AU.addRequired<TargetData>();
   AU.addRequiredTransitive<DominatorTree>();
   AU.addRequiredTransitive<PostDominatorTree>();
   AU.addRequiredTransitive<LoopInfo>();
@@ -296,6 +344,23 @@ void TempScopInfo::clear() {
   TempScops.clear();
 }
 
+
+bool TempScopInfo::doInitialization(Module &M) {
+  dbgs() << "TSI do   Initialization \n";
+  TD = new TargetData(&M);
+  dbgs() << "TSI done Initialization \n";
+
+  return false;
+}
+
+bool TempScopInfo::doFinalization(Module &M) {
+  dbgs() << "TSI do   Finalization \n";
+  delete TD;
+  dbgs() << "TSI done Finalization \n";
+
+  return false;
+}
+
 //===----------------------------------------------------------------------===//
 // TempScop information extraction pass implement
 char TempScopInfo::ID = 0;
@@ -309,7 +374,6 @@ INITIALIZE_PASS_DEPENDENCY(LoopInfo)
 INITIALIZE_PASS_DEPENDENCY(PostDominatorTree)
 INITIALIZE_PASS_DEPENDENCY(RegionInfo)
 INITIALIZE_PASS_DEPENDENCY(ScalarEvolution)
-INITIALIZE_PASS_DEPENDENCY(TargetData)
 INITIALIZE_PASS_END(TempScopInfo, "polly-analyze-ir",
                     "Polly - Analyse the LLVM-IR in the detected regions",
                     false, false)

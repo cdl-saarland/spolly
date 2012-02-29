@@ -447,6 +447,12 @@ bool IndependentBlocks::isIndependentBlock(const Region *R,
         DEBUG(dbgs() << "Instruction used outside the Scop!\n");
         DEBUG(Inst->print(dbgs()));
         DEBUG(dbgs() << "\n");
+        DEBUG(UI->print(dbgs()));
+        DEBUG(dbgs() << "\n");
+        DEBUG(R->print(dbgs()));
+        DEBUG(dbgs() << "\n");
+        DEBUG(BB->print(dbgs()));
+        DEBUG(dbgs() << "\n");
         return false;
       }
     }
@@ -532,11 +538,13 @@ bool IndependentBlocks::runOnFunction(llvm::Function &F) {
 }
 
 void IndependentBlocks::verifyAnalysis() const {
+  return;
   for (ScopDetection::const_iterator I = SD->begin(), E = SD->end();I != E;++I)
     verifyScop(*I);
 }
 
 void IndependentBlocks::verifyScop(const Region *R) const {
+  DEBUG(dbgs() << "@\t IndependentBlocks::verifyScop " << *R << "\n");
   assert (areAllBlocksIndependent(R) && "Cannot generate independent blocks");
 }
 

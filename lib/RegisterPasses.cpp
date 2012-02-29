@@ -23,7 +23,6 @@
 #include "polly/Cloog.h"
 #include "polly/Dependences.h"
 #include "polly/ScopDetection.h"
-//#include "polly/ScopSpeculation.h"
 #include "polly/ScopInfo.h"
 #include "polly/TempScopInfo.h"
 
@@ -96,7 +95,6 @@ void initializePollyPasses(PassRegistry &Registry) {
   initializeScopInfoPass(Registry);
   initializeTempScopInfoPass(Registry);
 
-  //initializeScopSpeculationPass(Registry);
 }
 
 // Statically register all Polly passes such that they are available after

@@ -16,11 +16,13 @@
 
 #include "polly/RegionSpeculation.h"
 
+#include "polly/ScopInfo.h"
 #include "polly/ScopDetection.h"
 #include "polly/LinkAllPasses.h"
 #include "polly/Support/ScopHelper.h"
 #include "polly/Support/SCEVValidator.h"
 
+#include "llvm/Target/TargetData.h"
 #include "llvm/Analysis/Interval.h"
 #include "llvm/LLVMContext.h"
 #include "llvm/ADT/Statistic.h"
@@ -45,6 +47,7 @@
 #define RI SD->RI
 #define LI SD->LI
 #define SE SD->SE
+#define TD SD->TD
 
 #define VIOLATION_COUNT 4
 static int violationCosts[VIOLATION_COUNT] = { 2, 2, 2, 2 };
@@ -54,7 +57,7 @@ static int violationCosts[VIOLATION_COUNT] = { 2, 2, 2, 2 };
 #define ITERATION_TRESHOLD 10
 #define ITERATIONCOUNTCONSTANT 20
 
-#define SPECULATIVETRESHOLD 500
+#define SPECULATIVETRESHOLD -500
 
 // Probabilities is spolly-branch-{best,worst} is set
 #define BRANCHPROBABILITYHIGHT  99
@@ -108,7 +111,7 @@ SPollyDumpCandidates("spolly-dump",
        cl::desc("Dump all speculative candidates"),
        cl::Hidden,
        cl::value_desc("Dump all speculative candidates"),
-       cl::init(false));
+       cl::init(true));
 
 static cl::opt<bool>
 SPollyBranchWorst("spolly-branch-worst",
@@ -122,7 +125,7 @@ SPollyBranchBest("spolly-branch-best",
        cl::desc("Assume the best branch is taken most of the time"),
        cl::Hidden,
        cl::value_desc(""),
-       cl::init(false));
+       cl::init(true));
 
 
 static cl::opt<bool>
@@ -137,7 +140,7 @@ SPollyViolationProbabilityLow("spolly-violation-low",
        cl::desc("Assume a low probability for violations"),
        cl::Hidden,
        cl::value_desc(""),
-       cl::init(false));
+       cl::init(true));
 
 
 // Variable to mark that we are within a branch and thus possibly
@@ -270,7 +273,21 @@ void RegionSpeculation::insertTripCount(SCEV const *tripCount) {
   if (tripCount->isZero()) {
     return;
   }
-   
+  
+  if (SCEVSMaxExpr const *S = dyn_cast<SCEVSMaxExpr>(tripCount)) {
+    SCEVNAryExpr::op_iterator op = S->op_begin();
+    for (; op != S->op_end(); op++) {
+      insertTripCount(*op);
+    }
+    return;
+  } else if (SCEVUMaxExpr const *S = dyn_cast<SCEVUMaxExpr>(tripCount)) {
+    SCEVNAryExpr::op_iterator op = S->op_begin();
+    for (; op != S->op_end(); op++) {
+      insertTripCount(*op);
+    }
+    return;
+  }
+
   enum llvm::CmpInst::Predicate predLess, predGreater;
 
   predLess = CmpInst::ICMP_SLT;
@@ -289,6 +306,7 @@ void RegionSpeculation::insertTripCount(SCEV const *tripCount) {
       // list, so we remove the stored one and use the current tripCount if
       // there is no other SCEV which is greater in the list
       it = maxTripCounts.erase(it);
+      continue;
     }
 
     if (SE->isKnownPredicate(predGreater, *it, tripCount)) {
@@ -296,6 +314,7 @@ void RegionSpeculation::insertTripCount(SCEV const *tripCount) {
       // The list element is greater as the tripCount so we do not need to
       // insert the tripCount into the list
       insertTripCount = false;
+      continue;
     }
   }
  
@@ -401,9 +420,10 @@ int64_t RegionSpeculation::getLoopIterationCount(Region *R) {
  * =============================================================================
  */
 bool RegionSpeculation::regionIsLoop(Region *R) {
-  RegionScoreKey RSK= std::make_pair(R->getEntry(), R->getExit());
+  BasicBlock *entry = R->getEntry();
+  BasicBlock *exit  = R->getExit();
 
-  return (LI->getLoopDepth(RSK.first) - LI->getLoopDepth(RSK.second));
+  return (LI->getLoopDepth(entry) - LI->getLoopDepth(exit));
 }		/* -----  end of function regionIsLoop  ----- */
 
 
@@ -434,7 +454,7 @@ void RegionSpeculation::collectAliasSets(Instruction *I) {
   DEBUG(dbgs() << "@\t  == Base value " << BaseValue << " " << *BaseValue << "\n");
   DEBUG(dbgs() << "@\t  == Instruction " << I << " " << *I << "\n");
 
-  aliasingValues[BaseValue] = I;
+  aliasingValues[BaseValue] = I->getMetadata(LLVMContext::MD_tbaa);
 }		/* -----  end of function collectAliasSets  ----- */
 
 
@@ -455,18 +475,32 @@ static Value *maxLoopCount[2];
  */
 Value *RegionSpeculation::insertAliasCheck(BasicBlock *BBAT, 
                                            Value *v1, Value *v2, 
-                                           Value *currentResult) {
+                                           Value *currentResult,
+                                           Value *size1, Value *size2) {
 
   // The builder for the alias test basic block 
   IRBuilder<> builder(BBAT, --(BBAT->end())); 
-
+  
+  // The integer 64 type the pointers are converted to
+  LLVMContext &llvmContext = BBAT->getContext();
+  IntegerType *t64 = Type::getInt64Ty(llvmContext);
+  
+  
   StringRef s1 = v1->getName();
   s1 = s1.substr(0, s1.size() - 3);
   StringRef s2 = v2->getName();
   s2 = s2.substr(0, s2.size() - 3);
 
+  Value *cmp  = builder.CreateICmpSGT(size1, size2);
+  Value *tmpSize = builder.CreateSelect(cmp, size1, size2); 
+
+  Value *size = builder.CreateSExtOrBitCast(tmpSize, t64);
+  
   // The difference of the two integers v1 and v2
-  Value *sub = builder.CreateSub(v1, v2, s1 + "-" + s2);
+  Value *tmpSub = builder.CreateSub(v1, v2, s1 + "-" + s2);
+  DEBUG(dbgs() << "@\t\t - sa_tmpSub: " << *tmpSub << "\n");
+
+  Value *sub = builder.CreateMul(tmpSub, size, tmpSub->getName() + "M");
   DEBUG(dbgs() << "@\t\t - sa_sub: " << *sub << "\n");
 
   Value *resultP = builder.CreateICmpSGE(sub, maxLoopCount[0], s1 + "_" + s2 +"_Pcomp");
@@ -497,25 +531,13 @@ Value *RegionSpeculation::insertAliasCheck(BasicBlock *BBAT,
  * =====================================================================================
  */
 Value *RegionSpeculation::scevToValue(SCEV const *scev) {
-  
+ 
+  assert(!scev->isZero() && "Zero is a useless offset for alias checking 1");
+
   if (SCEVConstant const *C = dyn_cast<SCEVConstant>(scev)) {
     return C->getValue();
   } else if (SCEVUnknown const *U = dyn_cast<SCEVUnknown>(scev)) {
     return U->getValue();
-  } else if (SCEVSMaxExpr const *S = dyn_cast<SCEVSMaxExpr>(scev)) {
-    SCEVNAryExpr::op_iterator op = S->op_begin();
-    Value *val = scevToValue(*(op++));
-    for (; op != S->op_end(); op++) {
-      insertTripCount(*op);
-    }
-    return val;
-  } else if (SCEVUMaxExpr const *S = dyn_cast<SCEVUMaxExpr>(scev)) {
-    SCEVNAryExpr::op_iterator op = S->op_begin();
-    Value *val = scevToValue(*(op++));
-    for (; op != S->op_end(); op++) {
-      insertTripCount(*op);
-    }
-    return val;
   } else {
     (scev)->print(dbgs());
     assert(0 && "unknown scev value");
@@ -527,7 +549,7 @@ Value *RegionSpeculation::scevToValue(SCEV const *scev) {
 
 /* 
  * ===  FUNCTION  ==============================================================
- *         Name:  insertAliasCheck
+ *         Name:  insertAliasChecks
  *  
  * ---------------------------------       --------------------------------- 
  * | ----------         ---------- |       | ----------         ---------- |
@@ -554,10 +576,10 @@ Value *RegionSpeculation::scevToValue(SCEV const *scev) {
  *
  * =============================================================================
  */
-void RegionSpeculation::insertAliasChecks(void *C, BasicBlock *BBAT) {
-  ScopDetection::DetectionContext *Context = 
-      (ScopDetection::DetectionContext*) C;
- 
+void RegionSpeculation::insertAliasChecks(BasicBlock *BBAT) {
+  
+  AliasSetTracker &AST = SD->detectionContext->AST;
+
   assert(aliasingValues.size() 
          && "No aliasing values, thus no need to insert a check"); 
 
@@ -566,23 +588,26 @@ void RegionSpeculation::insertAliasChecks(void *C, BasicBlock *BBAT) {
   
   BasicBlock *entry = currentRegion->getEntry();
   // An iterator over the aliasing values
-  std::map<Value*, Instruction*>::iterator avit;
+  std::map<Value*, MDNode*>::iterator avit;
   std::set<Value*> aliasingVals;
   // Insert aliasing pointers to the set of aliasing ints if they can be 
   // derived outside the loop. The set stores no pointers, instead the casted
   // integer values.
   for (avit = aliasingValues.begin(); avit != aliasingValues.end(); avit++) {
-    DEBUG(dbgs() << "@\t  -- Base value is " << avit->first 
-          << " and Instruction is " << avit->second << "\n");
+    DEBUG(dbgs() << "@\t  -- Base value is " << avit->first << "\n" );
    
-    if (violatingInstructions.count(avit->second)) continue;
+    if (violatingInstructions.count((Instruction*) avit->first)) {
+      DEBUG(dbgs() << "@\t\t == remove instruction " << avit->first);
+      continue;
+    } 
 
+    DEBUG(dbgs() << "@\t\t " << *avit->first << " \n");
+      
     AliasSet &AS = 
-      Context->AST.getAliasSetForPointer(avit->first, AliasAnalysis::UnknownSize,
-                                avit->second->getMetadata(LLVMContext::MD_tbaa));
+      AST.getAliasSetForPointer(avit->first, AliasAnalysis::UnknownSize,
+                                avit->second);
 
-    DEBUG(dbgs() << "@\t   -- avit: " << avit->first  << " " << *avit->first << "\n");
-    //DEBUG(dbgs() << "@\t   -- avit2: " << avit->second << " " << *avit->second << "\n");
+    //DEBUG(dbgs() << "@\t   -- avit: " << avit->first  << " " << *avit->first << "\n");
     AS.print(dbgs());
 
     assert(!AS.empty() && " alias set is empty ");
@@ -594,9 +619,9 @@ void RegionSpeculation::insertAliasChecks(void *C, BasicBlock *BBAT) {
             << " " << *outerIt->getValue() << "\n");
 
       if (Instruction *I = dyn_cast<Instruction>(outerItValue)) {
-        if (DT->dominates(I->getParent(), entry)) {
+        if (DT->dominates(entry, I->getParent())) {
           DEBUG(dbgs() 
-                << "@\t instruction is not dominated by the check basic block\n");
+                << "@\t instruction is dominated by the check basic block\n");
           // This instruction/pointer can not be tested because it is not loop 
           // invariant
           continue;
@@ -605,12 +630,15 @@ void RegionSpeculation::insertAliasChecks(void *C, BasicBlock *BBAT) {
        
       // The value outerItValue is loop indipendant so we can use it for the 
       // alias tests
+      DEBUG(dbgs() << "@\t\t Insert aliasingVals: " << *outerItValue  <<"\n"); 
       aliasingVals.insert(outerItValue);
     }
   }
+  
+  aliasingValues.clear();
  
   if (aliasingVals.size() < 2) {
-    DEBUG(dbgs() << "@\t There are not enough pointers to compare");
+    DEBUG(dbgs() << "@\t There are not enough pointers to compare \n");
     return;
   }
 
@@ -631,34 +659,57 @@ void RegionSpeculation::insertAliasChecks(void *C, BasicBlock *BBAT) {
     maxTripCount = builder.CreateSelect(cmp, val, maxTripCount); 
   }
   
+  assert(maxTripCounts.size() == 0 && "Max trip counts should be empty");
+  
   // The integer 64 type the pointers are converted to
   LLVMContext &llvmContext = BBAT->getContext();
   IntegerType *t64 = Type::getInt64Ty(llvmContext);
-  
+
   maxLoopCount[0] = builder.CreateSExtOrBitCast(maxTripCount, t64);
   maxLoopCount[1] = builder.CreateNeg(maxLoopCount[0]);
   // A set of all aliasing pointer casted to integers
-  std::set<Value*> aliasingInts;
+  std::map<Value*, Value *> aliasingInts;
 
-  
   for (std::set<Value *>::iterator aliasingValue = aliasingVals.begin(); 
        aliasingValue != aliasingVals.end(); aliasingValue++){
       // TODO assert v1, v2 to be pointers
       // Cast v1 and v2 to int 
+      DEBUG(dbgs() << "@\t\t create PtrToInt: "
+            << (*aliasingValue)->getName() <<" "<< *aliasingValue << "\n");
       Value *pointerAsInt = builder.CreatePtrToInt(*aliasingValue, t64,
                                       (*aliasingValue)->getName() +"_64");
-      aliasingInts.insert(pointerAsInt);
+     /* 
+      PointerType *type = dyn_cast<PointerType>((*aliasingValue)->getType());
+      ConstantPointerNull *nullPointer = 
+        ConstantPointerNull::get(type);
+      nullPointer->setName("NP");
+      DEBUG(dbgs() << "@&\t " << *nullPointer << "\n");
+
+      Value *tmpSize = builder.CreateGEP(nullPointer ,ConstantInt::get(t32, 1),
+                                         "pseudoArrayAcc");
+      DEBUG(dbgs() << "@&\t " << *tmpSize << "\n");
+
+      Value *size = builder.CreatePtrToInt(tmpSize, t32, 
+                                           +"Psize");
+      */
+      Type *type  = (cast<PointerType>((*aliasingValue)->getType()))->getElementType();
+      Value *size = ConstantInt::get(t64, TD->getTypeStoreSize(type));
+      DEBUG(dbgs() << "@&\t " << *size << "\n");
+      aliasingInts[pointerAsInt] = size;
   }
 
-  // All pointers to check are in the set aliasingInts
+  // All pointers to check are in the map aliasingInts
   Value *result = NULL;
-  for (std::set<Value *>::iterator aliasingValue = aliasingInts.begin(); 
+  for (std::map<Value *, Value *>::iterator aliasingValue = aliasingInts.begin(); 
        aliasingValue != aliasingInts.end(); aliasingValue++){
     // Iterate over all coming values to check each against another
-    for (std::set<Value *>::iterator otherAliasingValue(aliasingValue);
+    for (std::map<Value *, Value*>::iterator otherAliasingValue(aliasingValue);
          ++otherAliasingValue != aliasingInts.end();) {
-      result = insertAliasCheck(BBAT, *aliasingValue,
-                                *otherAliasingValue, result); 
+      result = insertAliasCheck(BBAT, aliasingValue->first,
+                                otherAliasingValue->first,
+                                result,
+                                aliasingValue->second,
+                                otherAliasingValue->second); 
     }  
   }
 
@@ -680,6 +731,9 @@ void RegionSpeculation::insertAliasChecks(void *C, BasicBlock *BBAT) {
   DEBUG(dbgs() << "\n\n\n-----------------------------------------------\n\n");
 
 }		/* -----  end of function insertAliasChecks  ----- */
+
+
+
 
 
 /* 
@@ -858,7 +912,7 @@ void RegionSpeculation::addViolatingInstruction(Instruction *I, unsigned viol) {
   DEBUG(dbgs() << "@\t Add violating instruction " << viol << " "<< *I << "\n");
 
   // Save the instruction in the list of violating ones
-  violatingInstructions[I] = NULL;
+  violatingInstructions.insert(I);
 
   switch (viol) {
     case VIOLATION_ALIAS:
@@ -906,20 +960,23 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
   //Module *M = builder.GetInsertBlock()->getParent()->getParent();
   Module *M = I->getParent()->getParent()->getParent();
   
-  DEBUG(dbgs() << *I->getType() << "\t" << I->getNumOperands() << "\n"
-        << *I->getOperand(0));
+  DEBUG(dbgs() << "@\t\t" << *I->getType() << "\t" << I->getNumOperands() << "\n");
   
   unsigned argsC = I->getNumOperands();
-
-  // Remove the called function operand from call instructions
-  if (I->getOpcode() == Instruction::Call) {
-    argsC -= 1;
-  }
-  
-
   std::vector<Type *> argsT(argsC);
   std::vector<Value *> argsV(argsC);
-  for (unsigned i = 0; i < argsC; i++) {
+
+  unsigned i = 0;
+  if (I->getOpcode() == Instruction::Call) {
+    CallInst *C = dyn_cast<CallInst>(I);
+    DEBUG(dbgs() 
+          << "@\t\t Found call => using the called function as last argument\n");
+    argsV[argsC - 1] = C->getCalledFunction();
+    argsT[argsC - 1] = C->getCalledFunction()->getType();
+    argsC--;
+  }
+
+  for (; i < argsC; i++) {
     argsV[i] = I->getOperand(i);
     argsT[i] = I->getOperand(i)->getType();
   }
@@ -932,7 +989,7 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
 
   ArrayRef<Value*> Args(argsV);
   //callInst = builder.CreateCall(FN, Args); 
-  callInst = CallInst::Create(FN, Args);
+  callInst = CallInst::Create(FN, Args, "", I);
 
   // Set some attributes to allow Polly to handle this function
   FN->setDoesNotThrow(true);
@@ -946,13 +1003,34 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
 
   assert(callInst && "Call Instruction was NULL");
 
-  // the new call inst
-  //callInst->removeFromParent(); 
-  
   return  callInst;
 
 }		/* -----  end of function createCall  ----- */
 
+
+
+/* 
+ * ===  FUNCTION  ==============================================================
+ *         Name:  replaceScopStatements
+ *    Arguments:  
+ *      Returns:  
+ * =============================================================================
+ */
+void RegionSpeculation::replaceScopStatements(ScopStmt *Statement){
+
+  std::map<Instruction*, Instruction*>::iterator it, end;
+  for (it = accessStatements.begin(), end = accessStatements.end();
+       it != end; it++) {
+    DEBUG(dbgs() << "@###$### Set access statement for " << *(it->first)
+          << " with " << *(it->second) << "\n");
+
+    Statement->setAccessFor(it->first, it->second); 
+    it->first->eraseFromParent();
+  }
+
+  accessStatements.clear();
+
+}		/* -----  end of function replaceScopStatements  ----- */
 
 
 
@@ -964,11 +1042,11 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
  *      Returns:  
  * =============================================================================
  */
-void RegionSpeculation::replaceViolatingInstructions(Region &R) {
+void RegionSpeculation::replaceViolatingInstructions() {
   if (!SPollyReplaceViolatingInstructions) return;
 
   DEBUG(dbgs() << "@\t Replace violating instructions "<< "\n");
-  std::map<Instruction*,Instruction*>::iterator vIit;
+  std::set<Instruction*>::iterator vIit;
 
   CallInst *callInst;
   
@@ -977,44 +1055,37 @@ void RegionSpeculation::replaceViolatingInstructions(Region &R) {
        vIit++) {
     // create the corresponding call instruction and add it to
     // the replacementInstructions list
-    DEBUG(dbgs() << "@\t\t replace " << (*(vIit->first)) << "\n");
+    DEBUG(dbgs() << "@\t\t replace " << (*(*vIit)) << "\n");
     //DEBUG(dbgs() << " " << (**vIit)) << "\n";
   
     if (SPollyRemoveViolatingInstructions) {
-      (vIit->first)->eraseFromParent();
+      (*vIit)->eraseFromParent();
       continue;
-    } else if ((vIit->first)->getOpcode() == Instruction::PHI) {
+    } else if ((*vIit)->getOpcode() == Instruction::PHI) {
       // Skip Phi nodes since they dominate theirself 
       continue;
     }
    
     // vIit is not a PHI instruction and we should not remove it, so we 
     // create a call instruction which will be used to replace vIit  
-    callInst = createCall(vIit->first);
+    callInst = createCall(*vIit);
     
     assert(callInst && "Replacement call is NULL");
 
     DEBUG(dbgs() << "@\t\t with " << (*callInst) << "\n");
     
-    // Save the call in the replacementInstructions list
-    // #x of violatingInstructions <<==>> #x of replacementInstructions
-    violatingInstructions[vIit->first] = (callInst);
     
-    // Replace the violating instruction with the created call 
-    //callInst->moveBefore(*vIit);
-    //(*vIit)->replaceAllUsesWith(callInst);
-    ReplaceInstWithInst(vIit->first, callInst);
+    violatingInstructionsMap[callInst] = (*vIit)->getOpcode();
     
-    //(*vIit)->eraseFromParent(); 
+    (*vIit)->replaceAllUsesWith(callInst);
+    (*vIit)->eraseFromParent(); 
     
-    // Add the result of the new call to the pseudo sum 
-    // else it would vanish if it is not used 
+    DEBUG(dbgs() << "@$$$\t "<< callInst << " " << callInst->getParent()  << "\n"); 
+    DEBUG(dbgs() << "@$$$\t "<< *callInst << " " << *callInst->getParent() << "\n"); 
     
   
   } /* -----  end foreach violating instruction  ----- */
-
-
-
+  
 
 }		/* -----  end of function replaceViolatingInstruction ----- */
 
@@ -1260,7 +1331,8 @@ int RegionSpeculation::scoreConditional(Region *R) {
  * =============================================================================
  */
 int RegionSpeculation::scoreRegion(Region *R) {
-  RegionScoreKey RSK= std::make_pair(R->getEntry(), R->getExit());
+  //RegionScoreKey RSK = std::make_pair(R->getEntry(), R->getExit());
+  RegionScoreKey RSK = R;
   
   RegionScoreMap::iterator it;
   Region *tempRegion; 
@@ -1283,7 +1355,7 @@ int RegionSpeculation::scoreRegion(Region *R) {
   }
 
   // Save the score and leave 
-  RegionScores[RSK] = regionScore;
+  RegionScores[func][RSK] = regionScore;
 
   // Restore the currentRegion
   currentRegion = tempRegion;
@@ -1332,14 +1404,19 @@ BasicBlock *RegionSpeculation::createTestBlock() {
  *  Description:  
  * =============================================================================
  */
-void RegionSpeculation::prepareRegion( Region &R ) {
-  DEBUG(dbgs() << "\n@@@@# prepareRegion " << R.getNameStr() << " \n");
-  DEBUG(dbgs() << "\n@\tPrepare region "<<  R.getNameStr() << "\n");
-  DEBUG(dbgs() << "@\t\t " << maxTripCounts.size() << "\n");
+void RegionSpeculation::prepareRegion( Region *R ) {
+  DEBUG(dbgs() << "\n@@@@# prepareRegion " << R->getNameStr() << " \n");
+  DEBUG(dbgs() << "\n@\tPrepare region "<<  R->getNameStr() << "\n");
+  //DEBUG(dbgs() << "@\t\t " << func->getName() << "\n");
   
-  RegionScoreKey RSK= std::make_pair(R.getEntry(), R.getExit());
-  if (preparedRegions.count(RSK) || R.getExit()->getName().startswith("polly")) {
+  //RegionScoreKey RSK= std::make_pair(R->>getEntry(), R->getExit());
+  RegionScoreKey RSK = R;
+  
+  if (preparedRegions.count(RSK) || R->getExit()->getName().startswith("polly")) {
     DEBUG(dbgs() <<"@\t\t skipped region");
+    DEBUG(dbgs() << "\n\n-------------------------------------------------\n\n\n");
+    //func->getParent().dump();
+    DEBUG(dbgs() << "\n\n-------------------------------------------------\n\n\n");
     return;
   } 
   preparedRegions.insert(RSK);
@@ -1350,26 +1427,26 @@ void RegionSpeculation::prepareRegion( Region &R ) {
           "Called prepare Region during preparation");
 
   // We need to access the region later on to create the checks
-  currentRegion = &R;
+  currentRegion = R;
   
   // Indicate that all violating instructions should be added by calling
   // addViolatingInstruction(Instruction *I)
   SD->gatherViolatingInstructions = true;
   
   // check the region again, but this time invalid instructions are gathered
-  ScopDetection::DetectionContext Context(R, *AA, false /*verifying*/);
+  ScopDetection::DetectionContext Context(*R, *AA, false /*verifying*/);
   SD->isValidRegion(Context);
 
-  BasicBlock *testBlock = createTestBlock();
-  postPrepareRegion(testBlock);
-
   // replace the gathered instructions
-  replaceViolatingInstructions(R);
+  replaceViolatingInstructions();
+
+  //BasicBlock *testBlock = createTestBlock();
+  //postPrepareRegion(testBlock);
 
   // After the region is prepared we do not want to gather instructions anymore
   SD->gatherViolatingInstructions = false;
 
-  DEBUG(dbgs() << "\n@\t== Prepared region "<<  R.getNameStr() << "\n");
+  DEBUG(dbgs() << "\n@\t== Prepared region "<<  R->getNameStr() << "\n");
   
 }		/* -----  end of function prepareRegion  ----- */
 
@@ -1387,14 +1464,11 @@ void RegionSpeculation::postPrepareRegion(BasicBlock *testBlock) {
         << " TB: "  << testBlock << "  "<< testBlock->getName() 
         << " " << aliasingValues.size() << "  \n");
 
-  ScopDetection::DetectionContext Context(*currentRegion, *AA,
-                                          false /*verifying*/);
-  
   if (aliasingValues.size() || containsCalls) {
     
     // insert Alias checks
     if (aliasingValues.size()) {
-      insertAliasChecks((void *)&Context, testBlock);
+      insertAliasChecks(testBlock);
     }
   
     if (containsCalls) {
@@ -1402,6 +1476,74 @@ void RegionSpeculation::postPrepareRegion(BasicBlock *testBlock) {
       //insertInvariantChecks(testBlock);
     }
   }  
+
+  IRBuilder<> builder(testBlock->getContext());
+  
+  DEBUG(dbgs() << "@$$$\n@$$$\n@$$$\n");
+
+
+  DEBUG(dbgs() << "@\t Replace dummy instructions with original ones: \n"); 
+  // Replace the dummy call instructions with the violating ones again
+  std::map<Instruction*, unsigned>::iterator it;
+
+  if (violatingInstructionsMap.size() == 0) 
+    return;
+
+  for (it = violatingInstructionsMap.begin(); it != violatingInstructionsMap.end(); 
+       it++) {
+    DEBUG(dbgs() << "@$$$\t "<< it->first << " " << it->first->getParent() << "  with  " 
+          << it->second << "\n"); 
+    DEBUG(dbgs() << "@$$$\t "<< *it->first << "\n"); 
+    
+    Instruction *original;
+    CallInst *I = dyn_cast<CallInst>(it->first);
+    builder.SetInsertPoint(it->first->getParent(), it->first);
+
+    // Use the original opcode to determine what kind of instruction should be
+    // created
+    switch (it->second) {
+      default:
+        DEBUG(dbgs()  << "@\t OpCode: " << it->second << "\n");
+        assert(false && "Found unknown opcode during postPreperation");
+
+      case Instruction::Store:
+        //continue;
+        original = builder.CreateStore(I->getOperand(0), 
+                                       I->getOperand(1));
+        break;
+
+      case Instruction::Load:
+        original = builder.CreateLoad(I->getOperand(0));
+        break;
+
+      case Instruction::Call:
+        unsigned argsC = I->getNumArgOperands();
+        DEBUG(dbgs() << "@\t Instruction call " << argsC << "\n");
+        std::vector<Value *> argsV(argsC - 1);
+        for (unsigned i = 0; i < argsC - 1; i++) {
+          argsV[i] = I->getOperand(i);
+        }
+        ArrayRef<Value*> Args(argsV);
+        original = builder.CreateCall(I->getOperand(argsC - 1), Args);
+        break;
+
+    }
+
+    // Replace the dummy with the orinigal instruction
+    
+    DEBUG(dbgs() << "@\t\t Replace " << *I << " by " );
+    I->replaceAllUsesWith(original);
+    original->takeName(I);
+    DEBUG(dbgs() << *original <<"\n");
+    
+    accessStatements[I] = original;
+  }
+  
+  violatingInstructionsMap.clear();
+  violatingInstructions.clear();
+
+  DEBUG(dbgs() << "@$$$\n@$$$\n@$$$\n");
+  DEBUG(dbgs() << "\n@@@@# postPreparedRegion " << currentRegion << "  \n");
 
 }		/* -----  end of function postPrepareRegion  ----- */
 
@@ -1419,24 +1561,26 @@ void RegionSpeculation::postPrepareRegion(BasicBlock *testBlock) {
  * =============================================================================
  */
 bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
-  DEBUG(dbgs() << "\n@@@@# speculateOnRegion " << R.getNameStr() << "\n");
+  DEBUG(dbgs() << "\n@@@@# speculateOnRegion " << R.getNameStr() <<"  " 
+        << func->getName() <<  "\n");
+  DEBUG(dbgs() << "\n@@@@$ Just score: " << SPollyJustScore << "\n");
   if (SPollyDisabled && !SPollyEnabled) return false;
   
-  RegionScoreKey RSK= std::make_pair(R.getEntry(), R.getExit());
-  if (RegionScores.count(RSK)) return true; 
+  //RegionScoreKey RSK = std::make_pair(R.getEntry(), R.getExit());
+  RegionScoreKey RSK = &R;
+  if (RegionScores[func].count(RSK)) {
+    return RegionScores[func][RSK] > SPECULATIVETRESHOLD;
+  } 
 
   DEBUG(dbgs() << "\n@\tSpeculate on region "<<  R.getNameStr() << "\n");
 
   // Clear the list of violating and replacement instructions
-  maxTripCounts.clear();
-  violatingInstructions.clear();
-  aliasingValues.clear();
   loadInstructions.clear();
   storeInstructions.clear();
+  maxTripCounts.clear();
   containsCalls = false;
   
-
-  
+ 
   violations = v;
 
   int i;
@@ -1467,13 +1611,12 @@ bool RegionSpeculation::speculateOnRegion(Region &R, int *v) {
   if (SPollyJustScore) return false;
 
   //return false;
-  return true;
+  //return true;
 
-  //return score > SPECULATIVETRESHOLD;
+  return score > SPECULATIVETRESHOLD;
 }		/* -----  end of function speculateOnRegion  ----- */
 
 
 RegionSpeculation::RegionSpeculation(ScopDetection *sd) {
   SD = sd;
-  DEBUG(dbgs() << "00000000000123456789 \n");
 }

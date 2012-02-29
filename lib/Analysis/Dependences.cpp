@@ -52,6 +52,7 @@ Dependences::Dependences() : ScopPass(ID) {
 }
 
 bool Dependences::runOnScop(Scop &S) {
+  dbgs() << "DEP run on &scop " << &S << "\n";
   isl_space *Space = S.getParamSpace();
 
   if (sink)
@@ -143,6 +144,7 @@ bool Dependences::runOnScop(Scop &S) {
   waw_dep = isl_union_map_coalesce(waw_dep);
   war_dep = isl_union_map_coalesce(war_dep);
 
+  dbgs() << "DEP end run on &scop " << &S << "\n";
   return false;
 }
 
