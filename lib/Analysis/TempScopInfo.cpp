@@ -77,7 +77,7 @@ void TempScop::printDetail(llvm::raw_ostream &OS, ScalarEvolution *SE,
 
 void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
   AccFuncSetType Functions;
-  const SCEV *pseudoAccessFunction = SE->getConstant(APInt::getNullValue(1u));
+  //const SCEV *pseudoAccessFunction = SE->getConstant(APInt::getNullValue(1u));
 
   for (BasicBlock::iterator I = BB.begin(), E = --BB.end(); I != E; ++I) {
     Instruction &Inst = *I;
@@ -100,6 +100,7 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
         dyn_cast<SCEVUnknown>(SE->getPointerBase(AccessFunction));
 
       assert(BasePointer && "Could not find base pointer");
+      // JD: why AccessFunction - BasePointer and not AccessFunction + BasePointer 
       AccessFunction = SE->getMinusSCEV(AccessFunction, BasePointer);
 
       bool IsAffine = isAffineExpr(&R, AccessFunction, *SE,
@@ -110,51 +111,49 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
                                                   AccessFunction, Size,
                                                   IsAffine),
                                          &Inst));
-    } else {
-      // Pseudo calls introduced by the region speculation should be considered
-      // here if the original instruction was a load or a store. 
+    //} else {
+      //// Pseudo calls introduced by the region speculation should be considered
+      //// here if the original instruction was a load or a store. 
 
-      std::map<Instruction*, unsigned>::iterator vIit;
-      vIit = SD->RS->violatingInstructionsMap.find(&Inst);
-      if (vIit != SD->RS->violatingInstructionsMap.end()) {
-        unsigned opcode = vIit->second;
-        Value *ptr; 
-        llvm::Type *type;
-        switch (opcode) {
-          default:
-            DEBUG(dbgs() << "@\n@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@ " << Inst << "\n");
-            break;
+      //std::map<Instruction*, unsigned>::iterator vIit;
+      //vIit = SD->RS->violatingInstructionsMap.find(&Inst);
+      //if (vIit != SD->RS->violatingInstructionsMap.end()) {
+        //unsigned opcode = vIit->second;
+        //Value *ptr; 
+        //llvm::Type *type;
+        //switch (opcode) {
+          //default:
+            //DEBUG(dbgs() << "@\n@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@ " << Inst << "\n");
+            //break;
 
-          case Instruction::Load:
-            ptr  = Inst.getOperand(0);
-            type = (cast<PointerType>(ptr->getType()))->getElementType();
-            Size = TD->getTypeStoreSize(type);
-            Type = IRAccess::READ;
+          //case Instruction::Load:
+            //ptr  = Inst.getOperand(0);
+            //type = (cast<PointerType>(ptr->getType()))->getElementType();
+            //Size = TD->getTypeStoreSize(type);
+            //Type = IRAccess::READ;
 
-            Functions.push_back(std::make_pair(IRAccess(Type, ptr,
-                                                  pseudoAccessFunction, Size,
-                                                  false /* isAffine */),
-                                         &Inst));
+            //Functions.push_back(std::make_pair(IRAccess(Type, ptr,
+                                                  //pseudoAccessFunction, Size,
+                                                  //false [> isAffine <]),
+                                         //&Inst));
 
-            break;
+            //break;
 
-          case Instruction::Store:
-            Value *val = Inst.getOperand(0);
-            ptr  = Inst.getOperand(1);
-            type = val->getType();
-            Size = TD->getTypeStoreSize(type);
-            Type = IRAccess::WRITE;
+          //case Instruction::Store:
+            //Value *val = Inst.getOperand(0);
+            //ptr  = Inst.getOperand(1);
+            //type = val->getType();
+            //Size = TD->getTypeStoreSize(type);
+            //Type = IRAccess::WRITE;
 
-            Functions.push_back(std::make_pair(IRAccess(Type, ptr,
-                                                  pseudoAccessFunction, Size,
-                                                  false /* isAffine */),
-                                         &Inst));
+            //Functions.push_back(std::make_pair(IRAccess(Type, ptr,
+                                                  //pseudoAccessFunction, Size,
+                                                  //false [> isAffine <]),
+                                         //&Inst));
 
-            break;
-        }
-      } else {
-        DEBUG(dbgs() << "@\n@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@ " << Inst << "\n");
-      }
+            //break;
+        //}
+      //}
     }
   }
 

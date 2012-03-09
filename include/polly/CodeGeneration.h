@@ -42,6 +42,7 @@ namespace polly {
 
   extern char &IndependentBlocksID;
   extern bool EnablePollyVector;
+  extern bool EnablePollyOpenMP;
 
   class CodeGeneration : public ScopPass {
     Region *region;

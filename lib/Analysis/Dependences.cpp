@@ -256,7 +256,9 @@ isl_union_map *getCombinedScheduleForSpace(Scop *scop, unsigned dimLevel) {
 bool Dependences::isParallelDimension(isl_set *loopDomain,
                                       unsigned parallelDimension) {
   Scop *S = &getCurScop();
+  dbgs() << "#0987654321 SCOP " << S->getNameStr() << "\n";
   isl_union_map *schedule = getCombinedScheduleForSpace(S, parallelDimension);
+  dbgs() << stringFromIslObj(schedule) << "\n";
 
   // Calculate distance vector.
   isl_union_set *scheduleSubset;
@@ -357,6 +359,13 @@ bool Dependences::isParallelDimension(isl_set *loopDomain,
 
   isl_union_set *nonValid_waw = isl_union_set_subtract(distance_waw,
                                                        validDistancesUS);
+  
+  dbgs() << "#0987654321 nonValid "; 
+  dbgs() << stringFromIslObj(nonValid) << "\n";
+  dbgs() << "#0987654321 nonValid_war "; 
+  dbgs() << stringFromIslObj(nonValid_war) << "\n";
+  dbgs() << "#0987654321 nonValid_waw ";
+  dbgs() << stringFromIslObj(nonValid_waw) << "\n";
   bool is_parallel = isl_union_set_is_empty(nonValid)
     && isl_union_set_is_empty(nonValid_war)
     && isl_union_set_is_empty(nonValid_waw);
@@ -372,7 +381,8 @@ bool Dependences::isParallelDimension(isl_set *loopDomain,
 bool Dependences::isParallelFor(const clast_for *f) {
   isl_set *loopDomain = isl_set_from_cloog_domain(f->domain);
   assert(loopDomain && "Cannot access domain of loop");
-
+  dbgs() << "#0987654321 loopDomain ";
+  dbgs() << stringFromIslObj(loopDomain) << "\n";
   return isParallelDimension(loopDomain, isl_set_n_dim(loopDomain));
 }
 

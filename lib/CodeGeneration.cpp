@@ -57,16 +57,18 @@ struct isl_set;
 namespace polly {
 
 bool EnablePollyVector;
+bool EnablePollyOpenMP;
 
 static cl::opt<bool, true>
 Vector("enable-polly-vector",
        cl::desc("Enable polly vector code generation"), cl::Hidden,
        cl::location(EnablePollyVector), cl::init(false));
 
-static cl::opt<bool>
+static cl::opt<bool, true>
 OpenMP("enable-polly-openmp",
        cl::desc("Generate OpenMP parallel code"), cl::Hidden,
        cl::value_desc("OpenMP code generation enabled if true"),
+        cl::location(EnablePollyOpenMP),
        cl::init(false));
 
 static cl::opt<bool>
@@ -919,7 +921,9 @@ public:
     BasicBlock *BB = Statement->getBasicBlock();
     
     // Replace spolly calls by real instructions 
-    SD->RS->replaceScopStatements(Statement);
+    //RegionSpeculation *RS = SD->getRS()
+    //if (RS)
+      //RS->replaceScopStatements(Statement);
 
     if (u->substitutions)
       codegenSubstitutions(u->substitutions, Statement);
@@ -1166,6 +1170,7 @@ public:
   /// This loop reflects a loop as if it would have been created by an OpenMP
   /// statement.
   void codegenForOpenMP(const clast_for *f) {
+    dbgs () << "09876543 098765432\n";
     Module *M = Builder.GetInsertBlock()->getParent()->getParent();
     IntegerType *intPtrTy = TD->getIntPtrType(Builder.getContext());
 
@@ -1304,11 +1309,13 @@ public:
   }
 
   void codegen(const clast_for *f) {
+    dbgs() << *(S->getRegion().getEntry()->getParent()) << "\n"; 
     if (Vector && isInnermostLoop(f) && DP->isParallelFor(f)
         && (-1 != getNumberOfIterations(f))
         && (getNumberOfIterations(f) <= 16)) {
       codegenForVector(f);
     } else if (OpenMP && !parallelCodeGeneration && DP->isParallelFor(f)) {
+      dbgs() << " 09876543 CREATE OPENMP PARALLEL CODE\n\n";
       parallelCodeGeneration = true;
       parallelLoops.push_back(f->iterator);
       codegenForOpenMP(f);
@@ -1626,10 +1633,14 @@ public:
 
     // The builder will be set to startBlock.
     BasicBlock *splitBlock = addSplitAndStartBlock(&builder);
-    
+   
+    dbgs() << "09876543 Run codegeneration on " << *region 
+           << "  in " << (region->getEntry()->getParent()->getName()) << "\n\n";
+
     // Introduce test for aliases and invariants
     // Replace dummy call instructions with the original ones
-    SD->RS->postPrepareRegion(splitBlock);
+    //SD->RS->postPrepareRegion(splitBlock, region);
+     
     
     if (OpenMP)
       addOpenMPDefinitions(builder);
@@ -1689,12 +1700,13 @@ public:
   bool CodeGeneration::doFinalization() {
     dbgs() << "CG do   Finalization \n";
     dbgs() << "CG done Finalization \n";
-
+    
     return false;
   }
 
   bool CodeGeneration::doInitialization(Region *R, RGPassManager &RGM) {
-    dbgs() << "CG do   Initialization \n";
+    dbgs() << "CG do   Initialization Vector:" << Vector << " OpenMP:"<< 
+      OpenMP <<" \n";
     dbgs() << "CG done Initialization \n";
 
     return false;

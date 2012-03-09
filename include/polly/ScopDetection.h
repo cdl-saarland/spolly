@@ -47,8 +47,6 @@
 #ifndef POLLY_SCOP_DETECTION_H
 #define POLLY_SCOP_DETECTION_H
 
-#include "polly/RegionSpeculation.h"
-
 #include "llvm/Pass.h"
 #include "llvm/Analysis/AliasSetTracker.h"
 
@@ -60,6 +58,7 @@ using namespace llvm;
 namespace llvm {
   class RegionInfo;
   class Region;
+  class DominatorTree;
   class LoopInfo;
   class LoopInfo;
   class Loop;
@@ -74,6 +73,10 @@ namespace llvm {
 }
 
 namespace polly {
+
+// The Region Speculation class used to register violating instructions
+class RegionSpeculation;
+
 typedef std::set<const SCEV*> ParamSetType;
 
 //===----------------------------------------------------------------------===//
@@ -93,10 +96,11 @@ class ScopDetection : public FunctionPass {
   RegionInfo *RI;
   AliasAnalysis *AA;
   TargetData *TD;
+  DominatorTree *DT;
   //@}
-
-  bool gatherViolatingInstructions;
-  friend class RegionSpeculation;
+  
+  /// @brief The Region Speculation to register violating instructions 
+  RegionSpeculation *RS;
 
   /// @brief Context variables for SCoP detection.
   struct DetectionContext {
@@ -112,6 +116,8 @@ class ScopDetection : public FunctionPass {
   // Remember the valid regions
   typedef std::set<const Region*> RegionSet;
   RegionSet ValidRegions;
+  /// @brief The set containing speculative valid regions
+  RegionSet SpeculativeValidRegions;
 
   // Invalid regions and the reason they fail.
   typedef std::map<const Region*, std::string> InvalidRegionMap;
@@ -217,9 +223,16 @@ class ScopDetection : public FunctionPass {
 
 public:
   static char ID;
-  explicit ScopDetection() : FunctionPass(ID), RS(new RegionSpeculation(this)) {}
+  explicit ScopDetection() : FunctionPass(ID), RS(NULL) {}
+  
+  /// @brief Constructor to use RegionSpeculation
+  explicit ScopDetection(RegionSpeculation *rs) : FunctionPass(ID), RS(rs) {
+  }
 
-  RegionSpeculation *RS;
+  /// @brief Get the RegionSpeculation stored in this pass
+  /// 
+  /// This gives the CodeGeneration a easy access 
+  RegionSpeculation *getRS() const { return RS; }
 
   /// @brief Get the RegionInfo stored in this pass.
   ///
@@ -253,6 +266,18 @@ public:
 
   const_iterator begin() const { return ValidRegions.begin(); }
   const_iterator end()   const { return ValidRegions.end();   }
+  //@}
+  
+  /// @name Speculative Maximum Region In Scops Iterators
+  ///
+  /// These iterators iterator over all speculative maximum region in Scops of this
+  /// function.
+  //@{
+  iterator spolly_begin()  { return SpeculativeValidRegions.begin(); }
+  iterator spolly_end()    { return SpeculativeValidRegions.end();   }
+
+  const_iterator spolly_begin() const { return SpeculativeValidRegions.begin(); }
+  const_iterator spolly_end()   const { return SpeculativeValidRegions.end();   }
   //@}
 
   /// @name 
@@ -291,8 +316,6 @@ public:
   virtual void getAnalysisUsage(AnalysisUsage &AU) const;
   virtual void releaseMemory();
   virtual bool runOnFunction(Function &F);
-  virtual bool doInitialization(Module &M);
-  virtual bool doFinalization(Module &M);
   virtual void print(raw_ostream &OS, const Module *) const;
   //@}
 };

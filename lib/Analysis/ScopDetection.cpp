@@ -45,6 +45,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "polly/ScopDetection.h"
+#include "polly/RegionSpeculation.h"
 
 #include "polly/LinkAllPasses.h"
 #include "polly/Support/ScopHelper.h"
@@ -52,6 +53,7 @@
 
 #include "llvm/LLVMContext.h"
 #include "llvm/ADT/Statistic.h"
+#include "llvm/Analysis/Dominators.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/RegionIterator.h"
@@ -84,6 +86,8 @@ IgnoreAliasing("polly-ignore-aliasing",
 // Statistics.
 
 STATISTIC(ValidRegion, "Number of regions that a valid part of Scop");
+STATISTIC(SpeculativeValidRegion, 
+          "Number of regions that are a speculative valid part of Scop");
 
 #define BADSCOP_STAT(NAME, DESC) STATISTIC(Bad##NAME##ForScop, \
                                            "Number of bad regions for Scop: "\
@@ -131,46 +135,7 @@ BADSCOP_STAT(Other,           "Others");
 BADSCOP_STAT(Phi,             "non canonical phi node");
 
 
-BADSCOP_STAT(Spolly,          "Found speculativ polly hit");
 static bool spolly_hit = false;
-int *violations;
-
-
-
-#if 0
-//#define SPECCHECK(n) checks[n]
-// CHECKS
-#include <iostream>
-#include <fstream>
-static bool* checks = NULL;
-#define checksNR 6
-
-void readChecksFile () {
-  DEBUG(dbgs() <<"\n\nChecks File\n");
-  if (checks != NULL) return;
-
-  checks = (bool*) malloc (sizeof(bool) * checksNR);
-
-  DEBUG(dbgs() <<"\n\nReading check file\n");
-
-  std::ifstream indata;
-  indata.open("/home/johannes/checks");
-
-  int i, c;
-  for (i = 0; i < checksNR; i++) {
-    indata >> c;
-    if (c == 0) 
-      checks[i] = false;
-    else
-      checks[i] = true;
-  DEBUG(dbgs() << "Check "<< i << " is " << checks[i]<<"\n");
-
-  }
-}
-#else
-#define SPECCHECK(n) true
-void readChecksFile () {}
-#endif 
 
 
 //===----------------------------------------------------------------------===//
@@ -267,15 +232,14 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
       DEBUG(dbgs() << "-=-| END AffFunc 4 |-=-\n");
       // SPOLLY
       // we allow non affine functions
-      if (SPECCHECK(0)) {
+      if (RS) {
         DEBUG(dbgs() << "-=-| AffFunc 4 disabled |-=-\n");
         DEBUG(dbgs() << "Non affine branch in BB '" << BB.getName()
                         << "' with LHS: " << *LHS << " and RHS: " << *RHS << "\n");
         spolly_hit = true;
       
-        if (gatherViolatingInstructions) 
-          RS->addViolatingInstruction(ICmp, RS->VIOLATION_AFFFUNC);
-        violations[RS->VIOLATION_AFFFUNC]++;
+        RS->registerViolatingInstruction(ICmp, 
+                                         RegionSpeculation::AffineFunction);
       
       } else {
         DEBUG(dbgs() << "-=-| AffFunc 4 enabled |-=-\n");
@@ -335,13 +299,13 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     // SPOLLY
     // we allow non affine memory accesses, but we have to stop here
     //return false;
-    if (SPECCHECK(1)) {
+    if (RS) {
       DEBUG(dbgs() << "-=-| AffFunc 5 disabled |-=-\n");
       spolly_hit = true;
 
-      if (gatherViolatingInstructions) 
-        RS->addViolatingInstruction(&Inst, RS->VIOLATION_AFFFUNC);
-      violations[RS->VIOLATION_AFFFUNC]++;
+      RS->registerViolatingInstruction(&Inst, 
+                                       RegionSpeculation::AffineFunction);
+        
 
       return true;
     } else {
@@ -360,14 +324,11 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     // SPOLLY
     // we allow non affine memory accesses, but we have to stop here
     //return false;
-    if (SPECCHECK(2)) {
+    if (RS) {
       DEBUG(dbgs() << "-=-| AffFunc 6 disabled |-=-\n");
       spolly_hit = true;
       
-      if (gatherViolatingInstructions) 
-        RS->addViolatingInstruction(&Inst, RS->VIOLATION_AFFFUNC);
-      violations[RS->VIOLATION_AFFFUNC]++;
-
+      RS->registerViolatingInstruction(&Inst, RegionSpeculation::AffineFunction);
       
       return true;
     } else {
@@ -378,7 +339,6 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
 
   DEBUG(dbgs() << "Base value " << BaseValue << " " << *BaseValue << "\n");
   DEBUG(dbgs() << "Instruction " << &Inst << " " << Inst << "\n");
-  //RS->addBaseValue(BaseValue);
 
   AccessFunction = SE->getMinusSCEV(AccessFunction, BasePointer);
   
@@ -397,7 +357,9 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
 
 
   // Help the RegionSpeculation
-  RS->registerMemoryInstruction(&Inst, BaseValue);
+  if (RS) 
+    RS->registerMemoryAccess(&Inst, AccessFunction);
+  
 
   // Check if the base pointer of the memory access does alias with
   // any other pointer. This cannot be handled at the moment.
@@ -418,13 +380,11 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
       DEBUG(dbgs() << "-=-| END Alias 1 |-=-\n");
       AS.print(dbgs());
 
-      if (SPECCHECK(3)) {
+      if (RS) {
         DEBUG(dbgs() << "-=-| Alias 1 disabled |-=-\n");
         spolly_hit = true;
         
-        if (gatherViolatingInstructions) 
-          RS->addViolatingInstruction(&Inst, RS->VIOLATION_ALIAS);
-        violations[RS->VIOLATION_ALIAS]++;
+        RS->registerViolatingInstruction(&Inst, RegionSpeculation::Alias);
 
 
         return true;
@@ -474,13 +434,11 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       //STATSCOP(Phi);
       // Spolly
       // we need to allow this 
-      if (SPECCHECK(4) && false) {
+      if (RS && false) {
         DEBUG(dbgs() << "-=-| Phi 1 disabled |-=-\n");
         spolly_hit = true;
         
-        if (gatherViolatingInstructions) 
-          RS->addViolatingInstruction(&Inst, RS->VIOLATION_PHI);
-        violations[RS->VIOLATION_PHI]++;
+        //RS->addViolatingInstruction(&Inst, RS->VIOLATION_PHI);
       
       } else {
         DEBUG(dbgs() << "-=-| Phi 1 enabled |-=-\n");
@@ -504,21 +462,19 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
 
     DEBUG(dbgs() << "-=-| STATSCOP FuncCall 1 |-=-\n");
     DEBUG(dbgs() << "-=-| END FuncCall 1 |-=-\n");
-    if (SPECCHECK(5)) {
+    if (RS) {
       DEBUG(dbgs() << "-=-| FuncCall 1 disabled |-=-\n");
       
-      StringRef sr = CI->getCalledFunction()->getName();
-      DEBUG(dbgs() << "@\t func call to " << sr << "\n");
-      if (sr.startswith("_spolly_call")) {
-        DEBUG(dbgs() << "@\t ignore spolly call \n");
-        return true;
-      }
+      //StringRef sr = CI->getCalledFunction()->getName();
+      //DEBUG(dbgs() << "@\t func call to " << sr << "\n");
+      //if (sr.startswith("_spolly_call")) {
+        //DEBUG(dbgs() << "@\t ignore spolly call \n");
+        //return true;
+      //}
 
       spolly_hit = true;
       
-      if (gatherViolatingInstructions) 
-        RS->addViolatingInstruction(&Inst, RS->VIOLATION_FUNCCALL);
-      violations[RS->VIOLATION_FUNCCALL]++;
+      RS->registerViolatingInstruction(&Inst, RegionSpeculation::FunctionCall);
     
       return true;
 
@@ -592,7 +548,6 @@ bool ScopDetection::isValidLoop(Loop *L, DetectionContext &Context) const {
   const SCEV *LoopCount = SE->getBackedgeTakenCount(L);
 
   if (!isAffineExpr(&Context.CurRegion, LoopCount, *SE)) {
-  //if (!isValidAffineFunction(LoopCount, Context.CurRegion)) {
     DEBUG(dbgs() << "-=-| STATSCOP LoopBound 1 |-=-\n");
     DEBUG(dbgs() << "-=-| END LoopBound 1 |-=-\n");
     INVALID(LoopBound, "Non affine loop bound '" << *LoopCount << "' in loop: "
@@ -609,13 +564,9 @@ Region *ScopDetection::expandRegion(Region &R) {
   DEBUG(dbgs() << "\tExpanding " << R.getNameStr() << "\n");
 
   while (TmpRegion) {
-    spolly_hit = false;
-    violations = new int[VIOLATION_COUNT];
-    memset(violations, 0, sizeof(int) * VIOLATION_COUNT);
-
     DetectionContext Context(*TmpRegion, *AA, false /*verifying*/);
     DEBUG(dbgs() << "\t\tTrying " << TmpRegion->getNameStr() << "\n");
-
+    
     if (!allBlocksValid(Context))
       break;
 
@@ -631,18 +582,11 @@ Region *ScopDetection::expandRegion(Region &R) {
     if (TmpRegion != &R && TmpRegion != CurrentRegion)
       delete TmpRegion;
 
-    TmpRegion = TmpRegion2;
-    
-    delete violations;
+    TmpRegion = TmpRegion2;  
   }
 
-
   if (&R == CurrentRegion)
-    return NULL;
-
-  if (spolly_hit) 
-    return NULL;
-  
+    return NULL; 
   
   DEBUG(dbgs() << "\tto " << CurrentRegion->getNameStr() << "\n");
 
@@ -652,15 +596,29 @@ Region *ScopDetection::expandRegion(Region &R) {
 
 void ScopDetection::findScops(Region &R) {
   detectionContext = new DetectionContext(R, *AA, false /*verifying*/);
-
+  
   LastFailure = "";
-
+  
   if (isValidRegion(*detectionContext)) {
 
-    DEBUG(dbgs() << "-=-| STATSCOP ValidRegion |-=-\n");
-    ++ValidRegion;
-    DEBUG(dbgs() << "-=-| END ValidRegion |-=-\n");
-    ValidRegions.insert(&R);
+    // Distinguish between speculative valid regions and real valid regions
+    if (spolly_hit) {
+
+      (dbgs() << "Found spolly hit " << R.getNameStr() << '\n');
+      (dbgs() << "-=-| STATSCOP Spolly |-=-\n");
+      ++SpeculativeValidRegion;
+      (dbgs() << "-=-| END Spolly |-=-\n");
+      SpeculativeValidRegions.insert(&R);
+
+    } else {
+
+      DEBUG(dbgs() << "-=-| STATSCOP ValidRegion |-=-\n");
+      ++ValidRegion;
+      DEBUG(dbgs() << "-=-| END ValidRegion |-=-\n");
+      ValidRegions.insert(&R);
+
+    }
+
     return;
   }
 
@@ -688,6 +646,9 @@ void ScopDetection::findScops(Region &R) {
     // an already expanded region.
     if (ValidRegions.find(CurrentRegion) == ValidRegions.end())
       continue;
+    if (SpeculativeValidRegions.find(CurrentRegion) == SpeculativeValidRegions.end())
+      continue;
+
 
     Region *ExpandedR = expandRegion(*CurrentRegion);
 
@@ -695,22 +656,52 @@ void ScopDetection::findScops(Region &R) {
       continue;
 
     R.addSubRegion(ExpandedR, true);
-    ValidRegions.insert(ExpandedR);
-    ValidRegions.erase(CurrentRegion);
 
+    if (spolly_hit) {
+      SpeculativeValidRegions.insert(ExpandedR);
+      SpeculativeValidRegions.erase(CurrentRegion);
+    } else {
+      ValidRegions.insert(ExpandedR);
+      ValidRegions.erase(CurrentRegion);
+    }
+    
+    // Remove the subregions from the (Speculative)ValidRegions set
+    RegionSet &rs = (spolly_hit ? SpeculativeValidRegions : ValidRegions);
     for (Region::iterator I = ExpandedR->begin(), E = ExpandedR->end(); I != E;
          ++I)
-      ValidRegions.erase(*I);
+      rs.erase(*I);
+
   }
 }
 
 bool ScopDetection::allBlocksValid(DetectionContext &Context) const {
   Region &R = Context.CurRegion;
 
+  // Notify the RegionSpeculation abaout the new region R
+  if (RS) 
+    RS->newTemporaryRegion(&R);
+
+  // Reset the spolly_hit flag
+  spolly_hit = false;
+  
   for (Region::block_iterator I = R.block_begin(), E = R.block_end(); I != E;
-       ++I)
-    if (!isValidBasicBlock(*(I->getNodeAs<BasicBlock>()), Context))
+       ++I) {
+    if (!isValidBasicBlock(*(I->getNodeAs<BasicBlock>()), Context)) {
+      if (RS)
+        // Tell the RegionSpeculation to forget this region
+        RS->forgetTemporaryRegion(&R);
       return false;
+    }
+  }
+
+  if (RS) {
+    if (spolly_hit)
+      // Tell the RegionSpeculation to save this region
+      RS->storeTemporaryRegion(&R);
+    else
+      // Tell the RegionSpeculation to forget this region
+      RS->forgetTemporaryRegion(&R);
+  }
 
   return true;
 }
@@ -734,77 +725,47 @@ bool ScopDetection::isValidExit(DetectionContext &Context) const {
 bool ScopDetection::isValidRegion(DetectionContext &Context) const {
   Region &R = Context.CurRegion;
 
-  // read checks file
-  readChecksFile();
-
-  // init spolly_hit
-  // not thread save ...
-  spolly_hit = false;
-  violations = new int[VIOLATION_COUNT];
-  memset(violations, 0, sizeof(int) * VIOLATION_COUNT);
-
-  DEBUG(dbgs() << "------------------------------------------------------\n");
-  DEBUG(dbgs() << "Checking region: " << R.getNameStr() << "\n\t");
+  (dbgs() << "------------------------------------------------------\n");
+  (dbgs() << "Checking region: " << R.getNameStr() << " in " 
+               << R.getEntry()->getParent()->getNameStr() << "\n\t");
 
   // The toplevel region is no valid region.
   if (!R.getParent()) {
-    DEBUG(dbgs() << "Top level region is invalid";
-          dbgs() << "\n");
+    (dbgs() << "Top level region is invalid \n");
     return false;
   }
 
   // SCoP can not contains the entry block of the function, because we need
   // to insert alloca instruction there when translate scalar to array.
   if (R.getEntry() == &(R.getEntry()->getParent()->getEntryBlock())) {
-    DEBUG(dbgs() << "-=-| STATSCOP Other 5 |-=-\n");
-    DEBUG(dbgs() << "-=-| END Other 5 |-=-\n");
+    (dbgs() << "-=-| STATSCOP Other 5 |-=-\n");
+    (dbgs() << "-=-| END Other 5 |-=-\n");
     INVALID(Other, "Region containing entry block of function is invalid!");
   }
 
   // Only a simple region is allowed.
   if (!R.isSimple()) {
-    DEBUG(dbgs() << "-=-| STATSCOP SimpleRegion 1 |-=-\n");
-    DEBUG(dbgs() << "-=-| END SimpleRegion 1 |-=-\n");
+    (dbgs() << "-=-| STATSCOP SimpleRegion 1 |-=-\n");
+    (dbgs() << "-=-| END SimpleRegion 1 |-=-\n");
     INVALID(SimpleRegion, "Region not simple: " << R.getNameStr());
   }
   
   DEBUG(dbgs() << "Region is good, checking Blocks ...\n");
   if (!allBlocksValid(Context)) {
-    DEBUG(dbgs() << "... not all blocks are valid\n");
-    DEBUG(dbgs() << "=====================================================\n\n");
+    (dbgs() << "... not all blocks are valid\n");
+    (dbgs() << "=====================================================\n\n");
     return false;
   }
 
   DEBUG(dbgs() << "Blocks are good, checking Exit ...\n");
   if (!isValidExit(Context)) {
-    DEBUG(dbgs() << "... Exit is not valid\n");
-    DEBUG(dbgs() << "=====================================================\n\n");
+    (dbgs() << "... Exit is not valid\n");
+    (dbgs() << "=====================================================\n\n");
     return false;
   }
 
-  // save spolly hit if present
-  if (spolly_hit) {
-    DEBUG(dbgs() << "-=-| STATSCOP Spolly 1 |-=-\n");
-    DEBUG(dbgs() << "Found spolly hit " << R.getNameStr() << '\n');
-    DEBUG(dbgs() << "-=-| END Spolly 1 |-=-\n");
-    if (!gatherViolatingInstructions) {
-      if (!RS->speculateOnRegion(R, violations)) {
-    
-        INVALID(Spolly, "Speculativ valid Region: " << spolly_hit << 
-                " (not interested)");
-      
-      } else {
-        
-        DEBUG(dbgs() << "Speculativ valid Region (interested)\n"); 
-        // if gatherViolatingInstructions is set we are preparing
-        // the region right now
-        //RS->prepareRegion(R);  
 
-      }
-    }
-  }
-
-  DEBUG(dbgs() << "OK\n");
+  (dbgs() << "OK\n");
   return true;
 }
 
@@ -813,16 +774,21 @@ bool ScopDetection::isValidFunction(llvm::Function &F) {
 }
 
 bool ScopDetection::runOnFunction(llvm::Function &F) {
-  DEBUG(dbgs() << "\n\n\n Run on Function " << F.getName() << "\n\n\n");
+  (dbgs() << "\n\n\n Run on Function " << F.getName() << "\n\n\n");
   AA = &getAnalysis<AliasAnalysis>();
   SE = &getAnalysis<ScalarEvolution>();
   LI = &getAnalysis<LoopInfo>();
+  TD = &getAnalysis<TargetData>();
   RI = &getAnalysis<RegionInfo>();
+  DT = &getAnalysis<DominatorTree>();
   Region *TopRegion = RI->getTopLevelRegion();
+  
+  // TODO HACK
+  RS = new RegionSpeculation();
 
-  // RegionSpeculation
-  gatherViolatingInstructions = false;
-  RS->setFunction(F);
+  // Initialize the RegionSpeculation for this ScopDetection run 
+  if (RS) 
+    RS->initScopDetectionRun(AA, SE, LI, RI, DT, TD);
 
   releaseMemory();
 
@@ -833,25 +799,9 @@ bool ScopDetection::runOnFunction(llvm::Function &F) {
     return false;
 
   findScops(*TopRegion);
-
-  if (spolly_hit) 
-    return false;
-
-  return false;
-}
-
-bool ScopDetection::doFinalization(Module &M) {
-  dbgs() << "do   Finalization \n";
-  delete TD;
-  dbgs() << "done Finalization \n";
-
-  return false;
-}
-
-bool ScopDetection::doInitialization(Module &M) {
-  dbgs() << "do   Initialization \n";
-  TD = new TargetData(&M);
-  dbgs() << "done Initialization \n";
+ 
+  if (RS) 
+    RS->finalizeScopDetectionRun();
 
   return false;
 }
@@ -867,12 +817,19 @@ void polly::ScopDetection::verifyAnalysis() const {
   for (RegionSet::const_iterator I = ValidRegions.begin(),
       E = ValidRegions.end(); I != E; ++I)
     verifyRegion(**I);
+  
+  // Verify the communication between SD and RS only used during DEBUG
+  DEBUG(
+  if (RS) 
+    RS->verifyRS(ValidRegions, SpeculativeValidRegions, InvalidRegions);
+  );
 }
 
 void ScopDetection::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addRequired<DominatorTree>();
   AU.addRequired<PostDominatorTree>();
   AU.addRequired<LoopInfo>();
+  AU.addRequired<TargetData>();
   AU.addRequired<ScalarEvolution>();
   // We also need AA and RegionInfo when we are verifying analysis.
   AU.addRequiredTransitive<AliasAnalysis>();
@@ -886,12 +843,18 @@ void ScopDetection::print(raw_ostream &OS, const Module *) const {
     OS << "Valid Region for Scop: " << (*I)->getNameStr() << '\n';
 
   OS << "\n";
+  
+  for (RegionSet::const_iterator I = SpeculativeValidRegions.begin(),
+      E = ValidRegions.end(); I != E; ++I)
+    OS << "Speculative Valid Region for Scop: " << (*I)->getNameStr() << '\n';
+  
+  OS << "\n";
 }
 
 void ScopDetection::releaseMemory() {
   ValidRegions.clear();
   InvalidRegions.clear();
-  //delete detectionContext;
+  SpeculativeValidRegions.clear();
   // Do not clear the invalid function set.
 }
 
@@ -903,11 +866,13 @@ INITIALIZE_PASS_BEGIN(ScopDetection, "polly-detect",
 INITIALIZE_AG_DEPENDENCY(AliasAnalysis)
 INITIALIZE_PASS_DEPENDENCY(DominatorTree)
 INITIALIZE_PASS_DEPENDENCY(LoopInfo)
+INITIALIZE_PASS_DEPENDENCY(TargetData)
 INITIALIZE_PASS_DEPENDENCY(PostDominatorTree)
 INITIALIZE_PASS_DEPENDENCY(RegionInfo)
 INITIALIZE_PASS_DEPENDENCY(ScalarEvolution)
 INITIALIZE_PASS_END(ScopDetection, "polly-detect",
                     "Polly - Detect static control parts (SCoPs)", false, false)
+
 
 Pass *polly::createScopDetectionPass() {
   return new ScopDetection();
