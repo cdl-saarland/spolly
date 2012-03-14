@@ -13,17 +13,18 @@
 #ifndef POLLY_REGION_SPECULATION_H
 #define POLLY_REGION_SPECULATION_H
 
-#include "sambamba/Profiler.h"
+#include "sambamba/Profiler/SCEVProfiler.h"
 
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/IRBuilder.h"
+
+#include "llvm/ADT/DenseMap.h"
 
 #include "llvm/Analysis/AliasSetTracker.h"
 #include "llvm/Analysis/ScalarEvolution.h"
 #include "llvm/Analysis/ScalarEvolutionExpressions.h"
 
 #include <map>
-#include <list>
 #include <set>
 
 #define VIOLATION_COUNT 4
@@ -60,13 +61,18 @@ class SCEVCreator;
 /// @brief Speculate on SCoPs
 class RegionSpeculation { 
 
-  typedef const Region * CRegionT;
+  /// @brief Allow SPollyInfo objects to acces the analyses
+  friend class SPollyInfo;
 
-  // Some typedef as in the ScopDetection pass
+  /// @brief Some typedef as in the ScopDetection pass
+  //@{
+  typedef const Region * CRegionT;
   typedef std::map<CRegionT, std::string> InvalidRegionMap;
   typedef std::set<CRegionT> RegionSet;
-
-  typedef std::map<CRegionT, SPollyInfo*> SPollyRegionMap;
+  typedef std::pair<BasicBlock*, BasicBlock*> RegionMapKey;
+  typedef DenseMap<RegionMapKey, SPollyInfo*> SPollyRegionMap;
+  //@}
+  
   /// @brief The set containing all speculative valid regions 
   SPollyRegionMap SpeculativeValidRegions;
 
@@ -79,17 +85,17 @@ class RegionSpeculation {
   /// @brief This ScalarEvolution is used to create and evaluate region scores
   ///
   /// It is created once and all SPollyInfo objects are using it
-  ScalarEvolution * const SPI_SE;
+  ScalarEvolution * SPI_SE;
 
   /// @brief The Profiler object
   ///
   /// During runtime it is used to create SCEV placeholders and during compile 
   /// time these placeholders are evaluated by this object
-  // TODO              const
-  sambamba::Profiler *       Profiler;
+  sambamba::SCEVProfiler * SCEVProfiler;
 
   /// @brief Analysis passes used.
   //@{
+  ScopDetection *SD;
   ScalarEvolution* SE;
   LoopInfo *LI;
   RegionInfo *RI;
@@ -101,69 +107,6 @@ class RegionSpeculation {
   /// @brief TODO 
   class SCEVCreator * Creator;
 
-  std::set<Value*> loadInstructions;
-  std::set<Value*> storeInstructions;
-  void insertInvariantChecks(BasicBlock *testBlock, BasicBlock *profilingBlock);
-
-  std::map<Value*, std::set<const SCEV*> > accessFunctions;
-  std::map<Instruction*, Instruction*> accessStatements;
-  std::set<Instruction*> violatingInstructions; 
-  std::map<Value*, std::pair<Instruction*, MDNode*> > aliasingValues;
-
-  int getExecutionProbability(BasicBlock *B);
-
-  int getViolationProbability(BasicBlock *B, Region *R);
-
-  void collectAliasSets(Instruction *I);
-
-  int calculateScoreFromViolations(BasicBlock *B, int *v, Region *R);
-
-  int scoreBasicBlock(BasicBlock *B);
-
-  int scoreLoop(Region *R);
-
-  int scoreConditional(Region *R);
-
-  void createMinMaxAccessPair(Value *baseValue,
-                              IRBuilder<> &builder,
-                              std::pair<Value*, Value*> &p);
-  Value *scevToValue(SCEV const *scev, IRBuilder<> &builder);
-  
-  int64_t getLoopIterationCount(Region *R);
-  
-  void replaceViolatingInstructions();
-
-  BasicBlock *createTestBlock();
-
-  Value *insertAliasCheck(BasicBlock *BBAT,
-                          std::pair<Value*, Value*> &v0,
-                          std::pair<Value*, Value*> &v1,
-                          Value *currentResult);
-
-  void insertAliasChecks(BasicBlock* BBAT, BasicBlock *entry);
-
-  void insertFunctionCheck(Instruction *I);
-
-  void insertRollbackCall(Instruction *I);
-
-  Value *insertPseudoInstructionsPre(Region &R);
-
-  bool containsCalls;
-  CallInst *createCall(Instruction *I);
-
-  //typedef std::pair<BasicBlock*, BasicBlock*> RegionScoreKey;
-  typedef Region* RegionScoreKey;
-  typedef std::map<RegionScoreKey, int> RegionScoreMap;
-  typedef std::map<Function*, RegionScoreMap> FunctionRegionScoreMap;
-  FunctionRegionScoreMap RegionScores;
-  std::set<RegionScoreKey> preparedRegions;
-
-  std::map<BasicBlock*, int> ExecutionProbability;
-
-  typedef std::map<Region*, int> ViolationProbabilityMap;
-  ViolationProbabilityMap ViolationProbability;
-
-  
 public:
 
   /// @brief Different violation causes for instructions
@@ -175,45 +118,39 @@ public:
   };
   //@}
 
-
   /// @brief The default constructor
   /// 
   /// - Create the SPollyInfo ScalarEvolution object
-  RegionSpeculation() : 
-    TemporaryRegion(0), SPI_SE(new ScalarEvolution()), 
-    Creator(0) {
-    Profiler = new sambamba::Profiler(SPI_SE);
-  } 
+  RegionSpeculation(sambamba::SCEVProfiler *Profiler = 0);
+  
+  /// @brief
+  ~RegionSpeculation();
 
+  void releaseMemory(); 
 
-  std::map<Instruction*, unsigned> violatingInstructionsMap; 
+  /// @brief
+  //@{
+  typedef SPollyRegionMap::iterator iterator;
+  typedef SPollyRegionMap::const_iterator const_iterator;
+  iterator begin() { return SpeculativeValidRegions.begin(); }
+  iterator end() { return SpeculativeValidRegions.end(); }
+  
+  const_iterator begin() const { return SpeculativeValidRegions.begin(); }
+  const_iterator end() const { return SpeculativeValidRegions.end(); }
 
-  RegionScoreMap *getRegionScores(Function *func) {
-    if (RegionScores.count(func)) 
-      return &RegionScores[func];
-    else 
-      return NULL;
+  unsigned size() const { return SpeculativeValidRegions.size(); }
+  //@}
+  
+
+  /// @brief
+  /// 
+  /// @return
+  inline bool hasProfilingSupport() const {
+    return SCEVProfiler != 0;
   }
 
-  bool checksAvailable();
-  void insertChecks(BasicBlock *aliasingTestBlock,
-                    BasicBlock *invariantTestBlock,
-                    BasicBlock *entry);
-  
-  void replaceScopStatements(ScopStmt *Statement);
-
-  void registerMemoryInstruction(Instruction *I, Value *BV, 
-                                 const SCEV* AccessFunction);
-
-  
-  void processRegion( Region *R );
-  
-  int scoreRegion(Region &R, int *violations);
-
-  void addViolatingInstruction(Instruction *I, unsigned violation);
-
-  void postPrepareRegion(BasicBlock *testBlock, Region *region);
-
+  /// @brief 
+  void insertProfilingCode(CRegionT R);
 
   /// @brief Register a memory access for the current region (TemporaryRegion)
   void registerViolatingInstruction(const Instruction * const I,
@@ -221,18 +158,28 @@ public:
 
   /// @brief Register a memory access for the current region (TemporaryRegion)
   void registerMemoryAccess(const Instruction * const I,
-                            const SCEV * const scev);
+                            const SCEV * const scev,
+                            const Value * const V);
   
   /// @brief Store the associated SPollyInfo object for the given region
+  ///
+  /// @param R
+  ///     The current analysed Region
   /// 
   /// The SPollyInfo object for the region (should be TemporaryRegion)
   /// is added to SpeculativeValidRegions 
-  void storeTemporaryRegion(CRegionT R);
+  void storeTemporaryRegion(CRegionT R, AliasSetTracker &AST);
 
   /// @brief Delete the associated SPollyInfo object for the given region
+  ///
+  /// @param R
+  ///     The current analysed Region
   void forgetTemporaryRegion(CRegionT R);
 
   /// @brief Create a new SPollyInfo object for the given region
+  /// 
+  /// @param R
+  ///     The current analysed Region
   /// 
   /// The new created object is associated with the given region and store it 
   /// as TemporaryRegion
@@ -241,14 +188,23 @@ public:
   /// @brief Initialize the RegionSpeculation for a new ScopDetection run
   /// 
   /// Save the given analyses passes 
-  void initScopDetectionRun(AliasAnalysis *AA, ScalarEvolution *SE, 
+  void initScopDetectionRun(Function &function,
+                            AliasAnalysis *AA, ScalarEvolution *SE, 
                             LoopInfo *LI, RegionInfo *RI, 
-                            DominatorTree *DT, TargetData *TD);
+                            DominatorTree *DT, TargetData *TD,
+                            ScopDetection *SD);
 
   /// @brief Finalize the ScopDetection run 
   /// 
   ///  - Forget the given analysis
   void finalizeScopDetectionRun();
+
+  /// @brief TODO
+  bool speculateOnRegion(const Region *R);
+
+
+  /// @brief
+  //void updateRegionPointer(RegionInfo *RI);
 
   /// @brief Verify the communication between ScopDetection and RegionSpeculation 
   ///
@@ -257,8 +213,11 @@ public:
   void verifyRS(const RegionSet &ValidRegions, 
                 const RegionSet &SpeculativeValidRegions,
                 const InvalidRegionMap &InvalidRegions) const ;
-  
 
+  
+  /// @brief
+  void print();
+  
 };
 
 } //end namespace polly

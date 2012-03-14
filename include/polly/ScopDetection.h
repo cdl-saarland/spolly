@@ -47,6 +47,8 @@
 #ifndef POLLY_SCOP_DETECTION_H
 #define POLLY_SCOP_DETECTION_H
 
+#include "polly/RegionSpeculation.h"
+
 #include "llvm/Pass.h"
 #include "llvm/Analysis/AliasSetTracker.h"
 
@@ -74,8 +76,9 @@ namespace llvm {
 
 namespace polly {
 
+extern bool EnableSpolly;
+
 // The Region Speculation class used to register violating instructions
-class RegionSpeculation;
 
 typedef std::set<const SCEV*> ParamSetType;
 
@@ -223,10 +226,15 @@ class ScopDetection : public FunctionPass {
 
 public:
   static char ID;
-  explicit ScopDetection() : FunctionPass(ID), RS(NULL) {}
+  explicit ScopDetection() : FunctionPass(ID) { }
   
   /// @brief Constructor to use RegionSpeculation
   explicit ScopDetection(RegionSpeculation *rs) : FunctionPass(ID), RS(rs) {
+  }
+
+  /// @brief Add a speculative valid region to the valid regions
+  void addValidRegion(const Region *R) {
+    ValidRegions.insert(R);
   }
 
   /// @brief Get the RegionSpeculation stored in this pass
@@ -316,6 +324,8 @@ public:
   virtual void getAnalysisUsage(AnalysisUsage &AU) const;
   virtual void releaseMemory();
   virtual bool runOnFunction(Function &F);
+  virtual bool doInitialization(Module &M);
+  virtual bool doFinalization(Module &M);
   virtual void print(raw_ostream &OS, const Module *) const;
   //@}
 };

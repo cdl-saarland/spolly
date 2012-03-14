@@ -71,6 +71,13 @@
 using namespace llvm;
 using namespace polly;
 
+bool polly::EnableSpolly;
+
+static cl::opt<bool, true>
+SPollyEnabled("enable-spolly",
+       cl::desc("Enable speculative polly"), cl::Hidden,
+       cl::location(polly::EnableSpolly), cl::init(false));
+
 static cl::opt<std::string>
 OnlyFunction("polly-detect-only",
              cl::desc("Only detect scops in function"), cl::Hidden,
@@ -342,7 +349,8 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
 
   AccessFunction = SE->getMinusSCEV(AccessFunction, BasePointer);
   
-  DEBUG(dbgs() << "AccessFunction " << *AccessFunction << " " << Context.CurRegion  << " " << SE << "\n");
+  DEBUG(dbgs() << "AccessFunction " << *AccessFunction << " " 
+               << Context.CurRegion  << " " << SE << "\n");
 
   if (!isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue))
     INVALID(AffFunc, "Bad memory address " << *AccessFunction);
@@ -358,7 +366,7 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
 
   // Help the RegionSpeculation
   if (RS) 
-    RS->registerMemoryAccess(&Inst, AccessFunction);
+    RS->registerMemoryAccess(&Inst, AccessFunction, BaseValue);
   
 
   // Check if the base pointer of the memory access does alias with
@@ -608,7 +616,7 @@ void ScopDetection::findScops(Region &R) {
       (dbgs() << "-=-| STATSCOP Spolly |-=-\n");
       ++SpeculativeValidRegion;
       (dbgs() << "-=-| END Spolly |-=-\n");
-      SpeculativeValidRegions.insert(&R);
+      SpeculativeValidRegions.insert(&R); 
 
     } else {
 
@@ -695,12 +703,19 @@ bool ScopDetection::allBlocksValid(DetectionContext &Context) const {
   }
 
   if (RS) {
-    if (spolly_hit)
-      // Tell the RegionSpeculation to save this region
-      RS->storeTemporaryRegion(&R);
-    else
+    if (spolly_hit) {
+      // If a RegionSpeculation is set, it can decide how to deal with the region 
+      if (RS->speculateOnRegion(&R)) {
+        dbgs() << "\n\n\n Speculate on region " << R.getNameStr() << "\n";
+        spolly_hit = false;
+      } else {
+        // Tell the RegionSpeculation to save this region
+        RS->storeTemporaryRegion(&R, Context.AST);
+      }
+    } else {
       // Tell the RegionSpeculation to forget this region
       RS->forgetTemporaryRegion(&R);
+    }
   }
 
   return true;
@@ -724,7 +739,7 @@ bool ScopDetection::isValidExit(DetectionContext &Context) const {
 
 bool ScopDetection::isValidRegion(DetectionContext &Context) const {
   Region &R = Context.CurRegion;
-
+ 
   (dbgs() << "------------------------------------------------------\n");
   (dbgs() << "Checking region: " << R.getNameStr() << " in " 
                << R.getEntry()->getParent()->getNameStr() << "\n\t");
@@ -783,12 +798,14 @@ bool ScopDetection::runOnFunction(llvm::Function &F) {
   DT = &getAnalysis<DominatorTree>();
   Region *TopRegion = RI->getTopLevelRegion();
   
-  // TODO HACK
-  RS = new RegionSpeculation();
+  if (!RS && EnableSpolly) {
+    dbgs() << "\n\n CREATE NEW RS \n\n";
+    RS = new RegionSpeculation();
+  }
 
   // Initialize the RegionSpeculation for this ScopDetection run 
   if (RS) 
-    RS->initScopDetectionRun(AA, SE, LI, RI, DT, TD);
+    RS->initScopDetectionRun(F, AA, SE, LI, RI, DT, TD, this);
 
   releaseMemory();
 
@@ -845,7 +862,7 @@ void ScopDetection::print(raw_ostream &OS, const Module *) const {
   OS << "\n";
   
   for (RegionSet::const_iterator I = SpeculativeValidRegions.begin(),
-      E = ValidRegions.end(); I != E; ++I)
+      E = SpeculativeValidRegions.end(); I != E; ++I)
     OS << "Speculative Valid Region for Scop: " << (*I)->getNameStr() << '\n';
   
   OS << "\n";
@@ -855,7 +872,23 @@ void ScopDetection::releaseMemory() {
   ValidRegions.clear();
   InvalidRegions.clear();
   SpeculativeValidRegions.clear();
+  //if (RS) 
+    //RS->releaseMemory();
   // Do not clear the invalid function set.
+}
+
+bool ScopDetection::doInitialization(Module &M) {
+  //if (!RS && EnableSpolly)
+    //RS = new RegionSpeculation(0);
+
+  return false;
+}
+
+bool ScopDetection::doFinalization(Module &M) {
+  //if (RS && !RS->hasProfilingSupport())
+    //delete RS;
+
+  return false;
 }
 
 char ScopDetection::ID = 0;
