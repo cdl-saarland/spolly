@@ -13,16 +13,16 @@
 #ifndef POLLY_REGION_SPECULATION_H
 #define POLLY_REGION_SPECULATION_H
 
-#include "sambamba/Profiler/SCEVProfiler.h"
-
-#include "llvm/Support/CommandLine.h"
-#include "llvm/Support/IRBuilder.h"
-
 #include "llvm/ADT/DenseMap.h"
+
+#include "llvm/Transforms/Utils/ValueMapper.h"
 
 #include "llvm/Analysis/AliasSetTracker.h"
 #include "llvm/Analysis/ScalarEvolution.h"
 #include "llvm/Analysis/ScalarEvolutionExpressions.h"
+
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/IRBuilder.h"
 
 #include <map>
 #include <set>
@@ -30,6 +30,10 @@
 #define VIOLATION_COUNT 4
 
 using namespace llvm;
+
+namespace sambamba {
+  class Profiler;
+}
 
 namespace llvm {
   class Loop;
@@ -55,7 +59,6 @@ extern bool RegionSpeculationPrepareRegion;
 class ScopStmt;
 class ScopDetection;
 class SPollyInfo;
-class SCEVCreator;
 
 //===----------------------------------------------------------------------===//
 /// @brief Speculate on SCoPs
@@ -82,17 +85,6 @@ class RegionSpeculation {
   /// deleted or stored afterwards
   SPollyInfo *TemporaryRegion;
   
-  /// @brief This ScalarEvolution is used to create and evaluate region scores
-  ///
-  /// It is created once and all SPollyInfo objects are using it
-  ScalarEvolution * SPI_SE;
-
-  /// @brief The Profiler object
-  ///
-  /// During runtime it is used to create SCEV placeholders and during compile 
-  /// time these placeholders are evaluated by this object
-  sambamba::SCEVProfiler * SCEVProfiler;
-
   /// @brief Analysis passes used.
   //@{
   ScopDetection *SD;
@@ -104,9 +96,6 @@ class RegionSpeculation {
   DominatorTree *DT;
   //@}
   
-  /// @brief TODO 
-  class SCEVCreator * Creator;
-
 public:
 
   /// @brief Different violation causes for instructions
@@ -121,7 +110,7 @@ public:
   /// @brief The default constructor
   /// 
   /// - Create the SPollyInfo ScalarEvolution object
-  RegionSpeculation(sambamba::SCEVProfiler *Profiler = 0);
+  RegionSpeculation();
   
   /// @brief
   ~RegionSpeculation();
@@ -142,15 +131,25 @@ public:
   //@}
   
 
-  /// @brief
-  /// 
-  /// @return
-  inline bool hasProfilingSupport() const {
-    return SCEVProfiler != 0;
-  }
+  /// @brief Access functions for SPollyInfo objects
+  //@{
+  typedef std::pair<Function *, ValueToValueMapTy *> FunctionPair;
+  Function* getOriginalVersion(RegionMapKey &RMK);
+  FunctionPair getProfilingVersion(RegionMapKey &RMK, sambamba::Profiler *profiler);
+  FunctionPair getParallelVersion(RegionMapKey &RMK, Module *dstModule);
+  bool checksAreSound(RegionMapKey &RMK);
+  int getScore(RegionMapKey &RMK);
 
-  /// @brief 
-  void insertProfilingCode(CRegionT R);
+  Function* getOriginalVersion(SPollyInfo *SPI);
+  FunctionPair getProfilingVersion(SPollyInfo *SPI, sambamba::Profiler *profiler);
+  FunctionPair getParallelVersion(SPollyInfo *SPI, Module *dstModule);
+  bool checksAreSound(SPollyInfo *SPI);
+  int getScore(SPollyInfo *SPI);
+
+  
+  // Not implemented
+  void applyChangesToFunction(Function *F, ValueToValueMapTy &VMap);
+  //@}
 
   /// @brief Register a memory access for the current region (TemporaryRegion)
   void registerViolatingInstruction(const Instruction * const I,
@@ -201,7 +200,6 @@ public:
 
   /// @brief TODO
   bool speculateOnRegion(const Region *R);
-
 
   /// @brief
   //void updateRegionPointer(RegionInfo *RI);

@@ -13,11 +13,14 @@
 
 #include "polly/RegionSpeculation.h"
 
+#include "sambamba/Profiler/Profiler.h"
+#include "sambamba/Profiler/SCEVHelper.h"
+
 #include "polly/ScopInfo.h"
 #include "polly/ScopDetection.h"
+#include "polly/CodeGeneration.h"
 #include "polly/LinkAllPasses.h"
 #include "polly/Support/ScopHelper.h"
-#include "polly/Support/RegionSpeculationHelper.h"
 #include "polly/Support/SCEVValidator.h"
 
 #include "llvm/PassManager.h"
@@ -36,7 +39,7 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/RegionIterator.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
-#include "llvm/Transforms/Utils/Cloning.h"
+#include "llvm/Transforms/Utils/Cloning.h" 
 
 #define DEBUG_TYPE "region-speculation"
 #include "llvm/Support/Debug.h"
@@ -50,7 +53,7 @@
 
 #define RegionMapKeyForRegion(R) std::make_pair(R->getEntry(), R->getExit())
 #define FunctionForRegion(R) (R->getEntry()->getParent())
-#define ModuleForRegion(R) (R->getEntry()->getParent()->getParent())
+#define ModuleForFunction(F) (F->getParent())
 
 using namespace llvm;
 using namespace polly;
@@ -141,10 +144,10 @@ static unsigned withinBranch = 0;
 namespace {
   
   /* 
-   * ===  FUNCTION  ============================================================
-   *         Name:  getFileName 
-   *  Description:  
-   * ===========================================================================
+   *===  FUNCTION  ============================================================
+   *        Name:  getFileName 
+   * Description:  
+   *===========================================================================
    */
   static std::string getFileName(Region *R) {
     std::string FunctionName =
@@ -157,11 +160,11 @@ namespace {
 
 
 /* 
- * ===  FUNCTION  ==============================================================
- *         Name:  insertInvariantCheck
- *    Arguments:  
- *      Returns:  
- * =============================================================================
+ *===  FUNCTION  ==============================================================
+ *        Name:  insertInvariantCheck
+ *   Arguments:  
+ *     Returns:  
+ *=============================================================================
  */
 void RegionSpeculation::insertInvariantChecks(BasicBlock *testBlock,
                                               BasicBlock *invariantProfilingBlock) {
@@ -282,11 +285,11 @@ void RegionSpeculation::insertInvariantChecks(BasicBlock *testBlock,
 
 
 /* 
- * ===  FUNCTION  ==============================================================
- *         Name:  createCall
- *    Arguments:  
- *      Returns:  
- * =============================================================================
+ *===  FUNCTION  ==============================================================
+ *        Name:  createCall
+ *   Arguments:  
+ *     Returns:  
+ *=============================================================================
  */
 CallInst *RegionSpeculation::createCall(Instruction *I) {
   
@@ -349,11 +352,11 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
 
 
 /* 
- * ===  FUNCTION  ==============================================================
- *         Name:  replaceScopStatements
- *    Arguments:  
- *      Returns:  
- * =============================================================================
+ *===  FUNCTION  ==============================================================
+ *        Name:  replaceScopStatements
+ *   Arguments:  
+ *     Returns:  
+ *=============================================================================
  */
 void RegionSpeculation::replaceScopStatements(ScopStmt *Statement){
 
@@ -375,11 +378,11 @@ void RegionSpeculation::replaceScopStatements(ScopStmt *Statement){
 
 
 /* 
- * ===  FUNCTION  ==============================================================
- *         Name:  replaceViolatingInstructions
- *    Arguments:  
- *      Returns:  
- * =============================================================================
+ *===  FUNCTION  ==============================================================
+ *        Name:  replaceViolatingInstructions
+ *   Arguments:  
+ *     Returns:  
+ *=============================================================================
  */
 void RegionSpeculation::replaceViolatingInstructions() {
   if (!SPollyReplaceViolatingInstructions) return;
@@ -434,10 +437,10 @@ void RegionSpeculation::replaceViolatingInstructions() {
 
 
 /* 
- * ===  FUNCTION  ==============================================================
- *         Name:  postPrepareRegion
- *  Description:  
- * =============================================================================
+ *===  FUNCTION  ==============================================================
+ *        Name:  postPrepareRegion
+ * Description:  
+ *=============================================================================
  */
 void RegionSpeculation::postPrepareRegion(BasicBlock *testBlock,
                                           Region *region) {
@@ -530,7 +533,116 @@ void RegionSpeculation::postPrepareRegion(BasicBlock *testBlock,
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 
+/// Helper functions, most of them will be used only once, thus can be inlined 
+namespace {
+
+  void profileValueIfAny(BasicBlock *entry, const SCEV *scev, 
+                     //sambamba::sambamba::Profiler *profiler,
+                     DenseMap<const SCEVUnknown *, BasicBlock *> &LHM) {
+    dbgs() << " === profileValue " << *scev << "\n\n";
+
+    if (const SCEVUnknown *tripCountUnknown = dyn_cast<SCEVUnknown>(scev)) {
+      Value *tripCountValue = tripCountUnknown->getValue();
+
+      SmallVectorImpl<BasicBlock *> preds(2);
+      for (pred_iterator it = pred_begin(entry), end = pred_end(entry);
+           it != end; it++) {
+        preds.push_back(*it);
+      }
+
+      //profiler->profileValue(tripCountValue, preds);
+
+      // Fill the LoopHeaderMap
+      LHM.insert(std::make_pair(tripCountUnknown, entry));
+ 
+      return;
+    }
+
+    // Handle non constant trip counts e.g.,   for (i = 0; i < n; i++)
+    if (const SCEVNAryExpr *NAry = dyn_cast<SCEVNAryExpr>(scev)) {
+      for (unsigned u = 0; u < NAry->getNumOperands(); u++) {
+          profileValueIfAny(entry, NAry->getOperand(u), LHM);
+      }
+    }
+    
+  }
+
+
+  /// @brief Cast all subexpressions to int64
+  const SCEV *toInt64(const SCEV *scev, ScalarEvolution *SE,
+                      IntegerType *Int64Ty) {
+    Type *type = scev->getType();
+    if (type->isIntegerTy(64)) return scev;
+    
+    switch (scev->getSCEVType()) {
+
+      case scTruncate:
+      case scZeroExtend:
+      case scSignExtend: 
+      case scUnknown:
+      case scConstant: {
+        return SE->getSignExtendExpr(scev, Int64Ty);
+      } 
+
+      case scAddRecExpr: {
+        assert(0 && "SCEVAddRecExpr in score");
+      }
+
+      // TODO add add mul ... operastos
+      //case scAddExpr:
+      //case scMulExpr: {
+        //const SCEVNAryExpr *NAryExpr = dyn_cast<SCEVNAryExpr>(scev)
+        //SCEVNAryExpr::iterator it = NAryExpr->begin(), end = NAryExpr->end();
+      
+      default:
+          return SE->getSignExtendExpr(scev, Int64Ty);
+      }
+  }
+
+
+  /// @brief Check if the given region is a loop
+  inline bool regionIsLoop(const Region *R, LoopInfo *LI) {
+    return (LI->getLoopDepth(R->getEntry()) - LI->getLoopDepth(R->getExit()));
+  }
+
+
+  /// @brief Check if the given region is a perfect conditional
+  bool regionIsConditional(const Region *R) {
+    TerminatorInst *TI = R->getEntry()->getTerminator();
+    bool check = false;
+
+    if (const BranchInst *BI = dyn_cast<BranchInst>(TI))
+        check = (BI->isConditional() && BI->getNumSuccessors() == 2);
+    
+    //DEBUG( 
+      BasicBlock *BB = R->getExit();
+      unsigned count = 0;
+      for (pred_iterator PI = pred_begin(BB), E = pred_end(BB); PI != E; ++PI)
+        ++count; 
+      check = check && count == 2;
+    //);
+    //
+    return check;
+  }
+
+} // end anonymus namespace
+
+
+
 namespace polly {
+  
+  class ScoreSCEVEvaluator {
+
+    ScoreSCEVEvaluator() {
+
+    }
+
+    int evaluateScoreSCEV(ScalarEvolution *SE) {
+      
+      return 0;
+    }
+
+  };
 
   /// @brief A SPollyInfo object represents a speculative valid region
   ///
@@ -544,15 +656,18 @@ namespace polly {
     typedef std::pair<Value *, Value *> MinMaxPair;
 
     RegionMapKey RMK;
-
+    
     /// @brief The speculative valid region which is represented
     CRegionT R;
 
-    /// @brief Keep track of the version which is used
-    bool parallelized;
+    const std::string nameStr;
+
+    ValueToValueMapTy *profilingValueMap, *parallelValueMap;
+
+    Function *originalVersion, *profilingVersion, *parallelVersion;
 
     /// @brief Information ...
-    bool containsCalls;
+    bool containsCalls, isValid, checksAreSound;
     
     BasicBlock *aliasTestBlock, *invariantTestBlock;
     Value *aliasTestValue, *invariantTestValue;
@@ -562,7 +677,18 @@ namespace polly {
 
     /// @brief The scoreSCEV represents the score of the region
     const SCEV *ScoreSCEV;
-    
+    unsigned branchDepth;
+  
+    struct ProfiledBranch {
+      sambamba::Profiler::KeyT key;
+      BasicBlock *guard;
+      unsigned offset;
+      ProfiledBranch(BasicBlock *guard, unsigned offset) :
+        guard(guard), offset(offset) {}
+    };
+    typedef DenseMap<GlobalValue *, ProfiledBranch *> BranchProfilingValuesT;
+    BranchProfilingValuesT BranchProfilingValues;
+
     /// @brief A map of all memory accesses contained in this region
     //@{
     typedef DenseMap<const Instruction *, const SCEV *> MemoryAccessInfo;
@@ -586,87 +712,222 @@ namespace polly {
     unsigned NumberOfAliasGroups;
     //@}
   
+    /// @brief The predecessor Blocks of the entry not contained in the Region
+    std::vector<BasicBlock*> entryPreds;
+
     public:
       /// @brief Default Constructor
       SPollyInfo(CRegionT R, RegionSpeculation *RS) : 
-        RMK(RegionMapKeyForRegion(R)), R(R), RS(RS) {
+        RMK(RegionMapKeyForRegion(R)), R(R), nameStr(R->getNameStr()),
+        RS(RS) {
         containsCalls = false;
-        parallelized  = false;
+        isValid = true;
         aliasTestBlock = 0;
         aliasTestValue = 0;
         invariantTestBlock = 0;
         invariantTestValue = 0;   
-      };
- 
-      /// @brief The default Destructoru
+        parallelVersion  = 0;
+        profilingVersion = 0;
+        originalVersion  = RMK.first->getParent();
+        branchDepth = 0;
+        parallelValueMap  = 0;
+        profilingValueMap = 0;
+        NumberOfAliasGroups = 0;
+        checksAreSound = true;
+      }
+
+      /// @brief Free all allocated objects
       ~SPollyInfo() {
-      };
+        
+        if (aliasTestBlock) {
+          dbgs() << "Remove aliasTestBlock\n"; 
+          delete aliasTestBlock;
+        }
+       
+        if (profilingValueMap) {
+          dbgs() << "Remove profilingValueMap\n";
+          delete profilingValueMap;
+          dbgs() << "Remove profilingVersion\n";
+          profilingVersion->eraseFromParent();
+        }
 
-      /// @brief 
-      const SCEV *getScoreSCEV() { return ScoreSCEV; }
+        if (parallelValueMap) {
+          dbgs() << "Remove parallelValueMap\n";
+          delete parallelValueMap;
+          dbgs() << "Remove parallelVersion\n";
+          parallelVersion->eraseFromParent();
+        }
 
-      /// @brief Return the underlying speculative valid region
-      CRegionT inline getRegion() const { return R; }
+        if (NumberOfAliasGroups) {
+          for (unsigned u = 0; u < NumberOfAliasGroups; u++) {
+            dbgs() << "Remove AliasGroup[" << u << "]\n";
+            delete AliasGroups[u];
+          }
+          dbgs() << "Remove AliasGroups\n";
+          delete[] AliasGroups;
+        }
     
-      void inline setRegion(CRegionT newR) {
-        assert(newR->getEntry() == RMK.first && newR->getExit() == RMK.second);
-        R = newR;
+        // Delete allocated GlobalVariables for ProfiledBranch
+        for (BranchProfilingValuesT::iterator it = BranchProfilingValues.begin(),
+             end = BranchProfilingValues.end(); it != end; it++) {
+          delete (it->second);
+          delete (it->first);
+        }
+
+      }
+
+
+      inline Function *getOriginalVersion() const {
+        return originalVersion;
+      }
+
+      Function *getProfilingVersion(sambamba::Profiler *profiler) {
+        if (!profilingVersion) {
+          profilingValueMap = new ValueToValueMapTy();
+          profilingVersion  = CloneFunction(originalVersion,
+                                            *profilingValueMap,
+                                            // TODO What value is appropriate
+                                            /* moduleLevelChanges */ true,
+                                            /* ClonedCodeInfo* */ 0);
+          insertProfilingCode();
+        }
+        return profilingVersion;
       } 
 
-      RegionMapKey inline getRMK() const { return RMK; }
+      Function *getParallelVersion(Module *dstModule) {
+        if (!parallelVersion) {
+          parallelValueMap = new ValueToValueMapTy();
+          parallelVersion  = CloneFunction(originalVersion, 
+                                          *parallelValueMap,
+                                          // TODO What value is appropriate
+                                          /* moduleLevelChanges */ true,
+                                          /* ClonedCodeInfo* */ 0);
+          dstModule->getFunctionList().push_back(parallelVersion);
+          insertParallelCode();
+        }
+        return parallelVersion;
+      }
 
-      /// @brief Check if the profiling version is used
-      bool isProfiling() { return aliasTestBlock || invariantTestBlock; }
+      /// @brief Some getters to access private members
+      //@{
+      inline const SCEV *getScoreSCEV() const { return ScoreSCEV; }
+      inline CRegionT getRegion() const { return R; }
+      inline RegionMapKey &getRMK() { return RMK; }
+      inline Function *getFunction() const { return RMK.first->getParent(); }
+      inline bool getChecksAreSound() const { return checksAreSound; }
+      inline const std::string getNameStr() const { return nameStr; }
+      inline ValueToValueMapTy *getProfilingValueMap() const { return profilingValueMap; }
+      inline ValueToValueMapTy *getParallelValueMap() const { return parallelValueMap; }
+      //@}
 
-
+      /// @brief Some test functions
+      //@{
+      inline bool testsAvailable() const {
+        return containsAliasingInstructions() || containsInvariantInstructions();
+      }
+      inline bool containsInvariantInstructions() const {
+        //return NumberOfInvariantInsructions > 0;
+        return false;
+      }
+      inline bool containsAliasingInstructions() const {
+        return NumberOfAliasGroups > 0;
+      }
+      //@}
+      
       /// @brief 
       void insertInvariantTestingCode() {
       
       }
 
-      /// @brief
-      void removeAliasTestingCode() {
-        
-      }
-
       /// @brief Set the alias test block
-      void setAliasTestingBlock(BasicBlock *BB) {
-        assert(BB && "Bad alias test block");
-        aliasTestBlock = BB;
+      void insertAliasTestingCode(BasicBlock *BB, ValueToValueMapTy &VMap) {
+        assert(BB && aliasTestBlock && "Bad alias test block");
+
+        (dbgs() << "\n\n\n#################################################\n");
+        aliasTestBlock->dump();
+        (dbgs() << "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK\n");
+        for (BasicBlock::iterator i = aliasTestBlock->begin(), e = aliasTestBlock->end();
+             i != e; i++) {
+          dbgs() << " i: " << *i << "  " << i << " " << i->getParent() << "\n";
+
+          for (User::op_iterator op = i->op_begin(), E = i->op_end(); op != E; ++op) {
+            dbgs() << "\t=="  << *op << "  " << **op << "  ";
+            if (Instruction *Q = dyn_cast<Instruction>(*op)) 
+              dbgs() << "Parent: " << Q->getParent() << "\n";
+            else
+              dbgs() << "\n";
+          }
+
+        }
+        (dbgs() << "#################################################\n");
+
+        ValueToValueMapTy::iterator VMapit, VMapend = VMap.end();
+
+        Instruction *I = BB->getTerminator(), *tmp;
+        BasicBlock::iterator it = aliasTestBlock->begin(),
+                            end = aliasTestBlock->end();
+
+        for (; it != end; it++) {
+          //dbgs() << "\nit: " << it << "  " << *it << "\n";
+         
+          for (unsigned u = 0, e = it->getNumOperands(); u != e; u++) {
+            VMapit = VMap.find(it->getOperand(u));
+            if (VMapit != VMapend)
+              it->setOperand(u, (*VMapit).second);
+          } 
+
+          //for (User::op_iterator op = it->op_begin(), E = it->op_end(); op != E; ++op) {
+            //dbgs() << "iiiiii    "  << *op << "  " << **op << "\n";
+            //dbgs() << "pppppp    "  << parallelValueMap->lookup(*op) << "   " << "\n";
+          //}
+
+          //tmp = it++;
+          //tmp->removeFromParent();
+          tmp = it->clone(); tmp->setName(it->getName());
+          dbgs() << "\t map " << *it << "(" << it << ")  to: " << *tmp <<  "(" << tmp << ")\n";
+          tmp->insertBefore(I);
+          VMap[it] = tmp;
+        }
+
+        (dbgs() << "\n\n\nYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n");
+        BB->dump();
+        (dbgs() << "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n");
+        for (BasicBlock::iterator i = BB->begin(), e = BB->end();
+             i != e; i++) {
+          dbgs() << " i: " << *i << "  " << i << " " << i->getParent() << "\n";
+
+          for (User::op_iterator op = i->op_begin(), E = i->op_end(); op != E; ++op) {
+            dbgs() << "\t=="  << *op << "  " << **op << "  ";
+            if (Instruction *Q = dyn_cast<Instruction>(*op)) 
+              dbgs() << "Parent: " << Q->getParent() << "\n";
+            else
+              dbgs() << "\n";
+          
+          }
+        }
+        (dbgs() << "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n");
+
+
       }
 
       /// @brief 
-      void insertAliasTestingCode() {
-        assert(containsAliasingInstructions() && "No tests for aliasing available");
-        
-        dbgs() << "\n\t" << RS->SCEVProfiler << "\n\n";
-        RS->SCEVProfiler->allocateSlots((const void *)this, 2);
-        
-        BasicBlock *entry = RMK.first;
+      void createAliasTestingCode() {
+        if (!containsAliasingInstructions()) return;
 
-        // Test if the aliasTestBlock is set, if not a new one is created
-        if (!aliasTestBlock) {
-          // Collect all predecessors of entry which do not belong to the region
-          std::vector<BasicBlock*> entryPreds;
-          for (pred_iterator itPred = pred_begin(entry),
-               end = pred_end(entry); itPred != end; itPred ++) {
-            if ( R->contains(*itPred) ) continue;
-            entryPreds.push_back(*itPred);
-          }
+        assert(!aliasTestBlock && "AliasTestBlock created twice");
+        aliasTestBlock = BasicBlock::Create(
+                            ModuleForFunction(originalVersion)->getContext(),
+                            "AliasTestBlock");
 
-          // Split the entry block according to the collected predecessors 
-          aliasTestBlock = SplitBlockPredecessors(entry, &entryPreds[0], 
-                                                  entryPreds.size(),
-                                                  "_test",
-                                                  RS->SE);
-        }
-
-        IRBuilder<> aliasTestBlockBuilder(aliasTestBlock, --(aliasTestBlock->end()));
+        IRBuilder<> aliasTestBlockBuilder(aliasTestBlock);
         aliasTestValue = createAliasChecks(aliasTestBlockBuilder);
         assert(aliasTestValue && "No Value to check for branch");
+
+        // TODO SAVE THE ALIAS TEST INSTRUCTIONS IN A NEW FUNCTION
       }
 
 
+#if 0
       /// @brief TODO
       void removeProfilingCode(BasicBlock *testBlock) {
         
@@ -708,7 +969,6 @@ namespace polly {
 
       /// @brief
       void removeProfilingCode() {
-        assert(!parallelized && "bad remove profiling code");
         if (invariantTestBlock) {
           removeProfilingCode(invariantTestBlock); 
           invariantTestBlock = 0;
@@ -719,6 +979,7 @@ namespace polly {
           aliasTestBlock = 0;
         }
       }
+#endif 
 
 
       /// @brief TODO
@@ -738,11 +999,11 @@ namespace polly {
         // Register the profilingBlock 
         RS->DT->addNewBlock(profilingBlock, testBlock);
         IRBuilder<> testBlockBuilder(testBlock, --(testBlock->end()));
-        RS->SCEVProfiler->insertIncrement((const void *)this,
-                                                         testBlockBuilder, 0);
+        //RS->SCEVsambamba::Profiler->insertIncrement((const void *)this,
+                                                         //testBlockBuilder, 0);
         IRBuilder<> profilingBlockBuilder(profilingBlock);
-        RS->SCEVProfiler->insertIncrement((const void *)this,
-                                                    profilingBlockBuilder, 1);
+        //RS->SCEVsambamba::Profiler->insertIncrement((const void *)this,
+                                                    //profilingBlockBuilder, 1);
 
         BasicBlock *nextBlock = testBlockTerm->getSuccessor(0);
         profilingBlockBuilder.CreateBr(nextBlock);
@@ -766,90 +1027,82 @@ namespace polly {
 
       /// @brief Create and use a profiling version  
       void insertProfilingCode() {
-        if (!RS->hasProfilingSupport()) return;
+        //assert(!profilingVersion && "Profiling version already created");
+        //assert(profilingValueMap && "ValueToValueMap was not found");
 
-        assert(!isProfiling() && "Profiling version already in use");
-        if (containsAliasingInstructions() && !aliasTestBlock)
-          insertAliasTestingCode();
-        if (containsInvariantInstructions() && !invariantTestBlock)
-          insertInvariantTestingCode();
+        //if (containsAliasingInstructions() && !aliasTestBlock)
+          //insertAliasTestingCode();
+        //if (containsInvariantInstructions() && !invariantTestBlock)
+          //insertInvariantTestingCode();
 
-        assert((aliasTestBlock && aliasTestValue) 
-               || (invariantTestBlock && invariantTestValue) 
-               && "No tests available");
-
-        if (aliasTestBlock && aliasTestValue) {
-          insertProfilingCode(aliasTestBlock, aliasTestValue);
-        } // end insert alias profiling code
+        //if (aliasTestBlock && aliasTestValue) {
+          //insertProfilingCode(aliasTestBlock, aliasTestValue);
+        //} // end insert alias profiling code
         
-        if (invariantTestBlock && invariantTestValue) {
-          insertProfilingCode(invariantTestBlock, invariantTestValue);
-        } // end insert invariant profiling code
+        //if (invariantTestBlock && invariantTestValue) {
+          //insertProfilingCode(invariantTestBlock, invariantTestValue);
+        //} // end insert invariant profiling code
+        
+        // TODO score needs profiling
       }
       
 
       /// @brief Use Polly to insert parallel code
       void insertParallelCode() {
-        assert(!parallelized && "Already parallelized");
+        assert(parallelValueMap && "ValueToValueMap was not found");
+
+        (dbgs() << "Insert Parallel Code for " << getNameStr() << "\n");
         
-        (dbgs() << "Insert Parallel Code for " << R->getNameStr() << "\n");
-        // Remove invariant profiling code
-        if (invariantTestBlock) {
-          removeProfilingCode(invariantTestBlock); 
-          invariantTestBlock = 0;
-        } 
-        // TODO TODO Reuse already created aliastests !
-        removeProfilingCode();
-        
-        // After the profiling code is removed we set the parallelized flag
-        parallelized = true;
-       
-        FunctionPassManager fpm(ModuleForRegion(R));
-        RS->SD->addValidRegion(R);
-        fpm.add(new TargetData(ModuleForRegion(R)));
+        EnablePollyVector = EnablePollyOpenMP = true;
+
+        // 
+        SpeculativeRegionNameStr = getNameStr();
+        FunctionPassManager fpm(parallelVersion->getParent());
+        fpm.add(new TargetData(parallelVersion->getParent()));
         fpm.add(new CodeGeneration());
-        fpm.run(*FunctionForRegion(R));
+        fpm.run(*parallelVersion);
         
         // If aliastests are available insert or rewire them
         if (containsAliasingInstructions()) {
-          BasicBlock *entry = RMK.first;
-          if (!aliasTestBlock) {
-            for (pred_iterator it = pred_begin(entry), end = pred_end(entry);
-                 it != end; it++) {
-                if ((*it)->getName().startswith("polly.enterScop")) {
-                  aliasTestBlock = *it;
-                  break;
-                }
-            }
+          BasicBlock *entry, *enterScopBlock = 0;
+          entry = dyn_cast<BasicBlock>(parallelValueMap->lookup(RMK.first));
+          assert(entry && "Entry in parallel version was not found");
 
-            assert(aliasTestBlock && "Did not found polly split block");
-          
-            insertAliasTestingCode();
-
-            // Use the aliasTestValue to jump to the sequential 
-            // or parallel version
-            BranchInst *bI = 
-              dyn_cast<BranchInst>(aliasTestBlock->getTerminator());
-            assert (bI && (bI->getNumSuccessors() == 2) && "Bad spolly split block");
-
-            bI->setCondition(aliasTestValue);
-
-          } else {
-            // TODO REWIRE already inserted tests (see above TODO)
+          for (pred_iterator it = pred_begin(entry), end = pred_end(entry);
+               it != end; it++) {
+              if ((*it)->getName().startswith("polly.enterScop")) {
+                enterScopBlock = *it;
+                break;
+              }
           }
+
+          assert(enterScopBlock && "Did not found polly split block");
+        
+          insertAliasTestingCode(enterScopBlock, *parallelValueMap);
+          dbgs() << "adsoijdsaoisajdoidsajoidsajdsoijdsoijsaoidsjidsajdsoij\n";
+
+          // Use the aliasTestValue to jump to the sequential 
+          // or parallel version
+          BranchInst *bI = dyn_cast<BranchInst>(enterScopBlock->getTerminator());
+          assert (bI && (bI->getNumSuccessors() == 2) && "Bad spolly split block");
+
+          bI->setCondition(parallelValueMap->lookup(aliasTestValue));
+
         }
         
       }
 
-      /// @brief Create the ScoreSCEV representing the score of this region
-      /// 
-      /// The SCEV representing the score is parameterized. 
-      /// It is build from information known during compile time and Unknown 
-      /// values are added for information only known at runtime. 
-      /// These information will be replaced by the @getScore function, thus 
-      /// @getScore will create an integer value based on the created ScoreSCEV
-      void inline createScoreSCEV(SCEVCreator * const Creator) {
-        ScoreSCEV = Creator->createSCEVForRegion(R); 
+
+      /// @brief
+      inline bool isViolatingCallInstruction(const CallInst *CI) {
+        // TODO 
+        return false;
+      }
+
+      /// @brief TODO
+      inline int getInitialScore() {
+        // TODO evaluate ScoreSCEV
+        return 0;
       }
 
       /// @brief Iterators for the internal containers
@@ -867,7 +1120,22 @@ namespace polly {
                                        const Value * const V) {
 
         assert(I && scev && R->contains(I) && "Bad memory access");
-        MemoryAccesses[V].insert(std::make_pair(I, scev));
+
+        if (const SCEVAddRecExpr *SCEVAddRec = dyn_cast<SCEVAddRecExpr>(scev)) {
+          IntegerType *IntTy64 = Type::getInt64Ty(I->getContext());
+          const SCEV *start = toInt64(SCEVAddRec->getStart(), RS->SE, IntTy64);
+          const SCEV *recur = 
+            toInt64(SCEVAddRec->getStepRecurrence(*RS->SE), RS->SE, IntTy64);
+          const SCEV *tripC = 
+            toInt64(RS->SE->getBackedgeTakenCount(SCEVAddRec->getLoop()),
+                    RS->SE, IntTy64);
+          const SCEV *tripR = RS->SE->getMulExpr(recur, tripC);
+          const SCEV *tripB = RS->SE->getAddExpr(tripR, start);
+
+          MemoryAccesses[V].insert(std::make_pair(I, tripB));
+        } else {
+          MemoryAccesses[V].insert(std::make_pair(I, scev));
+        }
       }
       
       /// @brief Register a violating instruction for this region
@@ -877,42 +1145,23 @@ namespace polly {
         assert(I && R->contains(I) && "Bad violating instruction");
         ViolatingInstructions.insert(std::make_pair(I, V));
 
-        if (V == RegionSpeculation::FunctionCall) 
-          containsCalls = true;
+        if (V != RegionSpeculation::Alias) {
+          // TODO At the moment only alias checks are considered as sound checks
+          checksAreSound = false;
+
+          if (V == RegionSpeculation::FunctionCall) 
+            containsCalls = true;
+        }
       }
     
-      /// @brief Return true if profiling tests are available
-      bool inline testsAvailable() {
-        return containsAliasingInstructions() || containsInvariantInstructions();
-      }
 
-      /// @brief Check the region for aliasing instructions
-      bool inline containsInvariantInstructions() {
-        //return NumberOfInvariantInsructions > 0;
-        return false;
-      }
-
-      /// @brief Check the region for aliasing instructions
-      bool inline containsAliasingInstructions() {
-        return NumberOfAliasGroups > 0;
-      }
-     
-      /// @brief Cast V to int64
-      Value *toInt64Ty(IRBuilder<> &builder, Value *V) {
-        (dbgs() << "toInt64ty " << *V << "\n");
-        Type *type = V->getType();
-        if (type->isIntegerTy(64)) return V;
-        if (type->isPointerTy()) 
-          return builder.CreatePtrToInt(V, builder.getInt64Ty());
-        return builder.CreateSExt(V, builder.getInt64Ty());
-      }
-
+#if 0
       /// @brief A map to keep track of already computed SCEVs 
       typedef DenseMap<const SCEV *, Value *> SCEVToValueMapT;
       SCEVToValueMapT SCEVToValueMap;
 
       /// @brief Create LLVM-IR instructions to compute the given SCEV
-      Value *SCEVToValue(IRBuilder<> &builder, const SCEV *scev) {
+      Value *sambamba::SCEVToValue(IRBuilder<> &builder, const SCEV *scev) {
 
         // First try to reuse an already created Value
         SCEVToValueMapT::iterator i = SCEVToValueMap.find(scev);
@@ -948,7 +1197,7 @@ namespace polly {
           case scZeroExtend:
           case scSignExtend: {
             const SCEVCastExpr *Cast = cast<SCEVCastExpr>(scev);
-            V = SCEVToValue(builder, Cast->getOperand());
+            V = sambamba::SCEVToValue(builder, Cast->getOperand());
             assert(V && V->getType()->isIntegerTy(64) && "SCEVToValue failed");
             SCEVToValueMap[scev] = V;
             return V; 
@@ -972,11 +1221,11 @@ namespace polly {
                 loopSCEV = opr0;
             }
 
-            Value *step = SCEVToValue(builder, stepSCEV);
+            Value *step = sambamba::SCEVToValue(builder, stepSCEV);
             assert(step && step->getType()->isIntegerTy(64)
                    && "SCEVToValue failed");
 
-            Value *loopCount = SCEVToValue(builder, loopSCEV);
+            Value *loopCount = sambamba::SCEVToValue(builder, loopSCEV);
             assert(loopCount && loopCount->getType()->isIntegerTy(64)
                    && "SCEVToValue failed");
             
@@ -1009,7 +1258,7 @@ namespace polly {
 
             const SCEV *start = AddRecExpr->getStart();
             if (!(start->isZero())) {
-              Value *startVal = SCEVToValue(builder, start);
+              Value *startVal = sambamba::SCEVToValue(builder, start);
               assert(startVal && startVal->getType()->isIntegerTy(64)
                    && "SCEVToValue failed");
               loopStep = builder.CreateAdd(startVal, loopStep);
@@ -1024,11 +1273,11 @@ namespace polly {
             it  = AddExpr->op_begin(); end = AddExpr->op_end();
             assert(it != end && "Found SCEVAddExpr without operators");
 
-            V = SCEVToValue(builder, *(it++));
+            V = sambamba::SCEVToValue(builder, *(it++));
             assert(V && V->getType()->isIntegerTy(64) && "SCEVToValue failed");
 
             for (; it != end; it++ ) {
-              V = builder.CreateAdd(V, SCEVToValue(builder, *it));
+              V = builder.CreateAdd(V, sambamba::SCEVToValue(builder, *it));
             }
 
             SCEVToValueMap[scev] = V;
@@ -1040,11 +1289,11 @@ namespace polly {
             it  = MulExpr->op_begin(); end = MulExpr->op_end();
             assert(it != end && "Found SCEVMulExpr without operators");
 
-            V = SCEVToValue(builder, *(it++));
+            V = sambamba::SCEVToValue(builder, *(it++));
             assert(V && V->getType()->isIntegerTy(64) && "SCEVToValue failed");
 
             for (; it != end; it++ ) {
-              V = builder.CreateMul(V, SCEVToValue(builder, *it));
+              V = builder.CreateMul(V, sambamba::SCEVToValue(builder, *it));
             }
 
             SCEVToValueMap[scev] = V;
@@ -1059,8 +1308,8 @@ namespace polly {
             const SCEV *opr0 = SMaxExpr->getOperand(0);
             const SCEV *opr1 = SMaxExpr->getOperand(1);
             
-            LHS = SCEVToValue(builder, opr0);
-            RHS = SCEVToValue(builder, opr1);
+            LHS = sambamba::SCEVToValue(builder, opr0);
+            RHS = sambamba::SCEVToValue(builder, opr1);
             
             if (opr0->isZero()) return RHS;
             if (opr1->isZero()) return LHS;
@@ -1083,8 +1332,8 @@ namespace polly {
             const SCEV *opr0 = UMaxExpr->getOperand(0);
             const SCEV *opr1 = UMaxExpr->getOperand(1);
 
-            LHS = SCEVToValue(builder, opr0);
-            RHS = SCEVToValue(builder, opr1);
+            LHS = sambamba::SCEVToValue(builder, opr0);
+            RHS = sambamba::SCEVToValue(builder, opr1);
 
             if (opr0->isZero()) return RHS;
             if (opr1->isZero()) return LHS;
@@ -1101,8 +1350,8 @@ namespace polly {
 
           case scUDivExpr: {
             const SCEVUDivExpr *UDivExpr = cast<SCEVUDivExpr>(scev);
-            LHS = SCEVToValue(builder, UDivExpr->getLHS());
-            RHS = SCEVToValue(builder, UDivExpr->getRHS());
+            LHS = sambamba::SCEVToValue(builder, UDivExpr->getLHS());
+            RHS = sambamba::SCEVToValue(builder, UDivExpr->getRHS());
             assert(LHS && LHS->getType()->isIntegerTy(64) && "SCEVToValue failed");
             assert(RHS && RHS->getType()->isIntegerTy(64) && "SCEVToValue failed");
             
@@ -1117,16 +1366,18 @@ namespace polly {
             assert(0 && "Unknown scev type");
         }
       }
-        
+#endif
+
       
       // Use the less equal comparison since we want to discard equal expressions
-      #define PRED_LT ICmpInst::ICMP_SLE
+      #define PRED_LE ICmpInst::ICMP_SLE
       #define PRED_GT ICmpInst::ICMP_SGT
-      #define IS_LESS(s0, s1) RS->SE->isKnownPredicate(PRED_LT, s0, s1)
+      #define IS_LESS_EQ(s0, s1) RS->SE->isKnownPredicate(PRED_LE, s0, s1)
       #define IS_GREATER(s0, s1) RS->SE->isKnownPredicate(PRED_GT, s0, s1)
 
       /// @brief Create a pair of minimal and maximal access to this base value
-      MinMaxPair createMinMaxAccessPair(IRBuilder<> &builder, Value *baseValue) {
+      MinMaxPair createMinMaxAccessPair(IRBuilder<> &builder, Value *baseValue,
+                                      sambamba::SCEVToValueMapT &SCEVToValueMap) {
         (dbgs() << "Create MinMax Access Pair for " << *baseValue << " : " 
                 << *(baseValue->getType()) << "\n");
 
@@ -1141,11 +1392,13 @@ namespace polly {
         for (MemoryAccessInfo::const_iterator it = MAI.begin(), end = MAI.end();
              it != end; it++) {
           possibleMin = possibleMax = true;
-          const SCEV * scev = it->second;
-          (dbgs() << "*\t\t Access SCEV: " << *scev << " : "
-                  << *(scev->getType()) << " " 
-                  << (scev->getSCEVType()) << " (" 
-                  << *(it->first) << ")\n");
+          const SCEV *scev = it->second;
+          //SCEV *start = 0, *recurrence = 0, *tripCount = 0;
+          //if (SCEVAddRecExpr *SCEVAddRec = dyn_cast<SCEVAddRecExpr>(scev)) {
+            //start = SCEVAddRec->getStart();
+            //recurrence = SCEVAddRec->getStepRecurrence(RS->SE);
+            //tripCount = RS->SE->getBackedgeTakenCount(SCEVAddRec->getLoop());
+          //}
 
           // The zero case is handled anyway
           if (scev->isZero()) continue;
@@ -1161,12 +1414,10 @@ namespace polly {
           if (possibleMin) {
             for (mit = minAccesses.begin(), mend = minAccesses.end();
                  mit != mend; mit++) {
-              if (IS_LESS(*mit, scev)) possibleMin = false;
-              if (IS_GREATER(*mit, scev)) mit =
-                     minAccesses.erase(mit);
+              if (IS_LESS_EQ(*mit, scev)) possibleMin = false;
+              if (IS_GREATER(*mit, scev)) mit = minAccesses.erase(mit);
             }
             if (possibleMin) { 
-              (dbgs() << "*\t\t\t New possible min: " << *scev << "\n");
               minAccesses.push_back(scev);
             }
           }
@@ -1174,13 +1425,11 @@ namespace polly {
           // Test all possible maxima
           if (possibleMax) {
             for (Mit = maxAccesses.begin(), Mend = maxAccesses.end();
-                 Mit != Mend; Mit++) {
-              if (IS_LESS(scev, *Mit)) possibleMax = false;
-              if (IS_GREATER(scev, *Mit)) Mit = 
-                     maxAccesses.erase(Mit);
+                 Mit != Mend; Mit++) { 
+              if (IS_LESS_EQ(scev, *Mit)) possibleMax = false;
+              if (IS_GREATER(scev, *Mit)) Mit = maxAccesses.erase(Mit);
             }
             if (possibleMax) {
-              (dbgs() << "*\t\t\t New possible max: " << *scev << "\n");
               maxAccesses.push_back(scev);
             }
           }
@@ -1200,20 +1449,25 @@ namespace polly {
         // Create LLVM-IR for the collected SCEVs  
         std::deque<Value *> minAccessValues;
         std::deque<Value *> maxAccessValues;
-        
-        (dbgs() << "SCEV TO VALUE \n\n\n");
+         
         for (mit = minAccesses.begin(), mend = minAccesses.end(); mit != mend;
              mit++) {
-          (dbgs() << "mit: " << **mit << "  " << *baseSCEV << " \n");
-          const SCEV *s = RS->SE->getAddExpr(*mit, baseSCEV);
-          minAccessValues.push_back(SCEVToValue(builder, s));
+          const SCEV *s = RS->SE->getMinusSCEV(baseSCEV, *mit);
+          dbgs() << "SCEV2ValueMinAccess: " << s << "   " << *s << " \n";
+          minAccessValues.push_back(sambamba::SCEVToValue(builder, s, 
+                                                       SCEVToValueMap, RS->SE,
+                                                       RS->TD));
+          dbgs() << "\t Val: " << minAccessValues.back() << *minAccessValues.back()  << "\n";
         }
         
         for (Mit = maxAccesses.begin(), Mend = maxAccesses.end(); Mit != Mend;
              Mit++) {
-          (dbgs() << "Mit: " << **Mit << "  " << *baseSCEV << " \n");
-          const SCEV *s = RS->SE->getAddExpr(*Mit, baseSCEV);
-          maxAccessValues.push_back(SCEVToValue(builder, s));
+          const SCEV *s = RS->SE->getMinusSCEV(baseSCEV, *Mit);
+          dbgs() << "SCEV2ValueMaxAccess: " << s << "   " << *s <<  " \n";
+          maxAccessValues.push_back(sambamba::SCEVToValue(builder, s,
+                                                       SCEVToValueMap, RS->SE,
+                                                       RS->TD));
+          dbgs() << "\t Val: " << maxAccessValues.back() << *maxAccessValues.back()  << "\n";
         }
 
         // Compare the created values 
@@ -1222,8 +1476,10 @@ namespace polly {
           Value *B = minAccessValues.front(); minAccessValues.pop_front();
           assert(A->getType()->isIntegerTy(64) && "Found wrong value type");
           assert(B->getType()->isIntegerTy(64) && "Found wrong value type");
-          Value *cmp = builder.CreateICmpSLT(A, B);
-          Value *sel = builder.CreateSelect(cmp, A, B);
+          Value *cmp = builder.CreateICmpSLT(A, B, 
+                                         A->getName() + "_LT_" + B->getName());
+          Value *sel = builder.CreateSelect(cmp, A, B, 
+                                         A->getName() + "_sel_" + B->getName());
           minAccessValues.push_back(sel);
         }
         
@@ -1233,8 +1489,10 @@ namespace polly {
           Value *B = maxAccessValues.front(); maxAccessValues.pop_front();
           assert(A->getType()->isIntegerTy(64) && "Found wrong value type");
           assert(B->getType()->isIntegerTy(64) && "Found wrong value type");
-          Value *cmp = builder.CreateICmpSGT(A, B);
-          Value *sel = builder.CreateSelect(cmp, A, B);
+          Value *cmp = builder.CreateICmpSGT(A, B,
+                                         A->getName() + "_GT_" + B->getName());
+          Value *sel = builder.CreateSelect(cmp, A, B,
+                                         A->getName() + "_sel_" + B->getName());
           maxAccessValues.push_back(sel);
         }
 
@@ -1242,35 +1500,249 @@ namespace polly {
                && "Expected one minimal access value");
         assert(maxAccessValues.size() == 1 
                && "Expected one maximal access value");
+        
         return std::make_pair(minAccessValues.front(), maxAccessValues.front());
         
       }
 
-      
+
+      /// @brief Create a SCEV representing the score of a Instruction
+      ///
+      /// @param I The Instruction to score
+      ///
+      /// @return A SpollyInfo::scoreSCEV 
+      const SCEV *createSCEVForInstruction(const Instruction *I) {
+        int score = 1;
+        
+        // TODO Differentiate between the instructions
+        if (ViolatingInstructions.count(I)) score = -1;
+
+        if (const CallInst *CI = dyn_cast<CallInst>(I)) {
+          if (isViolatingCallInstruction(CI)) {
+            if (branchDepth == 0) {
+              isValid = false;
+            } else {
+              score = -10;
+            }
+          }
+        }
+
+        ConstantInt *CI = ConstantInt::get(Type::getInt64Ty(RMK.first->getContext()),
+                                           score, /* isSigned */ true);
+        return RS->SE->getConstant(CI);
+      }
+
+
+      /// @brief Create a SCEV representing the score of this BasicBlock (BB)
+      /// 
+      /// @param BB 
+      ///
+      /// @return A SpollyInfo::scoreSCEV 
+      const SCEV *createSCEVForBasicBlock(const BasicBlock *BB) {
+        SmallVector<const SCEV *, 32> scevs;
+
+        BasicBlock::const_iterator it = BB->begin(), end = BB->end();
+        assert(it != end && "BasicBlock is empty");
+
+        for (;it != end; it++) {
+          scevs.push_back(createSCEVForInstruction(it));
+        } 
+
+        return RS->SE->getAddExpr(scevs);
+      }
+
+
+      /// @brief Create a SCEV representing the score of 
+      /// 
+      /// @param R 
+      ///
+      /// @return A SpollyInfo::scoreSCEV 
+      const SCEV *createSCEVForRegionElements(const Region *R) {
+        SmallVector<const SCEV *, 32> scevs;
+
+        // Handle all subregions and basicBlocks within this region
+        Region::const_element_iterator it = R->element_begin(),
+                                      end = R->element_end();
+        assert(it != end && "Loop body is totaly empty");
+
+        for (; it != end; it++) { 
+          if ((*it)->isSubRegion()) {
+            const Region *region = (*it)->getNodeAs<Region>();
+            scevs.push_back(createSCEVForRegion(region));
+          } else {
+            const BasicBlock *BB = (*it)->getNodeAs<BasicBlock>();
+            scevs.push_back(createSCEVForBasicBlock(BB));
+          }
+        }
+
+        return RS->SE->getAddExpr(scevs);
+      }
+
+
+      /// @brief Create a SCEV representing the score of a Loop
+      /// 
+      /// @param R The Region where the Loop is embedded
+      ///
+      /// @return A SpollyInfo::scoreSCEV 
+      const SCEV *createSCEVForLoop(const Region *R) {
+        const Loop *loop = RS->LI->getLoopFor(R->getEntry());
+        IntegerType *Ty = Type::getInt64Ty(RMK.first->getContext());
+
+        // Use a treshold to score only loops over this treshold
+        ConstantInt *tripCountTreshold  = ConstantInt::get(Ty, 10, false);
+        const SCEV *tripCount; 
+          // Test if there is an loop invariant trip count (+-1 offset) 
+        if (RS->SE->hasLoopInvariantBackedgeTakenCount(loop)) {
+          // if so, use it 
+          tripCount = toInt64(RS->SE->getBackedgeTakenCount(loop), RS->SE, Ty);
+        } else {
+          // TODO FIXME TODO
+        }
+        const SCEV *tripCountTresholdSCEV = RS->SE->getConstant(tripCountTreshold);
+
+        const SCEV *loopExp   = RS->SE->getUDivExpr(tripCount, tripCountTresholdSCEV);
+        const SCEV *bodyScore = createSCEVForRegionElements(R);
+        const SCEV *loopScore = RS->SE->getMulExpr(bodyScore, loopExp);
+
+        return loopScore;
+      }
+
+      /// @brief Create a SCEV representing the score of a conditional
+      /// 
+      /// @param R A Region where the conditional is embedded 
+      /// 
+      /// @return A SpollyInfo::scoreSCEV 
+      const SCEV *createSCEVForConditional(const Region *R) {
+        BasicBlock *entry = R->getEntry();
+        BasicBlock *exit  = R->getExit();
+        
+        const SCEV *entryScore = createSCEVForBasicBlock(entry);
+
+        // Enter the conditional
+        branchDepth++;
+
+        const TerminatorInst * const guard = entry->getTerminator();
+        assert(guard->getNumSuccessors() == 2 
+               && "Guard with two successors expected");
+
+        BasicBlock *branch0BB = guard->getSuccessor(0);
+        BasicBlock *branch1BB = guard->getSuccessor(1);
+
+        
+        GlobalValue *GV0 = new GlobalVariable(entryScore->getType(), 
+                                              false,
+                                              GlobalValue::ExternalLinkage, 0,
+                                              branch0BB->getName() +"_ex_prob");
+        GlobalValue *GV1 = new GlobalVariable(entryScore->getType(), 
+                                              false,
+                                              GlobalValue::ExternalLinkage, 0,
+                                              branch1BB->getName() +"_ex_prob");
+
+        BranchProfilingValues[GV0] = new ProfiledBranch(entry, 0);
+        BranchProfilingValues[GV1] = new ProfiledBranch(entry, 1);
+
+        const SCEV *prob0 = RS->SE->getSCEV(GV0);
+        const SCEV *prob1 = RS->SE->getSCEV(GV1);
+        // TODO FIXME profiling support
+        
+        const SCEV *nextSCEV;
+        SmallVector<const SCEV *, 32> branch0Scores;
+        SmallVector<const SCEV *, 32> branch1Scores;
+        RegionInfo * const RI = R->getRegionInfo();
+        const Region *TempRegion;
+       
+        // Score the first branch
+        while (branch0BB != exit) {
+          if ((TempRegion = RI->getRegionFor(branch0BB)) == R) {
+            // The branch contains only BasicBlocks   
+            nextSCEV  = createSCEVForBasicBlock(branch0BB);
+            branch0BB = branch0BB->getTerminator()->getSuccessor(0);
+          } else {
+            // The branch contains another region
+            nextSCEV  = createSCEVForRegion(TempRegion);
+            branch0BB = TempRegion->getExit();
+          }
+          branch0Scores.push_back(nextSCEV);
+        }
+
+        const SCEV *branch0Score = RS->SE->getAddExpr(branch0Scores);
+
+        // Score the second branch
+        while (branch1BB != exit) {
+          if ((TempRegion = RI->getRegionFor(branch1BB)) == R) {
+            // The branch contains only BasicBlocks   
+            nextSCEV  = createSCEVForBasicBlock(branch1BB);
+            branch1BB = branch1BB->getTerminator()->getSuccessor(0);
+          } else {
+            // The branch contains another region
+            nextSCEV  = createSCEVForRegion(TempRegion);
+            branch1BB = TempRegion->getExit();
+          }
+          branch1Scores.push_back(nextSCEV);
+        }
+        
+        const SCEV *branch1Score = RS->SE->getAddExpr(branch1Scores);
+
+        const SCEV *branch0ScoreProb = RS->SE->getMulExpr(branch0Score, prob0);
+        const SCEV *branch1ScoreProb = RS->SE->getMulExpr(branch1Score, prob1);
+
+        const SCEV *conditionalScore = RS->SE->getAddExpr(entryScore, 
+                                                       branch0ScoreProb,
+                                                       branch1ScoreProb);
+
+        // Leave the conditional
+        branchDepth--;
+        dbgs() << *conditionalScore << "\n";
+        dbgs() << "dsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
+        return conditionalScore;
+      }
+
+
+      /// @brief Create a SCEV representing the score of a Region
+      /// 
+      /// @param R The Region to score
+      /// 
+      /// @return A SpollyInfo::scoreSCEV 
+      const SCEV *createSCEVForRegion(const Region *R) {
+        if (regionIsLoop(R, RS->LI)) {
+          return createSCEVForLoop(R);
+        } else {
+          assert(regionIsConditional(R) 
+               && "Found region which is neither a loop nor a conditional");
+          return createSCEVForConditional(R);
+        }
+      }
+
+            
       /// @brief Create an alias check between the given two values
+      /// 
+      /// @param builder The IRBuilder to create IR-Instructions
+      /// @param A The minimal and maximal access for a pointer
+      /// @param B The minimal and maximal access for a pointer
+      /// 
+      /// @return The value computing: (min(A) > max(B) || min(B) > max(A))
+      ///
+      /// Additionally a new Min/MaxPair is stored in A 
+      /// A := (min{min(A), min(B)}, max{max(A), max(B)})
       Value *createAliasCheck(IRBuilder<> &builder,
                               MinMaxPair &A, MinMaxPair &B) {
-        //(dbgs() << "Create alias check for " << A << " and " << B << "\n");
-
         Value *minA = A.first, *maxA = A.second;
         Value *minB = B.first, *maxB = B.second;
   
         Value *result0 = builder.CreateICmpSGT(minA, maxB,
                                                minA->getNameStr() + "_gt_" 
                                                + maxB->getNameStr());
-        DEBUG(dbgs() << "*\t\t - result0: " << *result0 << "\n");
 
         Value *result1 = builder.CreateICmpSGT(minB, maxA,
                                                minB->getNameStr() + "_gt_" 
                                                + maxA->getNameStr());
-        DEBUG(dbgs() << "*\t\t - result1: " << *result1 << "\n");
         
         Value *result  = builder.CreateOr(result0, result1, result0->getNameStr()
                                                             + "_v_" 
                                                             + result1->getNameStr());
          
-        Value *minAB = builder.CreateSelect(result0, minB, minA);
-        Value *maxAB = builder.CreateSelect(result0, maxA, maxB);
+        Value *minAB = builder.CreateSelect(result0, minB, minA, "minSel");
+        Value *maxAB = builder.CreateSelect(result0, maxA, maxB, "maxSel");
 
         A = std::make_pair(minAB, maxAB);
 
@@ -1283,10 +1755,12 @@ namespace polly {
       /// The return value is a i1 type value which is true if all checks 
       /// are passed, false otherwise
       Value *createAliasChecks(IRBuilder<> &builder) {
-        
-        (dbgs() << "Create alias checks for " << R->getNameStr() << "\n");
+         
+        (dbgs() << "Create alias checks for " << getNameStr() << "\n");
         assert(containsAliasingInstructions() 
                && "No aliasing instructions to check");
+
+        sambamba::SCEVToValueMapT SCEVToValueMap;
 
         // The returned result
         std::deque<Value *> results;
@@ -1297,7 +1771,8 @@ namespace polly {
           // Fill the ToCheck deque with all inital min/max pairs
           for (std::vector<Value*>::const_iterator it = AG->begin(),
                end = AG->end(); it != end; it++ ) {
-            ToCheck.push_back(createMinMaxAccessPair(builder, *it));
+            ToCheck.push_back(createMinMaxAccessPair(builder, *it, 
+                                                     SCEVToValueMap));
           }
 
           while (ToCheck.size() > 1) {
@@ -1317,11 +1792,12 @@ namespace polly {
           // The last MinMaxPair is not needed
           MinMaxPair AB = ToCheck.front();
           Instruction *I;
-          if ((I = dyn_cast<Instruction>(AB.first)))
+          if ((I = dyn_cast<Instruction>(AB.first))) {
             I->eraseFromParent(); 
-          if ((I = dyn_cast<Instruction>(AB.second)))
+          } else assert(0 && "Last MinMaxPair should contain instructions");
+          if ((I = dyn_cast<Instruction>(AB.second))) {
             I->eraseFromParent(); 
-
+          } else assert(0 && "Last MinMaxPair should contain instructions");
         }
 
         while (results.size() > 1) {            
@@ -1329,7 +1805,7 @@ namespace polly {
           Value *A = results.front(); results.pop_front(); 
           Value *B = results.front(); results.pop_front(); 
           
-          Value *AB = builder.CreateAnd(A, B); 
+          Value *AB = builder.CreateAnd(A, B, A->getName() + "_and_" +B->getName()); 
           results.push_back(AB);
           
         }
@@ -1340,8 +1816,7 @@ namespace polly {
       
 
       /// @brief Create the alias set for this region
-      void createAliasSets(AliasSetTracker &AST) {
-        
+      void createAliasSets(AliasSetTracker &AST) { 
         NumberOfAliasGroups = AST.getAliasSets().size();
 
         unsigned groupNo = 0;
@@ -1363,6 +1838,9 @@ namespace polly {
             if (Instruction *I = dyn_cast<Instruction>(AliasSetValue)) {
               // If it is, test if the instruction is contained in this region
               if (R->contains(I)) {
+                // This invalidates the soundness of the checks
+                checksAreSound = false;
+
                 (dbgs() << "Skipping aliasing Instruction " << *I 
                         << " since it is contained in the "
                         << "speculative valid region\n");
@@ -1397,31 +1875,40 @@ namespace polly {
       /// 
       ///  - It creates the set of aliasing Values which can be tested
       /// 
-      bool validate(SCEVCreator * const Creator, AliasSetTracker &AST) { 
+      bool validate(AliasSetTracker &AST) { 
 
         createAliasSets(AST);
 
-        createScoreSCEV(Creator);
+        ScoreSCEV = createSCEVForRegion(R); 
 
-        // No invalid regions at the moment
-        return true;
+        // Collect all predecessors of entry which do not belong to the region
+        for (pred_iterator itPred = pred_begin(RMK.first),
+             end = pred_end(RMK.first); itPred != end; itPred ++) {
+          if ( R->contains(*itPred) ) continue;
+            entryPreds.push_back(*itPred);
+        }
+
+        if (isValid) {
+          // Computations only done if the region is valid
+          createAliasTestingCode();
+        }
+
+        return isValid;
       }
     
       /// @brief Pretty print all contained information 
       void print(raw_ostream &OS) {
-        OS << "SpollyInfo:\n";
-        OS << " Entry: " << R->getEntry() << "  " 
-                     << *( R->getEntry()) << "\n";
-        OS << " Exit: " << R->getExit() << "  " 
-                     << *( R->getExit()) << "\n\n";
+        OS << "\n\nSpollyInfo: " << getNameStr() << " \t In: "
+           << originalVersion->getNameStr() << "\n\n";
 
+        OS.indent(4) << " ChecksAreSound: " << checksAreSound << "\n";
         OS.indent(4) << " #MemoryAccesses: " << MemoryAccesses.size() << "\n";
 
         for (MemoryAccess it = MA_begin(),end = MA_end(); it != end; it++){
           OS.indent(8) << " BaseValue: " << *(it->first) << " accesed at: \n";
           for (MemoryAccessInfo::const_iterator mit = it->second.begin(), 
                mend = it->second.end(); mit != mend; mit++) {
-            OS.indent(12) << *(mit->second) << " by " << *(mit->first) << "\n";
+            OS.indent(12) << "-" << *(mit->second) << " by " << *(mit->first) << "\n";
           }
         }
 
@@ -1444,6 +1931,26 @@ namespace polly {
             OS.indent(12) << **it << "\n";
           }
         }
+        
+        OS << "\n\nAliasTestBlock: \n";
+        aliasTestBlock->print(OS);
+        OS << "\n\n";
+
+        OS << "\n\nOriginal Version:\n";
+        originalVersion->print(OS);
+        OS << "\n\n";
+    
+        if (profilingVersion) {
+          OS << "\n\nProfiling Version:\n";
+          profilingVersion->print(OS);
+          OS << "\n\n";
+        }
+
+        if (parallelVersion) {
+          OS << "\n\nParallel Version:\n";
+          parallelVersion->print(OS);
+          OS << "\n\n";
+        }
 
 
       }
@@ -1456,13 +1963,9 @@ namespace polly {
 /// @brief The default constructor
 /// 
 /// - Create the SPollyInfo ScalarEvolution object
-RegionSpeculation::RegionSpeculation(sambamba::SCEVProfiler *Profiler) {
+RegionSpeculation::RegionSpeculation() {
   dbgs() << "\n============ Create Region Speculation =============== \n";
-  SCEVProfiler = Profiler;
-  if (SCEVProfiler)
-    SPI_SE = SCEVProfiler->getScalarEvolution();
   
-  Creator = 0;
   TemporaryRegion = 0;
 
 } 
@@ -1495,7 +1998,6 @@ void RegionSpeculation::registerMemoryAccess(const Instruction * const I,
   TemporaryRegion->registerMemoryAccess(I, scev, V);
 }
 
-
 /// @brief Store the associated SPollyInfo object for the given region
 /// 
 /// The SPollyInfo object from TemporaryRegion will be added
@@ -1504,23 +2006,25 @@ void RegionSpeculation::storeTemporaryRegion(CRegionT R, AliasSetTracker &AST) {
   (dbgs() << "*\t Store TemporaryRegion " << R->getNameStr() 
           << " in " << FunctionForRegion(R)->getNameStr() << "\n");
 
-  RegionMapKey RMK = RegionMapKeyForRegion(R);
+  RegionMapKey &RMK = TemporaryRegion->getRMK();
 
   assert(R == TemporaryRegion->getRegion()
          && "Region does not match TemporaryRegion");
   assert(!SpeculativeValidRegions.count(RMK)
          && "Region is already contained in SpeculativeValidRegions");
  
+   
   // Validate the TemporaryRegion and create the scoreSCEV 
-  if (!TemporaryRegion->validate(Creator, AST)) {
+  if (!TemporaryRegion->validate(AST)) {
     (dbgs() << "*\t Validation of TemporaryRegion " << R->getNameStr() 
             << " failed.\n");
     TemporaryRegion->print(dbgs());
-
+    
     // Forget the TemporaryRegion instead of storing it
     forgetTemporaryRegion(R);
     return;
   }
+
 
   SpeculativeValidRegions[RMK] = TemporaryRegion;
   
@@ -1538,7 +2042,7 @@ void RegionSpeculation::forgetTemporaryRegion(CRegionT R) {
   (dbgs() << "*\t Forget TemporaryRegion " << R->getNameStr()
           << " in " << FunctionForRegion(R)->getNameStr() << "\n"); 
 
-  RegionMapKey RMK = RegionMapKeyForRegion(R);
+  RegionMapKey &RMK = TemporaryRegion->getRMK();
 
   assert(R == TemporaryRegion->getRegion()
          && "Cannot forget an unknown temporary region");
@@ -1587,17 +2091,7 @@ void RegionSpeculation::initScopDetectionRun(Function &function,
   // All TemporaryRegions should be saved or deleted 
   assert(!TemporaryRegion
          && "TemporaryRegion was not 0 during initialization");
-
-  assert(!Creator && "SCEVCreator was already initialized");
-  if (!SCEVProfiler) {
-    dbgs() << "1111111111111111111\n"; 
-    Creator = new SCEVCreator(SE, LI, new sambamba::DummySCEVProfiler(SE));
-  } else {
-    dbgs() << "sssssssssssssssssss\n";
-    Creator = new SCEVCreator(SE, LI, SCEVProfiler);
-  }
-
-  assert(!SPI_SE || SE == SPI_SE && "ScalarEvolution changed !");
+  
 }
 
 /// @brief Finalize the ScopDetection run 
@@ -1607,31 +2101,14 @@ void RegionSpeculation::finalizeScopDetectionRun() {
   (dbgs() << "*\t Finalyze ScopDetection run \n");
   
   // Forget the given analyses
-  AA = 0; SE = 0; LI = 0; RI = 0; DT = 0; TD = 0; SD = 0;
+  AA = 0;  LI = 0; RI = 0; DT = 0; TD = 0; SD = 0;
+  // SE = 0;
   
-  assert(Creator && "SCEVCreator was 0");
-
-  // Delete the DummySCEVProfiler if one was created
-  if (!SCEVProfiler)
-    delete Creator->getSCEVProfiler();
-
-  delete Creator;
-  Creator = 0;
-
   // All TemporaryRegions should be saved or deleted 
   assert(!TemporaryRegion
          && "TemporaryRegion was not 0 during finalization");
 }
 
-
-/// @brief 
-void RegionSpeculation::insertProfilingCode(CRegionT R) {
-  RegionMapKey RMK = RegionMapKeyForRegion(R);
-  
-  assert((SpeculativeValidRegions.count(RMK)) 
-         && "Region is not speculative valid");
-  SpeculativeValidRegions[RMK]->insertProfilingCode();
-}
   
 /// @brief TODO
 bool RegionSpeculation::speculateOnRegion(const Region *R) {
@@ -1644,29 +2121,6 @@ bool RegionSpeculation::speculateOnRegion(const Region *R) {
   
 }
 
-
-/// @brief
-//void RegionSpeculation::updateRegionPointer(RegionInfo *RI) {
-
-  //for (iterator it = begin(), e = end(); it != e; it++) {
-    //dbgs() << " == update: " << it->first.first->getNameStr() << " ==> "
-           //<< it->first.second->getNameStr() << "\n";
-
-    //RegionMapKey RMK = it->second->getRMK();
-    //Region *R = RI->getRegionFor(RMK.second), *tmpR;
-    //assert(R);
-    //dbgs() << " === current R: " << R->getNameStr() << "\n";
-    //while (R->getEntry() != RMK.first) {
-      //tmpR = R->getExpandedRegion();
-      //assert(tmpR);
-      //R = tmpR;
-      //dbgs() << " === current R: " << R->getNameStr() << "\n";
-    //}
-
-    //it->second->setRegion(R);
-  //}
-  
-//}
   
 /// @brief Verify the communication between ScopDetection and RegionSpeculation 
 ///
@@ -1704,11 +2158,72 @@ void RegionSpeculation::verifyRS(const RegionSet &ValidRegions,
   }
 
 }
+
+
+int RegionSpeculation::getScore(RegionMapKey &RMK) {
+  assert(SpeculativeValidRegions.count(RMK) && "RMK was not found");
+
+  SPollyInfo *SPI = SpeculativeValidRegions[RMK];
+  return getScore(SPI);
+}
+
+int RegionSpeculation::getScore(SPollyInfo *SI) {
+  // TODO
+  return 0;
+}
+
+bool RegionSpeculation::checksAreSound(RegionMapKey &RMK) {
+  assert(SpeculativeValidRegions.count(RMK) && "RMK was not found");
+
+  SPollyInfo *SPI = SpeculativeValidRegions[RMK];
+  return checksAreSound(SPI);
+}
+
+bool RegionSpeculation::checksAreSound(SPollyInfo *SPI) {
+  // TODO Only Aliasing instructions will be checked at the moment
+  return SPI->getChecksAreSound();
+}
+
+Function *RegionSpeculation::getOriginalVersion(RegionMapKey &RMK) {
+  assert(SpeculativeValidRegions.count(RMK) && "RMK was not found");
+
+  SPollyInfo *SPI = SpeculativeValidRegions[RMK];
+  return getOriginalVersion(SPI);
+}
+
+RegionSpeculation::FunctionPair RegionSpeculation::getProfilingVersion(RegionMapKey &RMK,
+                                                 sambamba::Profiler *profiler) {
+  assert(SpeculativeValidRegions.count(RMK) && "RMK was not found");
+
+  SPollyInfo *SPI = SpeculativeValidRegions[RMK];
+  return getProfilingVersion(SPI, profiler);
+}
+
+RegionSpeculation::FunctionPair RegionSpeculation::getParallelVersion(RegionMapKey &RMK, Module *dstModule) {
+  assert(SpeculativeValidRegions.count(RMK) && "RMK was not found");
+
+  SPollyInfo *SPI = SpeculativeValidRegions[RMK];
+  return getParallelVersion(SPI, dstModule);
+}
   
+Function *RegionSpeculation::getOriginalVersion(SPollyInfo *SPI) {
+  return SPI->getOriginalVersion();
+}
+
+RegionSpeculation::FunctionPair RegionSpeculation::getProfilingVersion(SPollyInfo *SPI, sambamba::Profiler *profiler) {
+  return std::make_pair(SPI->getProfilingVersion(profiler), SPI->getProfilingValueMap());
+}
+
+RegionSpeculation::FunctionPair RegionSpeculation::getParallelVersion(SPollyInfo *SPI, Module *dstModule) {
+  return std::make_pair(SPI->getParallelVersion(dstModule), SPI->getParallelValueMap());
+}
+
+
 void RegionSpeculation::releaseMemory() {
   for (iterator it = begin(), e = end(); it != e; it++) {
     delete (it->second);
   }
+  
   SpeculativeValidRegions.clear();
 }
 

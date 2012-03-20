@@ -73,8 +73,6 @@ namespace polly {
 
     virtual void printScop(raw_ostream &OS) const;
     virtual void getAnalysisUsage(AnalysisUsage &AU) const;
-    virtual bool doInitialization(Region *, RGPassManager &RGM);
-    virtual bool doFinalization();
   };
   
   Pass *createCodeGenerationPass();

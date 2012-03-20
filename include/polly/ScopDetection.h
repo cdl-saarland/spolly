@@ -77,6 +77,7 @@ namespace llvm {
 namespace polly {
 
 extern bool EnableSpolly;
+extern std::string SpeculativeRegionNameStr;
 
 // The Region Speculation class used to register violating instructions
 
@@ -226,7 +227,7 @@ class ScopDetection : public FunctionPass {
 
 public:
   static char ID;
-  explicit ScopDetection() : FunctionPass(ID) { }
+  explicit ScopDetection() : FunctionPass(ID), RS(0) { }
   
   /// @brief Constructor to use RegionSpeculation
   explicit ScopDetection(RegionSpeculation *rs) : FunctionPass(ID), RS(rs) {

@@ -22,7 +22,7 @@
 
 #define DEBUG_TYPE "polly-codegen"
 
-//#include "polly/LinkAllPasses.h"
+#include "polly/LinkAllPasses.h"
 #include "polly/Support/GICHelper.h"
 #include "polly/Support/ScopHelper.h"
 #include "polly/Cloog.h"
@@ -43,8 +43,6 @@
 #define CLOOG_INT_GMP 1
 #include "cloog/cloog.h"
 #include "cloog/isl/cloog.h"
-
-#include "isl/aff.h"
 
 #include <vector>
 #include <utility>
@@ -67,8 +65,8 @@ Vector("enable-polly-vector",
 static cl::opt<bool, true>
 OpenMP("enable-polly-openmp",
        cl::desc("Generate OpenMP parallel code"), cl::Hidden,
+       cl::location(EnablePollyOpenMP),
        cl::value_desc("OpenMP code generation enabled if true"),
-        cl::location(EnablePollyOpenMP),
        cl::init(false));
 
 static cl::opt<bool>
@@ -87,11 +85,6 @@ Aligned("enable-polly-aligned",
 typedef DenseMap<const Value*, Value*> ValueMapT;
 typedef DenseMap<const char*, Value*> CharMapT;
 typedef std::vector<ValueMapT> VectorValueMapT;
-typedef struct {
-  Value *BaseAddress;
-  Value *Result;
-  IRBuilder<> *Builder;
-}IslPwAffUserInfo;
 
 // Create a new loop.
 //
@@ -167,7 +160,7 @@ public:
     return S.getRegion();
   }
 
-  Value *makeVectorOperand(Value *operand, int vectorWidth) {
+  Value* makeVectorOperand(Value *operand, int vectorWidth) {
     if (operand->getType()->isVectorTy())
       return operand;
 
@@ -185,12 +178,16 @@ public:
     return Builder.CreateShuffleVector(vector, vector, splatVector);
   }
 
-  Value *getOperand(const Value *oldOperand, ValueMapT &BBMap,
+  Value* getOperand(const Value *oldOperand, ValueMapT &BBMap,
                     ValueMapT *VectorMap = 0) {
     const Instruction *OpInst = dyn_cast<Instruction>(oldOperand);
-
-    if (!OpInst)
-      return const_cast<Value*>(oldOperand);
+    
+    if (!OpInst) {
+      if (VMap.count(oldOperand))
+        return VMap[oldOperand];
+      else
+        return const_cast<Value*>(oldOperand);
+    }
 
     if (VectorMap && VectorMap->count(oldOperand))
       return (*VectorMap)[oldOperand];
@@ -248,7 +245,8 @@ public:
     Value *VectorPtr = Builder.CreateBitCast(newPointer, vectorPtrType,
                                              "vector_ptr");
     LoadInst *VecLoad = Builder.CreateLoad(VectorPtr,
-                                           load->getName() + "_p_vec_full");
+                                        load->getNameStr()
+                                        + "_p_vec_full");
     if (!Aligned)
       VecLoad->setAlignment(8);
 
@@ -271,9 +269,9 @@ public:
     Type *vectorPtrType = getVectorPtrTy(pointer, 1);
     Value *newPointer = getOperand(pointer, BBMap);
     Value *vectorPtr = Builder.CreateBitCast(newPointer, vectorPtrType,
-                                             load->getName() + "_p_vec_p");
+                                             load->getNameStr() + "_p_vec_p");
     LoadInst *scalarLoad= Builder.CreateLoad(vectorPtr,
-                                             load->getName() + "_p_splat_one");
+                                          load->getNameStr() + "_p_splat_one");
 
     if (!Aligned)
       scalarLoad->setAlignment(8);
@@ -287,7 +285,7 @@ public:
 
     Value *vectorLoad = Builder.CreateShuffleVector(scalarLoad, scalarLoad,
                                                     splatVector,
-                                                    load->getName()
+                                                    load->getNameStr()
                                                     + "_p_splat");
     return vectorLoad;
   }
@@ -315,119 +313,60 @@ public:
     for (int i = 0; i < size; i++) {
       Value *newPointer = getOperand(pointer, scalarMaps[i]);
       Value *scalarLoad = Builder.CreateLoad(newPointer,
-                                             load->getName() + "_p_scalar_");
+                                             load->getNameStr() + "_p_scalar_");
       vector = Builder.CreateInsertElement(vector, scalarLoad,
                                            Builder.getInt32(i),
-                                           load->getName() + "_p_vec_");
+                                           load->getNameStr() + "_p_vec_");
     }
 
     return vector;
   }
 
-  static Value* islAffToValue(__isl_take isl_aff *Aff,
-                              IslPwAffUserInfo *UserInfo) {
-    assert(isl_aff_is_cst(Aff) && "Only constant access functions supported");
-
-    IRBuilder<> *Builder = UserInfo->Builder;
-
-    isl_int OffsetIsl;
-    mpz_t OffsetMPZ;
-
-    isl_int_init(OffsetIsl);
-    mpz_init(OffsetMPZ);
-    isl_aff_get_constant(Aff, &OffsetIsl);
-    isl_int_get_gmp(OffsetIsl, OffsetMPZ);
-
-    Value *OffsetValue = NULL;
-    APInt Offset = APInt_from_MPZ(OffsetMPZ);
-    OffsetValue = ConstantInt::get(Builder->getContext(), Offset);
-
-    mpz_clear(OffsetMPZ);
-    isl_int_clear(OffsetIsl);
-    isl_aff_free(Aff);
-
-    return OffsetValue;
-  }
-
-  static int mergeIslAffValues(__isl_take isl_set *Set,
-                               __isl_take isl_aff *Aff, void *User) {
-    IslPwAffUserInfo *UserInfo = (IslPwAffUserInfo *)User;
-
-    assert((UserInfo->Result == NULL) && "Result is already set."
-           "Currently only single isl_aff is supported");
-    assert(isl_set_plain_is_universe(Set)
-           && "Code generation failed because the set is not universe");
-
-    UserInfo->Result = islAffToValue(Aff, UserInfo);
-
-    isl_set_free(Set);
-    return 0;
-  }
-
-  Value* islPwAffToValue(__isl_take isl_pw_aff *PwAff, Value *BaseAddress) {
-    IslPwAffUserInfo UserInfo;
-    UserInfo.BaseAddress = BaseAddress;
-    UserInfo.Result = NULL;
-    UserInfo.Builder = &Builder;
-    isl_pw_aff_foreach_piece(PwAff, mergeIslAffValues, &UserInfo);
-    assert(UserInfo.Result && "Code generation for isl_pw_aff failed");
-
-    isl_pw_aff_free(PwAff);
-    return UserInfo.Result;
-  }
-
   /// @brief Get the memory access offset to be added to the base address
-  std::vector <Value*> getMemoryAccessIndex(__isl_keep isl_map *AccessRelation,
-                                            Value *BaseAddress) {
-    assert((isl_map_dim(AccessRelation, isl_dim_out) == 1)
+  std::vector <Value*> getMemoryAccessIndex(isl_map *accessRelation,
+                                            Value *baseAddr) {
+    isl_int offsetMPZ;
+    isl_int_init(offsetMPZ);
+
+    assert((isl_map_dim(accessRelation, isl_dim_out) == 1)
            && "Only single dimensional access functions supported");
 
-    isl_pw_aff *PwAff = isl_map_dim_max(isl_map_copy(AccessRelation), 0);
-    Value *OffsetValue = islPwAffToValue(PwAff, BaseAddress);
+    if (isl_map_plain_is_fixed(accessRelation, isl_dim_out,
+                               0, &offsetMPZ) == -1)
+      errs() << "Only fixed value access functions supported\n";
 
-    PointerType *BaseAddressType = dyn_cast<PointerType>(
-                                   BaseAddress->getType());
-    Type *ArrayTy = BaseAddressType->getElementType();
-    Type *ArrayElementType = dyn_cast<ArrayType>(ArrayTy)->getElementType();
-    OffsetValue = Builder.CreateSExtOrBitCast(OffsetValue, ArrayElementType);
+    // Convert the offset from MPZ to Value*.
+    APInt offset = APInt_from_MPZ(offsetMPZ);
+    Value *offsetValue = ConstantInt::get(Builder.getContext(), offset);
+    PointerType *baseAddrType = dyn_cast<PointerType>(baseAddr->getType());
+    Type *arrayType = baseAddrType->getElementType();
+    Type *arrayElementType = dyn_cast<ArrayType>(arrayType)->getElementType();
+    offsetValue = Builder.CreateSExtOrBitCast(offsetValue, arrayElementType);
 
-    std::vector<Value*> IndexArray;
-    Value *NullValue = Constant::getNullValue(ArrayElementType);
-    IndexArray.push_back(NullValue);
-    IndexArray.push_back(OffsetValue);
-    return IndexArray;
+    std::vector<Value*> indexArray;
+    Value *nullValue = Constant::getNullValue(arrayElementType);
+    indexArray.push_back(nullValue);
+    indexArray.push_back(offsetValue);
+
+    isl_int_clear(offsetMPZ);
+    return indexArray;
   }
 
   /// @brief Get the new operand address according to the changed access in
   ///        JSCOP file.
-  Value *getNewAccessOperand(__isl_keep isl_map *NewAccessRelation,
-                             Value *BaseAddress, const Value *OldOperand,
-                             ValueMapT &BBMap) {
-    std::vector<Value*> IndexArray = getMemoryAccessIndex(NewAccessRelation,
-                                                          BaseAddress);
-    Value *NewOperand = Builder.CreateGEP(BaseAddress, IndexArray,
+  Value *getNewAccessOperand(isl_map *newAccessRelation, Value *baseAddr,
+                             const Value *oldOperand, ValueMapT &BBMap) {
+    std::vector<Value*> indexArray = getMemoryAccessIndex(newAccessRelation,
+                                                          baseAddr);
+    Value *newOperand = Builder.CreateGEP(baseAddr, indexArray,
                                           "p_newarrayidx_");
-    return NewOperand;
+    return newOperand;
   }
 
   /// @brief Generate the operand address
   Value *generateLocationAccessed(const Instruction *Inst,
-                                  const Value *Pointer, ValueMapT &BBMap ) {
+                                  const Value *pointer, ValueMapT &BBMap ) {
     MemoryAccess &Access = statement.getAccessFor(Inst);
-    DEBUG(dbgs() << "@\t generateLocationAccessed " << *Inst << " " 
-          << *Pointer << " " << &Access << "\n" );
-
-    //if (!(&Access)) {
-      ////Value *pointer = const_cast<Value *>(Pointer);
-      ////Instruction *pointerInstruction = dyn_cast<Instruction>(pointer);
-      ////assert(pointerInstruction && "Pointer was no instruction");
-      ////return pointerInstruction;
-      //Value *I =  getOperand(Pointer, BBMap);
-      //DEBUG(dbgs() << "@\t\t --- I: " << I << "  " << *I << "\n");
-      //return I;
-    //} 
-
-
     isl_map *CurrentAccessRelation = Access.getAccessRelation();
     isl_map *NewAccessRelation = Access.getNewAccessRelation();
 
@@ -435,14 +374,12 @@ public:
            && "Current and new access function use different spaces");
 
     Value *NewPointer;
-    
-    DEBUG(dbgs() << "@\t New Access Relation: " << NewAccessRelation << "\n" );
 
     if (!NewAccessRelation) {
-      NewPointer = getOperand(Pointer, BBMap);
+      NewPointer = getOperand(pointer, BBMap);
     } else {
-      Value *BaseAddress = const_cast<Value*>(Access.getBaseAddr());
-      NewPointer = getNewAccessOperand(NewAccessRelation, BaseAddress, Pointer,
+      Value *BaseAddr = const_cast<Value*>(Access.getBaseAddr());
+      NewPointer = getNewAccessOperand(NewAccessRelation, BaseAddr, pointer,
                                        BBMap);
     }
 
@@ -456,7 +393,7 @@ public:
     const Instruction *Inst = dyn_cast<Instruction>(load);
     Value *newPointer = generateLocationAccessed(Inst, pointer, BBMap);
     Value *scalarLoad = Builder.CreateLoad(newPointer,
-                                           load->getName() + "_p_scalar_");
+                                           load->getNameStr() + "_p_scalar_");
     return scalarLoad;
   }
 
@@ -513,7 +450,7 @@ public:
 
     Value *newInst = Builder.CreateBinOp(Inst->getOpcode(), newOpZero,
                                          newOpOne,
-                                         Inst->getName() + "p_vec");
+                                         Inst->getNameStr() + "p_vec");
     vectorMap[Inst] = newInst;
 
     return;
@@ -576,7 +513,6 @@ public:
 
     Builder.Insert(NewInst);
     BBMap[Inst] = NewInst;
-    DEBUG(dbgs() << "@\t BBMap["<< *Inst << "] = "<<*NewInst<<"\n");
 
     if (!NewInst->getType()->isVoidTy())
       NewInst->setName("p_" + Inst->getName());
@@ -601,8 +537,6 @@ public:
   void copyInstruction(const Instruction *Inst, ValueMapT &BBMap,
                        ValueMapT &vectorMap, VectorValueMapT &scalarMaps,
                        int vectorDimension, int vectorWidth) {
-    DEBUG(dbgs() << "@\t\t copyInstruction " << *Inst << "\n");
-    
     // Terminator instructions control the control flow. They are explicitally
     // expressed in the clast and do not need to be copied.
     if (Inst->isTerminator())
@@ -649,13 +583,11 @@ public:
   //                For new statements a relation old->new is inserted in this
   //                map.
   void copyBB(BasicBlock *BB, DominatorTree *DT) {
-    // SPOLLY TODO
-    DEBUG(dbgs() << "@\t\t copyBB " << *BB << "\n");
-
     Function *F = Builder.GetInsertBlock()->getParent();
     LLVMContext &Context = F->getContext();
     BasicBlock *CopyBB = BasicBlock::Create(Context,
-                                            "polly." + BB->getName() + ".stmt",
+                                            "polly." + BB->getNameStr()
+                                            + ".stmt",
                                             F);
     Builder.CreateBr(CopyBB);
     DT->addNewBlock(CopyBB, Builder.GetInsertBlock());
@@ -919,11 +851,6 @@ public:
                const char *iterator = NULL, isl_set *scatteringDomain = 0) {
     ScopStmt *Statement = (ScopStmt *)u->statement->usr;
     BasicBlock *BB = Statement->getBasicBlock();
-    
-    // Replace spolly calls by real instructions 
-    //RegionSpeculation *RS = SD->getRS()
-    //if (RS)
-      //RS->replaceScopStatements(Statement);
 
     if (u->substitutions)
       codegenSubstitutions(u->substitutions, Statement);
@@ -943,10 +870,8 @@ public:
       }
     }
 
-
     BlockGenerator Generator(Builder, ValueMap, VectorValueMap, *Statement,
                              scatteringDomain);
-
     Generator.copyBB(BB, DT);
   }
 
@@ -956,28 +881,24 @@ public:
   }
 
   /// @brief Create a classical sequential loop.
-  void codegenForSequential(const clast_for *f, Value *LowerBound = 0,
-                                                Value *UpperBound = 0) {
-    APInt Stride;
+  void codegenForSequential(const clast_for *f, Value *lowerBound = 0,
+                                                Value *upperBound = 0) {
+    APInt Stride = APInt_from_MPZ(f->stride);
     PHINode *IV;
     Value *IncrementedIV;
-    BasicBlock *AfterBB, *HeaderBB, *LastBodyBB;
-    Type *IntPtrTy;
-
-    Stride = APInt_from_MPZ(f->stride);
-    IntPtrTy = TD->getIntPtrType(Builder.getContext());
-
+    BasicBlock *AfterBB;
     // The value of lowerbound and upperbound will be supplied, if this
     // function is called while generating OpenMP code. Otherwise get
     // the values.
-    assert(!!LowerBound == !!UpperBound && "Either give both bounds or none");
-
-    if (LowerBound == 0) {
-        LowerBound = ExpGen.codegen(f->LB, IntPtrTy);
-        UpperBound = ExpGen.codegen(f->UB, IntPtrTy);
+    assert(((lowerBound && upperBound) || (!lowerBound && !upperBound))
+                                && "Either give both bounds or none");
+    if (lowerBound == 0 || upperBound == 0) {
+        lowerBound = ExpGen.codegen(f->LB,
+                                    TD->getIntPtrType(Builder.getContext()));
+        upperBound = ExpGen.codegen(f->UB,
+                                    TD->getIntPtrType(Builder.getContext()));
     }
-
-    createLoop(&Builder, LowerBound, UpperBound, Stride, IV, AfterBB,
+    createLoop(&Builder, lowerBound, upperBound, Stride, IV, AfterBB,
                IncrementedIV, DT);
 
     // Add loop iv to symbols.
@@ -989,20 +910,21 @@ public:
     // Loop is finished, so remove its iv from the live symbols.
     clastVars->erase(f->iterator);
 
-    HeaderBB = *pred_begin(AfterBB);
-    LastBodyBB = Builder.GetInsertBlock();
+    BasicBlock *HeaderBB = *pred_begin(AfterBB);
+    BasicBlock *LastBodyBB = Builder.GetInsertBlock();
     Builder.CreateBr(HeaderBB);
     IV->addIncoming(IncrementedIV, LastBodyBB);
     Builder.SetInsertPoint(AfterBB);
   }
 
   /// @brief Add a new definition of an openmp subfunction.
-  Function *addOpenMPSubfunction(Module *M) {
+  Function* addOpenMPSubfunction(Module *M) {
     Function *F = Builder.GetInsertBlock()->getParent();
+    const std::string &Name = F->getNameStr() + ".omp_subfn";
+
     std::vector<Type*> Arguments(1, Builder.getInt8PtrTy());
     FunctionType *FT = FunctionType::get(Builder.getVoidTy(), Arguments, false);
-    Function *FN = Function::Create(FT, Function::InternalLinkage,
-                                    F->getName() + ".omp_subfn", M);
+    Function *FN = Function::Create(FT, Function::InternalLinkage, Name, M);
     // Do not run any polly pass on the new function.
     SD->markFunctionAsInvalid(FN);
 
@@ -1170,7 +1092,6 @@ public:
   /// This loop reflects a loop as if it would have been created by an OpenMP
   /// statement.
   void codegenForOpenMP(const clast_for *f) {
-    dbgs () << "09876543 098765432\n";
     Module *M = Builder.GetInsertBlock()->getParent()->getParent();
     IntegerType *intPtrTy = TD->getIntPtrType(Builder.getContext());
 
@@ -1309,13 +1230,11 @@ public:
   }
 
   void codegen(const clast_for *f) {
-    dbgs() << *(S->getRegion().getEntry()->getParent()) << "\n"; 
     if (Vector && isInnermostLoop(f) && DP->isParallelFor(f)
         && (-1 != getNumberOfIterations(f))
         && (getNumberOfIterations(f) <= 16)) {
       codegenForVector(f);
     } else if (OpenMP && !parallelCodeGeneration && DP->isParallelFor(f)) {
-      dbgs() << " 09876543 CREATE OPENMP PARALLEL CODE\n\n";
       parallelCodeGeneration = true;
       parallelLoops.push_back(f->iterator);
       codegenForOpenMP(f);
@@ -1430,24 +1349,26 @@ public:
     ExpGen(Builder, NULL) {}
 
 };
-//}
+}
 
-//namespace {
-//class CodeGeneration : public ScopPass {
-  //Region *region;
-  //Scop *S;
-  //DominatorTree *DT;
-  //ScalarEvolution *SE;
-  //ScopDetection *SD;
-  //TargetData *TD;
-  //RegionInfo *RI;
+#if 0
+namespace {
+class CodeGeneration : public ScopPass {
+  Region *region;
+  Scop *S;
+  DominatorTree *DT;
+  ScalarEvolution *SE;
+  ScopDetection *SD;
+  TargetData *TD;
+  RegionInfo *RI;
 
-  //std::vector<std::string> parallelLoops;
+  std::vector<std::string> parallelLoops;
 
-  //public:
-  //static char ID;
+  public:
+  static char ID;
 
-  //CodeGeneration() : ScopPass(ID) {}
+  CodeGeneration() : ScopPass(ID) {}
+#endif 
 
   // Adding prototypes required if OpenMP is enabled.
   void CodeGeneration::addOpenMPDefinitions(IRBuilder<> &Builder)
@@ -1539,7 +1460,6 @@ public:
   // @return The split basic block.
   BasicBlock *CodeGeneration::addSplitAndStartBlock(IRBuilder<> *builder) {
     BasicBlock *splitBlock = splitEdgeAdvanced(region);
-    DEBUG(dbgs() << "@\t add Splitblock \n");
 
     splitBlock->setName("polly.enterScop");
 
@@ -1585,17 +1505,17 @@ public:
   }
 
   bool CodeGeneration::runOnScop(Scop &scop) {
-    dbgs() << "CG run on &scop " << &scop << "  ";
     S = &scop;
     region = &S->getRegion();
-    dbgs() << "  " << region->getNameStr() << "  ";
-    TD = new TargetData(region->getEntry()->getParent()->getParent());
-    dbgs() << TD << "  \n";
     DT = &getAnalysis<DominatorTree>();
     Dependences *DP = &getAnalysis<Dependences>();
     SE = &getAnalysis<ScalarEvolution>();
     SD = &getAnalysis<ScopDetection>();
+    TD = &getAnalysis<TargetData>();
     RI = &getAnalysis<RegionInfo>();
+
+    dbgs() << "\n\n\t\t CodeGeneration on " << region->getNameStr() 
+           << "  Vector: " << Vector << "  OpenMP: " << OpenMP << "\n";
 
     parallelLoops.clear();
 
@@ -1633,21 +1553,12 @@ public:
 
     // The builder will be set to startBlock.
     BasicBlock *splitBlock = addSplitAndStartBlock(&builder);
-   
-    dbgs() << "09876543 Run codegeneration on " << *region 
-           << "  in " << (region->getEntry()->getParent()->getName()) << "\n\n";
 
-    // Introduce test for aliases and invariants
-    // Replace dummy call instructions with the original ones
-    //SD->RS->postPrepareRegion(splitBlock, region);
-     
-    
     if (OpenMP)
       addOpenMPDefinitions(builder);
 
     ClastStmtCodeGen CodeGen(S, *SE, DT, SD, DP, TD, builder);
     CloogInfo &C = getAnalysis<CloogInfo>();
-
     CodeGen.codegen(C.getClast());
 
     parallelLoops.insert(parallelLoops.begin(),
@@ -1656,10 +1567,6 @@ public:
 
     mergeControlFlow(splitBlock, &builder);
 
-
-    dbgs() << "CG run on scop end\n";
-    delete TD;
-    dbgs() << "CG run on scop end\n";
     return true;
   }
 
@@ -1677,6 +1584,7 @@ public:
     AU.addRequired<ScalarEvolution>();
     AU.addRequired<ScopDetection>();
     AU.addRequired<ScopInfo>();
+    AU.addRequired<TargetData>();
 
     AU.addPreserved<CloogInfo>();
     AU.addPreserved<Dependences>();
@@ -1695,26 +1603,9 @@ public:
     AU.addPreservedID(IndependentBlocksID);
   }
 //};
+//}
 
- 
-  bool CodeGeneration::doFinalization() {
-    dbgs() << "CG do   Finalization \n";
-    dbgs() << "CG done Finalization \n";
-    
-    return false;
-  }
-
-  bool CodeGeneration::doInitialization(Region *R, RGPassManager &RGM) {
-    dbgs() << "CG do   Initialization Vector:" << Vector << " OpenMP:"<< 
-      OpenMP <<" \n";
-    dbgs() << "CG done Initialization \n";
-
-    return false;
-  }
-
-}
-
-char polly::CodeGeneration::ID = 1;
+char CodeGeneration::ID = 1;
 
 INITIALIZE_PASS_BEGIN(CodeGeneration, "polly-codegen",
                       "Polly - Create LLVM-IR form SCoPs", false, false)
@@ -1724,9 +1615,10 @@ INITIALIZE_PASS_DEPENDENCY(DominatorTree)
 INITIALIZE_PASS_DEPENDENCY(RegionInfo)
 INITIALIZE_PASS_DEPENDENCY(ScalarEvolution)
 INITIALIZE_PASS_DEPENDENCY(ScopDetection)
+INITIALIZE_PASS_DEPENDENCY(TargetData)
 INITIALIZE_PASS_END(CodeGeneration, "polly-codegen",
                       "Polly - Create LLVM-IR form SCoPs", false, false)
 
-Pass *polly::createCodeGenerationPass() {
+Pass* polly::createCodeGenerationPass() {
   return new CodeGeneration();
 }

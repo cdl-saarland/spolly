@@ -72,6 +72,7 @@ using namespace llvm;
 using namespace polly;
 
 bool polly::EnableSpolly;
+std::string polly::SpeculativeRegionNameStr;
 
 static cl::opt<bool, true>
 SPollyEnabled("enable-spolly",
@@ -143,7 +144,7 @@ BADSCOP_STAT(Phi,             "non canonical phi node");
 
 
 static bool spolly_hit = false;
-
+static bool releaseRS = false;
 
 //===----------------------------------------------------------------------===//
 // ScopDetection.
@@ -242,7 +243,7 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
       if (RS) {
         DEBUG(dbgs() << "-=-| AffFunc 4 disabled |-=-\n");
         DEBUG(dbgs() << "Non affine branch in BB '" << BB.getName()
-                        << "' with LHS: " << *LHS << " and RHS: " << *RHS << "\n");
+                     << "' with LHS: " << *LHS << " and RHS: " << *RHS << "\n");
         spolly_hit = true;
       
         RS->registerViolatingInstruction(ICmp, 
@@ -251,7 +252,7 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
       } else {
         DEBUG(dbgs() << "-=-| AffFunc 4 enabled |-=-\n");
         INVALID(AffFunc, "Non affine branch in BB '" << BB.getName()
-                        << "' with LHS: " << *LHS << " and RHS: " << *RHS);
+                     << "' with LHS: " << *LHS << " and RHS: " << *RHS);
       }
     }
   }
@@ -685,13 +686,20 @@ void ScopDetection::findScops(Region &R) {
 bool ScopDetection::allBlocksValid(DetectionContext &Context) const {
   Region &R = Context.CurRegion;
 
+  // Reset the spolly_hit flag
+  spolly_hit = false;
+
+  // It is sufficant to compare the region name since CodeGeneration is only
+  // run on one function
+  if (!SpeculativeRegionNameStr.compare(R.getNameStr())) {
+    (dbgs() << "\t\t Speculate on Region "<< R.getNameStr() << " !!! \n"); 
+    return true;
+  }
+
   // Notify the RegionSpeculation abaout the new region R
   if (RS) 
     RS->newTemporaryRegion(&R);
 
-  // Reset the spolly_hit flag
-  spolly_hit = false;
-  
   for (Region::block_iterator I = R.block_begin(), E = R.block_end(); I != E;
        ++I) {
     if (!isValidBasicBlock(*(I->getNodeAs<BasicBlock>()), Context)) {
@@ -739,7 +747,7 @@ bool ScopDetection::isValidExit(DetectionContext &Context) const {
 
 bool ScopDetection::isValidRegion(DetectionContext &Context) const {
   Region &R = Context.CurRegion;
- 
+
   (dbgs() << "------------------------------------------------------\n");
   (dbgs() << "Checking region: " << R.getNameStr() << " in " 
                << R.getEntry()->getParent()->getNameStr() << "\n\t");
@@ -798,15 +806,6 @@ bool ScopDetection::runOnFunction(llvm::Function &F) {
   DT = &getAnalysis<DominatorTree>();
   Region *TopRegion = RI->getTopLevelRegion();
   
-  if (!RS && EnableSpolly) {
-    dbgs() << "\n\n CREATE NEW RS \n\n";
-    RS = new RegionSpeculation();
-  }
-
-  // Initialize the RegionSpeculation for this ScopDetection run 
-  if (RS) 
-    RS->initScopDetectionRun(F, AA, SE, LI, RI, DT, TD, this);
-
   releaseMemory();
 
   if (OnlyFunction != "" && F.getName() != OnlyFunction)
@@ -814,6 +813,10 @@ bool ScopDetection::runOnFunction(llvm::Function &F) {
 
   if(!isValidFunction(F))
     return false;
+
+  // Initialize the RegionSpeculation for this ScopDetection run 
+  if (RS) 
+    RS->initScopDetectionRun(F, AA, SE, LI, RI, DT, TD, this);
 
   findScops(*TopRegion);
  
@@ -872,22 +875,21 @@ void ScopDetection::releaseMemory() {
   ValidRegions.clear();
   InvalidRegions.clear();
   SpeculativeValidRegions.clear();
-  //if (RS) 
-    //RS->releaseMemory();
+  if (releaseRS) 
+    RS->releaseMemory();
   // Do not clear the invalid function set.
 }
 
 bool ScopDetection::doInitialization(Module &M) {
-  //if (!RS && EnableSpolly)
-    //RS = new RegionSpeculation(0);
+  if (!RS && EnableSpolly) {
+    RS = new RegionSpeculation();
+    releaseRS = true;
+  }
 
   return false;
 }
 
 bool ScopDetection::doFinalization(Module &M) {
-  //if (RS && !RS->hasProfilingSupport())
-    //delete RS;
-
   return false;
 }
 
