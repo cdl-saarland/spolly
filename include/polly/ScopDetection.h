@@ -52,6 +52,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Analysis/AliasSetTracker.h"
 
+
 #include <set>
 #include <map>
 
@@ -105,6 +106,7 @@ class ScopDetection : public FunctionPass {
   
   /// @brief The Region Speculation to register violating instructions 
   RegionSpeculation *RS;
+  bool releaseRS;
 
   /// @brief Context variables for SCoP detection.
   struct DetectionContext {
@@ -183,6 +185,15 @@ class ScopDetection : public FunctionPass {
   ///
   /// @return True if the instruction has scalar dependences, false otherwise.
   bool hasScalarDependency(Instruction &Inst, Region &RefRegion) const;
+ 
+  /// @brief Check if an instruction uses a PHI node outside the SCOP
+  ///
+  /// @param Inst The instruction to check.
+  /// @param RefRegion The region in respect to which we check the access
+  ///                  function.
+  ///
+  /// @return True if the instruction uses a PHI node, false otherwise.
+  bool hasPhiOperatorsOutsideScop(Instruction &Inst, Region &RefRegion) const;
 
   /// @brief Check if an instruction can be part of a Scop.
   ///

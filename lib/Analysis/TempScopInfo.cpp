@@ -87,10 +87,12 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
     if (isa<LoadInst>(&Inst) || isa<StoreInst>(&Inst)) {
 
       if (LoadInst *Load = dyn_cast<LoadInst>(&Inst)) {
+        dbgs() << *Load << "   " << *Load->getType() << "\n";
         Size = TD->getTypeStoreSize(Load->getType());
         Type = IRAccess::READ;
       } else {
         StoreInst *Store = cast<StoreInst>(&Inst);
+        dbgs() << *Store << "  " << *Store->getValueOperand()->getType() << "\n";
         Size = TD->getTypeStoreSize(Store->getValueOperand()->getType());
         Type = IRAccess::WRITE;
       }
@@ -111,49 +113,6 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
                                                   AccessFunction, Size,
                                                   IsAffine),
                                          &Inst));
-    //} else {
-      //// Pseudo calls introduced by the region speculation should be considered
-      //// here if the original instruction was a load or a store. 
-
-      //std::map<Instruction*, unsigned>::iterator vIit;
-      //vIit = SD->RS->violatingInstructionsMap.find(&Inst);
-      //if (vIit != SD->RS->violatingInstructionsMap.end()) {
-        //unsigned opcode = vIit->second;
-        //Value *ptr; 
-        //llvm::Type *type;
-        //switch (opcode) {
-          //default:
-            //DEBUG(dbgs() << "@\n@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@ " << Inst << "\n");
-            //break;
-
-          //case Instruction::Load:
-            //ptr  = Inst.getOperand(0);
-            //type = (cast<PointerType>(ptr->getType()))->getElementType();
-            //Size = TD->getTypeStoreSize(type);
-            //Type = IRAccess::READ;
-
-            //Functions.push_back(std::make_pair(IRAccess(Type, ptr,
-                                                  //pseudoAccessFunction, Size,
-                                                  //false [> isAffine <]),
-                                         //&Inst));
-
-            //break;
-
-          //case Instruction::Store:
-            //Value *val = Inst.getOperand(0);
-            //ptr  = Inst.getOperand(1);
-            //type = val->getType();
-            //Size = TD->getTypeStoreSize(type);
-            //Type = IRAccess::WRITE;
-
-            //Functions.push_back(std::make_pair(IRAccess(Type, ptr,
-                                                  //pseudoAccessFunction, Size,
-                                                  //false [> isAffine <]),
-                                         //&Inst));
-
-            //break;
-        //}
-      //}
     }
   }
 

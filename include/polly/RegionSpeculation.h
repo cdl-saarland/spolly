@@ -14,6 +14,7 @@
 #define POLLY_REGION_SPECULATION_H
 
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/Statistic.h"
 
 #include "llvm/Transforms/Utils/ValueMapper.h"
 
@@ -27,12 +28,10 @@
 #include <map>
 #include <set>
 
-#define VIOLATION_COUNT 4
-
 using namespace llvm;
 
 namespace sambamba {
-  class Profiler;
+  class Profiler2;
 }
 
 namespace llvm {
@@ -72,7 +71,9 @@ class RegionSpeculation {
   typedef const Region * CRegionT;
   typedef std::map<CRegionT, std::string> InvalidRegionMap;
   typedef std::set<CRegionT> RegionSet;
+public:
   typedef std::pair<BasicBlock*, BasicBlock*> RegionMapKey;
+private:
   typedef DenseMap<RegionMapKey, SPollyInfo*> SPollyRegionMap;
   //@}
   
@@ -103,6 +104,7 @@ public:
   enum Violation {
     Alias,               // Aliasing instruction
     AffineFunction,      // Non affine access function
+    LoopCount,
     FunctionCall         // 
   };
   //@}
@@ -133,30 +135,36 @@ public:
 
   /// @brief Access functions for SPollyInfo objects
   //@{
-  typedef std::pair<Function *, ValueToValueMapTy *> FunctionPair;
-  Function* getOriginalVersion(RegionMapKey &RMK);
-  FunctionPair getProfilingVersion(RegionMapKey &RMK, sambamba::Profiler *profiler);
-  FunctionPair getParallelVersion(RegionMapKey &RMK, Module *dstModule);
+  //typedef std::pair<Function *, ValueToValueMapTy *> FunctionPair;
+  Function *getOriginalVersion(RegionMapKey &RMK);
+  Function *getProfilingVersion(RegionMapKey &RMK);
+  Function *getParallelVersion(RegionMapKey &RMK, Module *dstModule, 
+                               bool useOriginal = false);
+  std::string getNameStr(RegionMapKey &RMK);
   bool checksAreSound(RegionMapKey &RMK);
-  int getScore(RegionMapKey &RMK);
+  int64_t getScore(RegionMapKey &RMK);
 
-  Function* getOriginalVersion(SPollyInfo *SPI);
-  FunctionPair getProfilingVersion(SPollyInfo *SPI, sambamba::Profiler *profiler);
-  FunctionPair getParallelVersion(SPollyInfo *SPI, Module *dstModule);
+  void removeRegion(RegionMapKey &RMK);
+
+  Function *getOriginalVersion(SPollyInfo *SPI);
+  Function *getProfilingVersion(SPollyInfo *SPI);
+  Function *getParallelVersion(SPollyInfo *SPI, Module *dstModule,
+                               bool useOriginal = false);
+  std::string getNameStr(SPollyInfo *SPI);
   bool checksAreSound(SPollyInfo *SPI);
-  int getScore(SPollyInfo *SPI);
-
+  int64_t getScore(SPollyInfo *SPI);
   
-  // Not implemented
-  void applyChangesToFunction(Function *F, ValueToValueMapTy &VMap);
   //@}
 
   /// @brief Register a memory access for the current region (TemporaryRegion)
-  void registerViolatingInstruction(const Instruction * const I,
+  bool registerViolatingInstruction(const Instruction * const I,
                                     Violation V);
+  
+  /// @brief Register a 
+  void registerLoopCount(const Loop *L);
 
   /// @brief Register a memory access for the current region (TemporaryRegion)
-  void registerMemoryAccess(const Instruction * const I,
+  bool registerMemoryAccess(const Instruction * const I,
                             const SCEV * const scev,
                             const Value * const V);
   
@@ -218,7 +226,26 @@ public:
   
 };
 
+class StatisticPrinter : public FunctionPass {
+
+public:
+  static char ID;
+  StatisticPrinter();
+
+  virtual void getAnalysisUsage(AnalysisUsage &AU) const;
+  virtual bool runOnFunction(Function &F);
+  virtual bool doInitialization(Module &M);
+  virtual bool doFinalization(Module &M);
+};
+
+Pass *createStatisticPrinterPass();
+
 } //end namespace polly
+
+namespace llvm {
+  class PassRegistry;
+  void initializeStatisticPrinterPass(llvm::PassRegistry&);
+}
 
 
 #endif

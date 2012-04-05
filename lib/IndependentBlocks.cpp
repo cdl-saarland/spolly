@@ -164,7 +164,7 @@ void IndependentBlocks::moveOperandTree(Instruction *Inst, const Region *R,
   while (!WorkStack.empty()) {
     Instruction *CurInst = WorkStack.back().first;
     ChildIt It = WorkStack.back().second;
-    DEBUG(dbgs() << "Checking Operand of Node:\n" << *CurInst << "\n------>\n");
+    //DEBUG(dbgs() << "Checking Operand of Node:\n" << *CurInst << "\n------>\n");
     if (It == CurInst->op_end()) {
       // Insert the new instructions in topological order.
       if (!CurInst->getParent())
@@ -179,7 +179,7 @@ void IndependentBlocks::moveOperandTree(Instruction *Inst, const Region *R,
       // Can not move no instruction value.
       if (Operand == 0) continue;
 
-      DEBUG(dbgs() << "For Operand:\n" << *Operand << "\n--->");
+      //DEBUG(dbgs() << "For Operand:\n" << *Operand << "\n--->");
 
       // If the Scop Region does not contain N, skip it and all its operand and
       // continue. because we reach a "parameter".

@@ -94,7 +94,6 @@ void initializePollyPasses(PassRegistry &Registry) {
   initializeScopDetectionPass(Registry);
   initializeScopInfoPass(Registry);
   initializeTempScopInfoPass(Registry);
-
 }
 
 // Statically register all Polly passes such that they are available after

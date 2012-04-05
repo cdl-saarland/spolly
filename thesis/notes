@@ -1,0 +1,83 @@
+
+Compiletime statistics
+
+= Number of valid SCoPs
+
+= Speculative valid SCoPs 
+  - Violations (each and combined)
+    + Non affine branch 
+    '' + Non affine memory access (no base pointer) ''
+    '' + Non affine memory access (no base )        ''
+    + Possible alias
+    + Bad function call
+    '' + Non affine loop count ''
+    
+  - Number of SCoPs with no other violations
+  - Violations tested by the RegionSpeculation
+    + Ill formed region 
+      # StatIllFormedRegion
+    + Number of violating instructions outside the SCoP      
+      # StatViolOutside  vs.  StatViolInside
+    + Number of non computable minimal or maximal array access (first level)
+      # StatNonCompMemAccess  vs. StatCompMemAccess
+    '' + Load from an unsized pointer type
+      # StatUnsizedPointer
+    + Number of non vectorizable loads
+      # StatNonVectorizable
+    + Number of loops within a SCoP
+      # StatLoopCount
+      * Number of loops within a SCoP which need profiling (cheap)
+        # StatLoopProfilingCheap
+      * Number of loops within a SCoP which need profiling (expensive)
+        # StatLoopProfilingExpensive
+    + Number of branches within a SCoPs
+      # StatBranchCount
+    + Number of function calls
+      # StatFunctionCall
+    + Number of readnone function calls
+      # StatFunctionCallReadnone
+    + Number of readonly function calls
+      # StatFunctionCallReadonly
+    + Number of violating function calls
+      * Number of violating calls in all execution paths
+        # StatCrucialCall  
+      * Number of violating calls within a branch
+        # StatCrucialBranch  vs.  StatNonCrucialBranch 
+      * Number of indirect function calls                    // Future work
+        # StatFunctionCallIndirect
+      * Number of puts/print/stream calls
+        # StatFunctionCallPrint
+      * Number of intrinsics
+        # StatFunctionCallIntrinsic
+      * Number of function calls which may not return
+        # StatFunctionCallNoReturn
+      * Number of function calls which may throw an exception
+        # StatFunctionCallThrowing
+
+  - Number of SCoPs discared by RegionSpeculation
+    # StatInvalidByRS
+  - Number of SCoPs valid for speculation
+    # StatsValidByRS
+------ Only for valid speculative regions ------
+  - Number of memory accesses
+    # StatMemoryAccesses
+  - Number of aliasing instructions
+    # StatAliasingInstructions
+  - Number of SCoPs with aliases
+    # StatSCoPWithAliases
+  - Number of SCoPs where alias tests can be inserted
+    # StatAliasTests 
+  - Number of SCoPs with sound alias tests
+    # StatChecksAreSound
+  - Number of ScoPs with function calls
+    # StatContainsCalls
+  - Number of SCoPs where invariants tests can be inserted 
+    # StatInvariantTests
+  - Initial score (various values for loop count and branch probability)
+    # StatInitialScores
+
+
+
+
+Runtime Profiling 
+  branch profiling 

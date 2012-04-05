@@ -1,0 +1,74 @@
+\begin{thebibliography}{10}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Lattner and Adve(2004{\natexlab{a}})]{LLVM:CGO04}
+Chris Lattner and Vikram Adve.
+\newblock {LLVM: A Compilation Framework for Lifelong Program Analysis \&
+  Transformation}.
+\newblock In \emph{{Proceedings of the 2004 International Symposium on Code
+  Generation and Optimization (CGO'04)}}, Palo Alto, California, Mar
+  2004{\natexlab{a}}.
+
+\bibitem[Lattner and Adve(2004{\natexlab{b}})]{LLVM:Online}
+Chris Lattner and Vikram Adve.
+\newblock {LLVM: A Compilation Framework for Lifelong Program Analysis \&
+  Transformation}, 2004{\natexlab{b}}.
+\newblock URL \url{http://www.llvm.org}.
+
+\bibitem[Lengauer(1993)]{Lengauer93loopparallelization}
+Christian Lengauer.
+\newblock Loop parallelization in the polytope model.
+\newblock In \emph{CONCUR '93, Lecture Notes in Computer Science 715}, pages
+  398--416. Springer-Verlag, 1993.
+
+\bibitem[Pouchet(2009)]{PoCC:Online}
+Louis-No{\"e}l Pouchet.
+\newblock {PoCC - The Polyhedral Compiler Collection}, 2009.
+\newblock URL \url{http://www.cse.ohio-state.edu/~pouchet/software/pocc/}.
+
+\bibitem[Grosser et~al.(2011)Grosser, Zheng, A, Simb{\"u}rger, Gr{\"o}sslinger,
+  and Pouchet]{grosser.11.impact}
+Tobias Grosser, Hongbin Zheng, Raghesh A, Andreas Simb{\"u}rger, Armin
+  Gr{\"o}sslinger, and Louis-No{\"e}l Pouchet.
+\newblock Polly - polyhedral optimization in llvm.
+\newblock In \emph{First International Workshop on Polyhedral Compilation
+  Techniques (IMPACT'11)}, Chamonix, France, April 2011.
+
+\bibitem[Grosser(2011{\natexlab{a}})]{grosser:thesis}
+Tobias Grosser.
+\newblock \emph{Enabling Polyhedral Optimizations in LLVM}.
+\newblock Diploma thesis, University of Passau, April 2011{\natexlab{a}}.
+\newblock URL
+  \url{http://polly.llvm.org/publications/grosser-diploma-thesis.pdf}.
+
+\bibitem[RAGHESH(2011)]{raghesh2011framework}
+A.~RAGHESH.
+\newblock \emph{A Framework for Automatic OpenMP Code Generation}.
+\newblock PhD thesis, INDIAN INSTITUTE OF TECHNOLOGY, MADRAS, 2011.
+
+\bibitem[Grosser(2011{\natexlab{b}})]{Polly:Online}
+Tobias Grosser.
+\newblock Polly - polyhedral optimization in llvm, 2011{\natexlab{b}}.
+\newblock URL \url{http://polly.llvm.org}.
+
+\bibitem[Streit et~al.(2012{\natexlab{a}})Streit, Hammacher, Zeller, and
+  Hack]{DBLP:conf/cc/StreitHZH12}
+Kevin Streit, Clemens Hammacher, Andreas Zeller, and Sebastian Hack.
+\newblock Sambamba: A runtime system for online adaptive parallelization.
+\newblock In Michael F.~P. O'Boyle, editor, \emph{CC}, volume 7210 of
+  \emph{Lecture Notes in Computer Science}, pages 240--243. Springer,
+  2012{\natexlab{a}}.
+\newblock ISBN 978-3-642-28651-3.
+
+\bibitem[Streit et~al.(2012{\natexlab{b}})Streit, Hammacher, Zeller, and
+  Hack]{StreitHZH12:Online}
+Kevin Streit, Clemens Hammacher, Andreas Zeller, and Sebastian Hack.
+\newblock Sambamba: A runtime system for online adaptive parallelization,
+  2012{\natexlab{b}}.
+\newblock URL \url{http://www.sambamba.org}.
+
+\end{thebibliography}

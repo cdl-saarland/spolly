@@ -1,0 +1,126 @@
+% Chapter 2
+
+\chapter{Background Theory} % Write in your own chapter title
+\label{Chapter2}
+\lhead{Chapter 2. \emph{Background Theory}} % Write in your own chapter title to set the page header
+
+SPolly is based on several frameworks and tools which will be now introduced. 
+As this is not part of the actual work,
+this section will just provide overviews for each one. 
+To get a deeper understanding it is necesary to consult the further readings.
+
+\begin{center}
+TODO this section was just copied TODO \\
+TODO it is also incomplete TODO 
+\end{center}
+
+\section{LLVM - The Low Level Virtual Machine}
+\label{LLVM}
+The Low Level Virtual Machine is a compiler infrastructure designed to optimize
+during compiletime, linktime and runtime. Originally designed for C/C++, 
+many other frontends for a variety of languages exist by now. The source is 
+translated into an intermediate representation (LLVM-IR). 
+%which is available 
+%in three different, but equivalent forms. There is the in-memory compiler IR, 
+%the on-disk bitcode representation and human readable assembly language which 
+%is used through this proposal.
+The LLVM-IR is a type-safe, static single
+assignment based language designed for low-level operations. It is capable of 
+representing high-level structures in a flexible way.
+Due to the fact that LLVM is built in a modular 
+way and can be extended easily, most of the state of the art analysis and
+optimization techniques are implemented and shipped with LLVM. Plenty of other
+extensions, e.g., Polly, can be added by hand. 
+Another point for LLVM is the 
+included just-in-time compiler for runtime analysis and optimization mentioned
+in the context of Sambamba in Section \ref{sambamba} in more detail.
+
+\subsection*{Further Reading}
+
+\begin{itemize}
+  \item A Compilation Framework for Lifelong Program Analysis \& Transformation
+    \cite{LLVM:CGO04}  
+  \item \url{http://www.llvm.org} \nocite{LLVM:Online}
+\end{itemize}
+
+
+\section{The Polyhedral Model}
+The polyhedral model is a mathematical description of a set of (integer) points
+defined by a finite system of affine functions. If this set is bounded we will
+talk about polytopes whereas polyhedra are built the same way but consist of an
+unbounded point set.
+Polytopes can be used to describe the index space of a loop nest with 
+affine loop bounds. The dimension of this space is determined by the depth of 
+the loop nest. Each occurring iteration vector, which is a vector 
+containing all surrounding induction variables, corresponds to a point in the 
+index space. In addition to the index space the polytope model consists of a 
+set of vectors within this index space. Each vector corresponds to a data
+dependency between two iterations.
+
+Figure \ref{fig:loopInThePolytopeModel} shows such a loop represantation in the 
+polytope model. The iterations are shown as points and
+the dependencies between two iterations are represented as arrows. 
+For simplicity the initialization process of the array is skipped.
+
+\subsection*{Further Reading}
+\begin{itemize}
+  \item Loop Parallelization in the Polytope Model \cite{Lengauer93loopparallelization}  
+  \item PoCC - The Polyhedral Compiler Collection \cite{PoCC:Online}
+\end{itemize}
+
+
+\section{Polly - A Polyhedral Optimizer For LLVM}
+\label{Polly}
+As parallelism and data locality becomes more and more important, 
+there is heavy research and development in this area.
+%, to catch up with the increasing count of processors in nowadays machines
+Based on the polyhedral 
+model, Polly aims for an automatic optimization of
+LLVM bitcode with no need for annotations or other user interactions.
+Besides the support of external optimizers, there is a 
+state of the art polyhedral library included, as well as support for SIMD and 
+OpenMP code generation\cite{raghesh2011framework}. 
+
+To gain a deeper understanding,  the three main parts of Polly, 
+represented as (solid) translations in Figure \ref{fig:ArchitectureOfPolly},
+are explained in particular now.
+
+\subsection*{Further Reading}
+
+\begin{itemize}
+  \item Polly - Polyhedral optimization in LLVM \cite{grosser.11.impact}  
+  \item Enabling Polyhedral Optimizations in LLVM \cite{grosser:thesis}
+  \item A Framework for Automatic OpenMP Code Generation \cite{raghesh2011framework}
+  \item \url{http://polly.llvm.org} \nocite{Polly:Online}
+\end{itemize}
+
+
+\section{Sambamba - A Framework For Adaptive Program Optimization}
+As an extension for LLVM the \textit{Sambamba} compiler framework is designed to
+allow runtime analyses and (speculative) optimization.
+Furthermore these optimization can create and refine runtime profiles which
+are used to recalibrate and specialize the (speculative) execution. Method 
+versioning allows conservative and speculative 
+versions of a method to be stored and switched during runtime. 
+%But both can profit from specialization at runtime. 
+%especially after conflicting speculation.
+%Based on the LLVM suite, Sambamba uses the shipped JIT compiler 
+%and a software transactional memory system to secure
+%speculative execution. 
+Written in a completely modular way, Sambamba extensions consist 
+of a static part (compiletime) and a dynamic one (runtime). 
+Both extension parts can use Sambamba to store information,
+collected at the corresponding time, accessible for the dynamic part at 
+runtime.
+%In the context of speculation and profiling, Sambamba can be used to store
+%several version of a method which can be generated by one of the two parts.
+Profiling combined with the method versioning system allows runtime interactions
+to explore more parallelism or minimize the overhead in case of misspeculation. 
+
+
+\subsection*{Further Reading}
+\begin{itemize}
+  \item Sambamba: A Runtime System for Online Adaptive Parallelization \cite{DBLP:conf/cc/StreitHZH12}  
+  \item \url{http://www.sambamba.org} \nocite{StreitHZH12:Online}
+\end{itemize}
+

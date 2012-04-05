@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99d (TeX Live 2012/dev/Arch Linux)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: Thesis.aux
+The style file: unsrtnat.bst
+Database file #1: Bibliography.bib
+You've used 10 entries,
+            2481 wiz_defined-function locations,
+            613 strings with 6246 characters,
+and the built_in function-call counts, 3553 in all, are:
+= -- 302
+> -- 162
+< -- 10
++ -- 70
+- -- 47
+* -- 242
+:= -- 560
+add.period$ -- 34
+call.type$ -- 10
+change.case$ -- 19
+chr.to.int$ -- 7
+cite$ -- 10
+duplicate$ -- 193
+empty$ -- 337
+format.name$ -- 61
+if$ -- 772
+int.to.chr$ -- 4
+int.to.str$ -- 11
+missing$ -- 4
+newline$ -- 60
+num.names$ -- 32
+pop$ -- 106
+preamble$ -- 1
+purify$ -- 10
+quote$ -- 0
+skip$ -- 119
+stack$ -- 0
+substring$ -- 80
+swap$ -- 51
+text.length$ -- 3
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 70
+warning$ -- 0
+while$ -- 26
+width$ -- 0
+write$ -- 140

@@ -239,8 +239,7 @@ public:
 
     isl_space *Space;
     
-
-    // SPOLLY HACK
+    /// SPOLLY HACK
     Type *t;
     if (Expr->isSizeOf(t)) {
       ScalarEvolution &SE = *scop->getSE();
@@ -253,6 +252,12 @@ public:
     }
 
     std::string ValueName = Value->getName();
+    if (ValueName.empty()) {
+      ValueName = "myVal";
+      Value->setName(ValueName);
+    }
+
+    dbgs() << "\n\n mmmm ValueName " << ValueName << "\n\n";
     isl_id *ID = isl_id_alloc(ctx, ValueName.c_str(), Value);
     Space = isl_space_set_alloc(ctx, 1, NbLoopSpaces);
     Space = isl_space_set_dim_id(Space, isl_dim_param, 0, ID);
@@ -878,12 +883,12 @@ void Scop::addParams(std::vector<const SCEV*> NewParameters) {
   for (std::vector<const SCEV*>::iterator PI = NewParameters.begin(),
        PE = NewParameters.end(); PI != PE; ++PI) {
     const SCEV *Parameter = *PI;
-
+    dbgs()  << "wwww Parameter" << *Parameter << "\n";
     if (ParameterIds.find(Parameter) != ParameterIds.end())
       continue;
 
     int dimension = Parameters.size();
-
+    dbgs() << "   wwww dimension " << dimension << "\n";
     Parameters.push_back(Parameter);
     ParameterIds[Parameter] = dimension;
   }
@@ -1114,10 +1119,11 @@ bool ScopInfo::runOnRegion(Region *R, RGPassManager &RGM) {
   // Statistics.
   ++ScopFound;
   if (tempScop->getMaxLoopDepth() > 0) ++RichScopFound;
-
+  
   scop = new Scop(*tempScop, LI, SE, ctx);
 
-  dbgs() << "SI end run on Region scop! \n"; 
+  dbgs() << "SI end run on Region scop! \n";
+    
   return false;
 }
 

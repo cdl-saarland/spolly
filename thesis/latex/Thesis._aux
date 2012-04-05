@@ -1,0 +1,111 @@
+\relax 
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\gdef \LT@i {\LT@entry 
+    {1}{47.36676pt}\LT@entry 
+    {1}{147.5289pt}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.3}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{Chapter1}{{1}{1}{Introduction\relax }{chapter.3}{}}
+\citation{LLVM:CGO04}
+\citation{LLVM:Online}
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background Theory}{2}{chapter.4}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{Chapter2}{{2}{2}{Background Theory\relax }{chapter.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}LLVM - The Low Level Virtual Machine}{2}{section.5}}
+\newlabel{LLVM}{{2.1}{2}{LLVM - The Low Level Virtual Machine\relax }{section.5}{}}
+\citation{Lengauer93loopparallelization}
+\citation{PoCC:Online}
+\citation{raghesh2011framework}
+\citation{grosser.11.impact}
+\citation{grosser:thesis}
+\citation{raghesh2011framework}
+\citation{Polly:Online}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}The Polyhedral Model}{3}{section.6}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Polly - A Polyhedral Optimizer For LLVM}{3}{section.7}}
+\newlabel{Polly}{{2.3}{3}{Polly - A Polyhedral Optimizer For LLVM\relax }{section.7}{}}
+\citation{DBLP:conf/cc/StreitHZH12}
+\citation{StreitHZH12:Online}
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}Sambamba - A Framework For Adaptive Program Optimization}{4}{section.8}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Implementation}{5}{chapter.9}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{Chapter3}{{3}{5}{Implementation\relax }{chapter.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}SPolly}{5}{section.10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Speculative Extension For Polly}{5}{subsection.11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Sambama Compile Time Module}{5}{subsection.12}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Sambama Runtime Module}{5}{subsection.13}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Profiling For Sambamba}{5}{section.14}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Evaluation}{6}{chapter.15}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{Chapter4}{{4}{6}{Evaluation\relax }{chapter.15}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}The Environment}{6}{section.16}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}Compile Time Evaluation}{6}{section.17}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}Preperation}{7}{subsection.18}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.2}Quantitative Results}{7}{subsection.19}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2.1}SPEC2000}{7}{subsubsection.20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{7}{figure.caption.21}}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:SPEC2000CT}{{4.1}{7}{Numbers of valid and speculative valid SCoPs\relax \relax }{figure.caption.21}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2.2}Polybench 3.2}{7}{subsubsection.22}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2.3}Available tests}{7}{subsubsection.25}}
+\@writefile{toc}{\contentsline {paragraph}{Alias tests}{7}{paragraph*.26}}
+\@writefile{toc}{\contentsline {paragraph}{Invariant tests}{7}{paragraph*.27}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.3}Sound Transformations}{7}{subsection.28}}
+\newlabel{soundCTtransformations}{{4.2.3}{7}{Sound Transformations\relax }{subsection.28}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{8}{figure.caption.23}}
+\newlabel{fig:polybenchCT}{{4.2}{8}{Numbers of valid and speculative valid SCoPs\relax \relax }{figure.caption.23}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Details about speculative valid SCoPs\relax }}{8}{figure.caption.24}}
+\newlabel{fig:SPEC2000CTsSCoPsOne}{{4.3}{8}{Details about speculative valid SCoPs\relax \relax }{figure.caption.24}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.3}Runtime Evaluation}{8}{section.29}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.4}Problems}{8}{section.30}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Reported bugs\relax }}{9}{table.caption.31}}
+\newlabel{tab:bugreports}{{4.1}{9}{Reported bugs\relax \relax }{table.caption.31}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Discussion}{10}{chapter.32}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{Chapter5}{{5}{10}{Discussion\relax }{chapter.32}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}Quantitative Results}{10}{section.33}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}Qualitative Results}{10}{section.34}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.3}Interpretation}{10}{section.35}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Conclusion}{11}{chapter.36}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{Chapter6}{{6}{11}{Conclusion\relax }{chapter.36}{}}
+\@writefile{toc}{\vspace  {2em}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}Matrix Multiplication Example}{12}{appendix.37}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{AppendixA}{{A}{12}{Matrix Multiplication Example\relax }{appendix.37}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/matmul.c}{12}{lstlisting.38}}
+\@writefile{toc}{\vspace  {2em}}
+\bibstyle{unsrtnat}
+\bibdata{Bibliography}
+\bibcite{LLVM:CGO04}{{1}{2004{}}{{Lattner and Adve}}{{}}}
+\bibcite{LLVM:Online}{{2}{2004{}}{{Lattner and Adve}}{{}}}
+\bibcite{Lengauer93loopparallelization}{{3}{1993}{{Lengauer}}{{}}}
+\bibcite{PoCC:Online}{{4}{2009}{{Pouchet}}{{}}}
+\bibcite{grosser.11.impact}{{5}{2011}{{Grosser et~al.}}{{Grosser, Zheng, A, Simb{\"u}rger, Gr{\"o}sslinger, and Pouchet}}}
+\bibcite{grosser:thesis}{{6}{2011{}}{{Grosser}}{{}}}
+\bibcite{raghesh2011framework}{{7}{2011}{{RAGHESH}}{{}}}
+\bibcite{Polly:Online}{{8}{2011{}}{{Grosser}}{{}}}
+\bibcite{DBLP:conf/cc/StreitHZH12}{{9}{2012{}}{{Streit et~al.}}{{Streit, Hammacher, Zeller, and Hack}}}
+\bibcite{StreitHZH12:Online}{{10}{2012{}}{{Streit et~al.}}{{Streit, Hammacher, Zeller, and Hack}}}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{14}{dummy.92}}
+\newlabel{Bibliography}{{1}{14}{Matrix Multiplication Example\relax }{dummy.92}{}}

@@ -56,6 +56,8 @@ namespace polly {
 
 bool EnablePollyVector;
 bool EnablePollyOpenMP;
+  
+static BasicBlock *Header;
 
 static cl::opt<bool, true>
 Vector("enable-polly-vector",
@@ -149,12 +151,13 @@ class BlockGenerator {
   Scop &S;
   ScopStmt &statement;
   isl_set *scatteringDomain;
+  bool parallelCodeGeneration;
 
 public:
   BlockGenerator(IRBuilder<> &B, ValueMapT &vmap, VectorValueMapT &vmaps,
-                 ScopStmt &Stmt, isl_set *domain)
+                 ScopStmt &Stmt, isl_set *domain, bool pCG)
     : Builder(B), VMap(vmap), ValueMaps(vmaps), S(*Stmt.getParent()),
-    statement(Stmt), scatteringDomain(domain) {}
+    statement(Stmt), scatteringDomain(domain), parallelCodeGeneration(pCG) {}
 
   const Region &getRegion() {
     return S.getRegion();
@@ -178,23 +181,92 @@ public:
     return Builder.CreateShuffleVector(vector, vector, splatVector);
   }
 
+  /// FIX 3
+  Value *mapInvariantInstruction(const Instruction *Inst) {
+ DEBUG(dbgs() << "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n\n");
+  statement.getParent()->getRegion().dump();
+ DEBUG(dbgs() << "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n\n");
+  Inst->getParent()->dump();
+ DEBUG(dbgs() << "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n\n");
+  assert(!statement.getParent()->getRegion().contains(Inst->getParent())
+         && "Instruction was not invariant in this SCoP");
+
+  // As we first check the GlobalMap an instruction should not be cloned twice.
+  if (VMap.count(Inst)) {
+    return VMap[Inst];
+  }
+
+  assert(!isa<PHINode>(Inst) && "PHINodes cannot be mapped this way");
+
+  // Get the omp.setup BB
+  // I assume there are better ways to do this (argument for this builder)
+  BasicBlock *ompSetup = &Builder.GetInsertBlock()->getParent()->getEntryBlock();
+  // Assert the name of the ompSetup BB to start with omp.setup
+  assert(!ompSetup->getName().find("omp.setup") 
+         && "Could not find the omp.setup block");
+
+  // As the omp.setup block could be split we have to move until the last split
+  // This is a VERY VERY UGLY HACK to find a BB after the values stored in the
+  //  userContext are loaded again
+  while (true) {
+    TerminatorInst *termInst = ompSetup->getTerminator();
+    if (termInst->getNumSuccessors() != 1) break;
+    BasicBlock *tmpBlock = termInst->getSuccessor(0);
+    if (!tmpBlock->getName().find("omp.setup")) break;
+    ompSetup = tmpBlock;
+  }
+
+  // Save the old insert point
+  BasicBlock::iterator oldInsertPoint = Builder.GetInsertPoint();
+  
+  // Set the new one (right before the terminator instruction of omp.setup)
+  Builder.SetInsertPoint(--(ompSetup->end()));
+
+  // Copy the instruction as it is needed in the subfunction
+  // HACK 
+  // To reuse existing code GlobalMap is used as BBMap here. This should only
+  // cause overhead but not affect the result.
+  copyInstScalar(Inst, VMap);
+
+  // Assert a new mapping
+  assert(VMap.count(Inst) && "Invariant instruction should be mapped now"); 
+
+  // Restore the old insert point
+  Builder.SetInsertPoint(oldInsertPoint);
+
+  return VMap[Inst];
+}
+
+
   Value* getOperand(const Value *oldOperand, ValueMapT &BBMap,
                     ValueMapT *VectorMap = 0) {
     const Instruction *OpInst = dyn_cast<Instruction>(oldOperand);
+   DEBUG(dbgs() << "Old Operand: " << *oldOperand << "\n");
     
     if (!OpInst) {
+      /// FIX 1 
+      ///
+      /// Operands which are no instructions could be arguments which 
+      /// need to be mapped 
+     DEBUG(dbgs() << "Old Operand is no Instruction " << *oldOperand << "   " 
+             << VMap.count(oldOperand) << "\n");
       if (VMap.count(oldOperand))
         return VMap[oldOperand];
       else
         return const_cast<Value*>(oldOperand);
     }
 
+   DEBUG(dbgs() << "before vector map: Old Operand: " << *oldOperand << "\n");
+
     if (VectorMap && VectorMap->count(oldOperand))
       return (*VectorMap)[oldOperand];
+
+   DEBUG(dbgs() << "after vector map: Old Operand: " << *oldOperand << "\n");
 
     // IVS and Parameters.
     if (VMap.count(oldOperand)) {
       Value *NewOperand = VMap[oldOperand];
+     DEBUG(dbgs() << "  New Operand: " << *NewOperand << "\n");
 
       // Insert a cast if types are different
       if (oldOperand->getType()->getScalarSizeInBits()
@@ -202,8 +274,10 @@ public:
         NewOperand = Builder.CreateTruncOrBitCast(NewOperand,
                                                    oldOperand->getType());
 
+     DEBUG(dbgs() << "  New Operand: " << *NewOperand << "\n");
       return NewOperand;
     }
+   DEBUG(dbgs() << "  after New Operand: " << *oldOperand << "\n");
 
     // Instructions calculated in the current BB.
     if (BBMap.count(oldOperand)) {
@@ -213,10 +287,14 @@ public:
     // Ignore instructions that are referencing ops in the old BB. These
     // instructions are unused. They where replace by new ones during
     // createIndependentBlocks().
-    if (getRegion().contains(OpInst->getParent()))
-      return NULL;
-
-    return const_cast<Value*>(oldOperand);
+    if (!getRegion().contains(OpInst->getParent())) {
+      if (parallelCodeGeneration)
+        return mapInvariantInstruction(OpInst);
+      else
+        return const_cast<Value*>(oldOperand);
+    }
+    //assert(0);
+    return NULL;
   }
 
   Type *getVectorPtrTy(const Value *V, int vectorWidth) {
@@ -290,6 +368,7 @@ public:
     return vectorLoad;
   }
 
+
   /// @Load a vector from scalars distributed in memory
   ///
   /// In case some scalars a distributed randomly in memory. Create a vector
@@ -305,8 +384,21 @@ public:
                                    VectorValueMapT &scalarMaps,
                                    int size) {
     const Value *pointer = load->getPointerOperand();
-    VectorType *vectorType = VectorType::get(
-      dyn_cast<PointerType>(pointer->getType())->getElementType(), size);
+    PointerType *pointerType = dyn_cast<PointerType>(pointer->getType());
+    assert(pointerType && "No valid pointer type");
+
+   DEBUG(dbgs() << *pointer << ":" << *pointer->getType() << " " 
+           << *dyn_cast<PointerType>(pointer->getType())->getElementType()<<"\n");
+
+    Type *castType = 0;
+    VectorType *vectorType;
+    //if (VectorType::isValidElementType(pointerType->getElementType())) { 
+    vectorType = VectorType::get(pointerType->getElementType(), size);
+    //} else {
+      //dbgs() << "no valid element";
+      //castType   = Builder.getInt8Ty();
+      //vectorType = VectorType::get(castType, size);
+    //}
 
     Value *vector = UndefValue::get(vectorType);
 
@@ -314,6 +406,8 @@ public:
       Value *newPointer = getOperand(pointer, scalarMaps[i]);
       Value *scalarLoad = Builder.CreateLoad(newPointer,
                                              load->getNameStr() + "_p_scalar_");
+      if (castType)
+        scalarLoad = Builder.CreatePointerCast(scalarLoad, castType);
       vector = Builder.CreateInsertElement(vector, scalarLoad,
                                            Builder.getInt32(i),
                                            load->getNameStr() + "_p_vec_");
@@ -492,8 +586,50 @@ public:
     return;
   }
 
+  /// FIX 2 
+  /// 
+  /// Not all instructions are cloned, but their operands were.
+  /// This leads to unresolved dependencies (into other functions for openMP code)
+  bool hasOnlyRemovedUses(const Instruction *Inst, ValueMapT &BBMap) {
+   DEBUG(dbgs() << " has only removed uses " << *Inst << "\n");
+    for (Instruction::const_use_iterator UI = Inst->use_begin(), UE = Inst->use_end();
+         UI != UE; UI++) {
+     DEBUG(dbgs() << " == use " << **UI << "\n");
+      if (BBMap.count(*UI)) 
+        return false;
+    }
+    
+    return true;
+  }
+
+  void removeInstruction(const Instruction *Inst, ValueMapT &BBMap) {
+   DEBUG(dbgs() << "\n\n removeInstruction: " << *Inst << "\n");    
+    if (BBMap.count(Inst)) {
+      Instruction *I = cast<Instruction>(BBMap[Inst]);
+     DEBUG(dbgs() << "\n\n eraseInstruction: " << *I << "\n");
+      I->eraseFromParent();
+      BBMap.erase(Inst);
+    }
+
+    for (Instruction::const_op_iterator OI = Inst->op_begin(),
+         OE = Inst->op_end(); OI != OE; ++OI) {
+      Value *OldOperand = *OI;
+
+      if (const Instruction *OldOperandInst = dyn_cast<Instruction>(OldOperand)) {
+        //assert(BBMap.count(OldOperandInst) && "Operand was removed before use");
+        //Instruction *NewOperandInst = dyn_cast<Instruction>(BBMap[OldOperandInst]);
+        if (!isa<PHINode>(OldOperandInst) && hasOnlyRemovedUses(OldOperandInst, BBMap)) 
+          removeInstruction(OldOperandInst, BBMap); 
+      }
+    }
+  }
+  /// FIX 2 ====================================================================
+
   void copyInstScalar(const Instruction *Inst, ValueMapT &BBMap) {
     Instruction *NewInst = Inst->clone();
+
+   DEBUG(dbgs() << " copyInstScalar: \n\t\t old: ");
+   DEBUG(dbgs() << *Inst << "\n");
 
     // Replace old operands with the new ones.
     for (Instruction::const_op_iterator OI = Inst->op_begin(),
@@ -505,6 +641,9 @@ public:
         assert(!isa<StoreInst>(NewInst)
                && "Store instructions are always needed!");
         delete NewInst;
+       DEBUG(dbgs() << " do not copyInstScalar: \t\t: " << *Inst << "\n");
+        /// FIX 2
+        removeInstruction(Inst, BBMap); 
         return;
       }
 
@@ -514,8 +653,10 @@ public:
     Builder.Insert(NewInst);
     BBMap[Inst] = NewInst;
 
-    if (!NewInst->getType()->isVoidTy())
+    if (!NewInst->getType()->isVoidTy() && !Inst->getName().empty())
       NewInst->setName("p_" + Inst->getName());
+
+   DEBUG(dbgs() << " \n\t\t new: " << *NewInst << " \n");
   }
 
   bool hasVectorOperands(const Instruction *Inst, ValueMapT &VectorMap) {
@@ -533,21 +674,31 @@ public:
   bool isVectorBlock() {
     return getVectorSize() > 1;
   }
+ 
 
   void copyInstruction(const Instruction *Inst, ValueMapT &BBMap,
                        ValueMapT &vectorMap, VectorValueMapT &scalarMaps,
                        int vectorDimension, int vectorWidth) {
+  
+   DEBUG(dbgs() << "copyinstruction " << *Inst << "\n");
+
     // Terminator instructions control the control flow. They are explicitally
     // expressed in the clast and do not need to be copied.
-    if (Inst->isTerminator())
+    if (Inst->isTerminator()) {
+      /// FIX 2
+      removeInstruction(Inst, BBMap); 
       return;
+    }
 
     if (isVectorBlock()) {
       // If this instruction is already in the vectorMap, a vector instruction
       // was already issued, that calculates the values of all dimensions. No
       // need to create any more instructions.
-      if (vectorMap.count(Inst))
+      if (vectorMap.count(Inst)) { 
+        /// FIX 2
+        removeInstruction(Inst, BBMap); 
         return;
+      }
     }
 
     if (const LoadInst *load = dyn_cast<LoadInst>(Inst)) {
@@ -871,7 +1022,7 @@ public:
     }
 
     BlockGenerator Generator(Builder, ValueMap, VectorValueMap, *Statement,
-                             scatteringDomain);
+                             scatteringDomain, parallelCodeGeneration);
     Generator.copyBB(BB, DT);
   }
 
@@ -966,8 +1117,11 @@ public:
 
     // Push the clast variables available in the clastVars.
     for (CharMapT::iterator I = clastVars->begin(), E = clastVars->end();
-         I != E; I++)
-     OMPDataVals.insert(I->second);
+         I != E; I++) {
+     DEBUG(dbgs() << " insert into OMPDataVals clastVar (" << I->first << ")  "
+        << *I->second << "\n");
+      OMPDataVals.insert(I->second);
+    }
 
     // Push the base addresses of memory references.
     for (Scop::iterator SI = S->begin(), SE = S->end(); SI != SE; ++SI) {
@@ -975,12 +1129,43 @@ public:
       for (SmallVector<MemoryAccess*, 8>::iterator I = Stmt->memacc_begin(),
            E = Stmt->memacc_end(); I != E; ++I) {
         Value *BaseAddr = const_cast<Value*>((*I)->getBaseAddr());
-        OMPDataVals.insert((BaseAddr));
+        if (Instruction *Inst = dyn_cast<Instruction>(BaseAddr)) {
+          if (!S->getRegion().contains(Inst)) {
+           DEBUG(dbgs() << " insert into OMPDataVals baseAddr " << *BaseAddr << "\n");
+            OMPDataVals.insert((BaseAddr));
+          } else {
+           DEBUG(dbgs() << " do not insert into OMPDataVals baseAddr " << *BaseAddr << "\n");
+          }
+        } else {
+         DEBUG(dbgs() << " insert into OMPDataVals baseAddr " << *BaseAddr << "\n");
+          OMPDataVals.insert((BaseAddr));
+        }
       }
+    }
+
+    Region &R = S->getRegion();
+    Function *F = R.getEntry()->getParent();
+    /// FIX 4 
+    /// Hack to include arguments PolybenchC 2mm and others
+    /// 
+    for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E; I++) {
+     if (OMPDataVals.count(I)) continue;
+
+     for (Argument::use_iterator UI = I->use_begin(), UE = I->use_end(); UI != UE; UI++) {
+       Instruction *Inst = cast<Instruction>(*UI);
+      DEBUG(dbgs() << " test inst: " << *Inst << " in ");
+       if (Inst->getParent()->getParent() && R.contains(Inst)) {
+        DEBUG(dbgs() << " insert into OMPDataVals argument " << *I<< "\n");
+         OMPDataVals.insert(I);
+         break;
+       }
+     }
+      
     }
 
     return OMPDataVals;
   }
+
 
   /// @brief Extract the values from the subfunction parameter.
   ///
@@ -1003,6 +1188,8 @@ public:
       Value *loadAddr = Builder.CreateStructGEP(userContext, j);
       Value *baseAddr = OMPDataVals[j];
       ValueMap[baseAddr] = Builder.CreateLoad(loadAddr);
+     DEBUG(dbgs() << "==== ValueMap[" <<*baseAddr<<"] = " 
+             <<  *ValueMap[baseAddr] << "\n");
     }
 
   }
@@ -1020,6 +1207,7 @@ public:
 
     // Create basic blocks.
     BasicBlock *HeaderBB = BasicBlock::Create(Context, "omp.setup", FN);
+    Header = HeaderBB;
     BasicBlock *ExitBB = BasicBlock::Create(Context, "omp.exit", FN);
     BasicBlock *checkNextBB = BasicBlock::Create(Context, "omp.checkNext", FN);
     BasicBlock *loadIVBoundsBB = BasicBlock::Create(Context, "omp.loadIVBounds",
@@ -1042,7 +1230,7 @@ public:
 
     CharMapT clastVarsOMP;
     extractValuesFromOpenMPStruct(&clastVarsOMP, OMPDataVals, userContext);
-
+   DEBUG(dbgs() << "abcdefghijklmnopqrstuvw\n");
     Builder.CreateBr(checkNextBB);
 
     // Add code to check if another set of iterations will be executed.
@@ -1195,7 +1383,7 @@ public:
 
   /// @brief Create vector instructions for this loop.
   void codegenForVector(const clast_for *f) {
-    DEBUG(dbgs() << "Vectorizing loop '" << f->iterator << "'\n";);
+    DEBUG(dbgs() << "Vectorizing loop '" << f->iterator << "'\n");
     int vectorWidth = getNumberOfIterations(f);
 
     Value *LB = ExpGen.codegen(f->LB,
@@ -1230,9 +1418,17 @@ public:
   }
 
   void codegen(const clast_for *f) {
+    DEBUG(dbgs() << "\nVECTOR ... " << Vector << " " <<  isInnermostLoop(f)
+          <<" " <<  DP->isParallelFor(f) << " " <<
+           (-1 != getNumberOfIterations(f)) << "  " << 
+           (getNumberOfIterations(f) <= 16) << " (" <<
+            getNumberOfIterations(f) <<  ") ... VECTOR \n");
+    DEBUG(dbgs() << "\nOpenMP ... " << OpenMP << " " << (!parallelCodeGeneration)
+                 << "  " << DP->isParallelFor(f) << " ... OpenMP \n");
+
     if (Vector && isInnermostLoop(f) && DP->isParallelFor(f)
         && (-1 != getNumberOfIterations(f))
-        && (getNumberOfIterations(f) <= 16)) {
+        && (getNumberOfIterations(f) <= 16 && getNumberOfIterations(f) > 1)) {
       codegenForVector(f);
     } else if (OpenMP && !parallelCodeGeneration && DP->isParallelFor(f)) {
       parallelCodeGeneration = true;
@@ -1514,8 +1710,8 @@ class CodeGeneration : public ScopPass {
     TD = &getAnalysis<TargetData>();
     RI = &getAnalysis<RegionInfo>();
 
-    dbgs() << "\n\n\t\t CodeGeneration on " << region->getNameStr() 
-           << "  Vector: " << Vector << "  OpenMP: " << OpenMP << "\n";
+   DEBUG(dbgs() << "\n\n\t\t CodeGeneration on " << region->getNameStr() 
+           << "  Vector: " << Vector << "  OpenMP: " << OpenMP << "\n");
 
     parallelLoops.clear();
 

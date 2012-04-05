@@ -1,6 +1,9 @@
 
 #include "polly/Support/SCEVValidator.h"
 
+#include "llvm/Module.h"
+#include "llvm/Instructions.h"
+
 #include "llvm/Analysis/ScalarEvolution.h"
 #include "llvm/Analysis/ScalarEvolutionExpressions.h"
 #include "llvm/Analysis/RegionInfo.h"
@@ -153,7 +156,7 @@ public:
   }
 
   class ValidatorResult visitAddExpr(const SCEVAddExpr *Expr) {
-    DEBUG(dbgs() << "visitAddExp  "<< *Expr);
+    DEBUG(dbgs() << "visitAddExp  "<< *Expr<< "\n");
     ValidatorResult Return(SCEVType::INT);
 
     for (int i = 0, e = Expr->getNumOperands(); i < e; ++i) {
@@ -204,11 +207,14 @@ public:
   class ValidatorResult visitAddRecExpr(const SCEVAddRecExpr *Expr) {
     ValidatorResult Start = visit(Expr->getStart());
     ValidatorResult Recurrence = visit(Expr->getStepRecurrence(SE));
-    DEBUG(dbgs() << "visitAddRecExp  "<< *Expr << "  !exprAffine" << (!Expr->isAffine()) 
-          << "  !startValid: "<< (!Start.isValid()) << "  !recIsCons: " 
-          << (!Recurrence.isConstant())  << " contains:" 
-          << (R->contains(Expr->getLoop())) << " startCont:" 
-          << (Start.isConstant())<< "\n");
+    DEBUG(dbgs() << "visitAddRecExp  "<< *Expr
+                 << "\n  !exprAffine" << (!Expr->isAffine()) 
+                 << "\n  !startValid: " << (!Start.isValid())
+                 << "\n  !recIsCons: " << (!Recurrence.isConstant()) 
+                 << "\n   contains: "  << (R->contains(Expr->getLoop())) 
+                 << "\n    Recurrence.isINT() "  << (Recurrence.isINT()) 
+                 << "\n    Recurrence.isValid() "  << (Recurrence.isValid())
+                 << "\n   startCont: " << (Start.isConstant())<< "\n");
     if (!Expr->isAffine())
       return ValidatorResult(SCEVType::INVALID);
 
@@ -236,7 +242,7 @@ public:
 
   class ValidatorResult visitSMaxExpr(const SCEVSMaxExpr *Expr) {
     ValidatorResult Return(SCEVType::INT);
-    DEBUG(dbgs() << "visitSMaxExp  "<< *Expr);
+    DEBUG(dbgs() << "visitSMaxExp  "<< *Expr<< "\n");
 
     for (int i = 0, e = Expr->getNumOperands(); i < e; ++i) {
       ValidatorResult Op = visit(Expr->getOperand(i));
@@ -252,7 +258,7 @@ public:
 
   class ValidatorResult visitUMaxExpr(const SCEVUMaxExpr *Expr) {
     ValidatorResult Return(SCEVType::PARAM);
-    DEBUG(dbgs() << "visitUMaxExp  "<< *Expr);
+    DEBUG(dbgs() << "visitUMaxExp  "<< *Expr << "\n");
 
     // We do not support unsigned operations. If 'Expr' is constant during Scop
     // execution we treat this as a parameter, otherwise we bail out.
@@ -268,19 +274,19 @@ public:
     return Return;
   }
 
-  ValidatorResult visitUnknown(const SCEVUnknown *Expr) {
+  class ValidatorResult visitUnknown(const SCEVUnknown *Expr) {
     Value *V = Expr->getValue();
-    DEBUG(dbgs() << "visitUnknown  " << *V << " " << *Expr);
-    DEBUG(dbgs() << "  " << isa<UndefValue>(V)  << " " 
-          <<  dyn_cast<Instruction>(Expr->getValue()) << " " 
-          << (BaseAddress == V)  <<"\n");
+    DEBUG(dbgs() << "visitUnknown  " << *V << " " << *Expr<<"\n");
     
     if (isa<UndefValue>(V))
       return ValidatorResult(SCEVType::INVALID);
 
-    if (Instruction *I = dyn_cast<Instruction>(Expr->getValue()))
-      if (R->contains(I))
+    if (Instruction *I = dyn_cast<Instruction>(V)) {
+      DEBUG(dbgs() << "  I: " << *I << "  " << R->contains(I) <<  "\n");
+      if (R->contains(I)) {
         return ValidatorResult(SCEVType::INVALID);
+      }
+    }
 
     if (BaseAddress == V)
       return ValidatorResult(SCEVType::INVALID);
@@ -296,9 +302,9 @@ public:
 namespace polly {
   bool isAffineExpr(const Region *R, const SCEV *Expr, ScalarEvolution &SE,
                     const Value *BaseAddress) {
-    DEBUG(dbgs() << "isAffineExpr " << *R << "  "<< *Expr << "  "<< &SE << "  "
-          << "  " << *BaseAddress 
-         << "  " << isa<SCEVCouldNotCompute>(Expr) << "\n");
+    DEBUG(dbgs() << "isAffineExpr " << R->getNameStr() << "  "<< *Expr << "  "<< &SE << "  "
+          << "  " << *BaseAddress << "\n");
+
     if (isa<SCEVCouldNotCompute>(Expr))
       return false;
 
