@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdflatex 2012.4.4)  5 APR 2012 06:58
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdflatex 2012.4.4)  7 APR 2012 00:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -600,25 +600,28 @@ Package: array 2008/09/09 v2.4c Tabular extension package (FMi)
 \TX@cols=\count142
 \TX@ftn=\toks34
 )
-(/home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7/Thesis.aux)
+(/usr/share/texmf-dist/tex/latex/multirow/multirow.sty
+\bigstrutjot=\dimen162
+)
+(/home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr/Thesis.aux)
 \openout1 = `Thesis.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 18.
+LaTeX Font Info:    ... okay on input line 18.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: hyperref package is loaded.
 Package caption Info: listings package is loaded.
@@ -634,20 +637,20 @@ Package caption Info: End \AtBeginDocument code.
 (/usr/share/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count143
-\scratchdimen=\dimen162
+\scratchdimen=\dimen163
 \scratchbox=\box36
 \nofMPsegments=\count144
 \nofMParguments=\count145
 \everyMPshowfont=\toks35
 \MPscratchCnt=\count146
-\MPscratchDim=\dimen163
+\MPscratchDim=\dimen164
 \MPnumerator=\count147
 \makeMPintoPDFobject=\count148
 \everyMPtoPDFconversion=\toks36
 )
 \c@lstlisting=\count149
 \AtBeginShipoutBox=\box37
-Package hyperref Info: Link coloring ON on input line 17.
+Package hyperref Info: Link coloring ON on input line 18.
  (/usr/share/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2010/04/30 v2.40 Cross-referencing by name of section
 
@@ -656,12 +659,12 @@ Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
 \c@section@level=\count150
 )
-LaTeX Info: Redefining \ref on input line 17.
-LaTeX Info: Redefining \pageref on input line 17.
-LaTeX Info: Redefining \nameref on input line 17.
+LaTeX Info: Redefining \ref on input line 18.
+LaTeX Info: Redefining \pageref on input line 18.
+LaTeX Info: Redefining \nameref on input line 18.
 
-(/home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7/Thesis.out)
-(/home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7/Thesis.out)
+(/home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr/Thesis.out)
+(/home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr/Thesis.out)
 \@outlinefile=\write3
 \openout3 = `Thesis.out'.
 
@@ -673,7 +676,7 @@ LaTeX Info: Redefining \nameref on input line 17.
 File: Figures/UniSBLogo.pdf Graphic file (type pdf)
 
 <use Figures/UniSBLogo.pdf>
-Package pdftex.def Info: Figures/UniSBLogo.pdf used on input line 32.
+Package pdftex.def Info: Figures/UniSBLogo.pdf used on input line 33.
 (pdftex.def)             Requested size: 140.90448pt x 56.9055pt.
  [1
 
@@ -683,16 +686,16 @@ Package pdftex.def Info: Figures/UniSBLogo.pdf used on input line 32.
 ------------------------------------------------------------------------------
  Declaration of Authorship
 ------------------------------------------------------------------------------
-LaTeX Font Info:    Try loading font information for U+msa on input line 73.
+LaTeX Font Info:    Try loading font information for U+msa on input line 74.
 (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 73.
+LaTeX Font Info:    Try loading font information for U+msb on input line 74.
 
 (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 )
-Underfull \hbox (badness 10000) in paragraph at lines 73--73
+Underfull \hbox (badness 10000) in paragraph at lines 74--74
 
  []
 
@@ -712,19 +715,19 @@ Underfull \hbox (badness 10000) in paragraph at lines 73--73
 ------------------------------------------------------------------------------
 [4
 
-] (/home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7/Thesis.toc)
+] (/home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr/Thesis.toc)
 \tf@toc=\write4
 \openout4 = `Thesis.toc'.
 
 
 [5
 
-] (/home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7/Thesis.lof)
+] (/home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr/Thesis.lof)
 \tf@lof=\write5
 \openout5 = `Thesis.lof'.
 
 
-(/home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7/Thesis.lot)
+(/home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr/Thesis.lot)
 \tf@lot=\write6
 \openout6 = `Thesis.lot'.
 
@@ -759,24 +762,24 @@ Chapter 2.
  2 Background Theory
 ------------------------------------------------------------------------------
 
-LaTeX Warning: Reference `sambamba' on page 2 undefined on input line 36.
+LaTeX Warning: Reference `sambamba' on page 2 undefined on input line 35.
 
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 41.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 40.
 (/usr/share/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 41.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 40.
  [2
 
 ]
 
 LaTeX Warning: Reference `fig:loopInThePolytopeModel' on page 3 undefined on in
-put line 60.
+put line 59.
 
 
 LaTeX Warning: Reference `fig:ArchitectureOfPolly' on page 3 undefined on input
- line 85.
+ line 84.
 
 [3]) (./Chapters/Chapter3.tex [4]
 Chapter 3.
@@ -798,36 +801,67 @@ gion-simplify -polly-prepare
 
 [6
 
-] <Figures/SPEC2000CT.pdf, id=268, 956.74002pt x 381.58968pt>
+] <Figures/SPEC2000CT.pdf, id=268, 921.01591pt x 524.00124pt>
 File: Figures/SPEC2000CT.pdf Graphic file (type pdf)
 
 <use Figures/SPEC2000CT.pdf>
 Package pdftex.def Info: Figures/SPEC2000CT.pdf used on input line 53.
-(pdftex.def)             Requested size: 375.7232pt x 149.85579pt.
+(pdftex.def)             Requested size: 375.7232pt x 213.76248pt.
 
-<Figures/polybenchCT.pdf, id=269, 928.92836pt x 560.84457pt>
+<Figures/polybenchCT.pdf, id=269, 928.92836pt x 556.45317pt>
 File: Figures/polybenchCT.pdf Graphic file (type pdf)
 
 <use Figures/polybenchCT.pdf>
 Package pdftex.def Info: Figures/polybenchCT.pdf used on input line 62.
-(pdftex.def)             Requested size: 375.7232pt x 226.84128pt.
+(pdftex.def)             Requested size: 375.7232pt x 225.06511pt.
 
-<Figures/SPEC2000CTsSCoPsOne.pdf, id=270, 508.666pt x 381.58968pt>
-File: Figures/SPEC2000CTsSCoPsOne.pdf Graphic file (type pdf)
+Overfull \hbox (2.39345pt too wide) in paragraph at lines 70--101
+[][] 
+ []
 
-<use Figures/SPEC2000CTsSCoPsOne.pdf>
-Package pdftex.def Info: Figures/SPEC2000CTsSCoPsOne.pdf used on input line 71.
+[7 <./Figures/SPEC2000CT.pdf>] [8 <./Figures/polybenchCT.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 151--151
+[]|\OT1/cmr/m/n/10.95 Wrong ar-gu-
+ []
 
-(pdftex.def)             Requested size: 208.73653pt x 156.58669pt.
- [7 <./Figures/SPEC2000CT.pdf>] [8 <./Figures/polybenchCT.pdf> <./Figures/SPEC2
-000CTsSCoPsOne.pdf>]
-Overfull \hbox (2.86333pt too wide) in paragraph at lines 123--123
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--151
+\OT1/cmr/m/n/10.95 ment map-ping
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--151
+\OT1/cmr/m/n/10.95 in OpenMP sub-
+ []
+
+
+Overfull \hbox (2.86333pt too wide) in paragraph at lines 151--151
 []|\OT1/cmr/m/n/10.95 RESOLVED
  []
 
 
-Underfull \hbox (badness 2790) in paragraph at lines 123--123
-[]|\OT1/cmr/m/n/10.95 PHInode use in OpenMP
+Underfull \hbox (badness 10000) in paragraph at lines 151--151
+[]|\OT1/cmr/m/n/10.95 Invariant in-struc-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--151
+[]|\OT1/cmr/m/n/10.95 PHInode use in
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--151
+\OT1/cmr/m/n/10.95 OpenMP sub-func-
+ []
+
+
+Underfull \hbox (badness 1383) in paragraph at lines 151--151
+[]|\OT1/cmr/m/n/10.95 add the oth-ers to
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--151
+[]|\OT1/cmr/m/n/10.95 PollybenchC2
  []
 
 ) (./Chapters/Chapter5.tex [9]
@@ -871,23 +905,23 @@ LaTeX Font Info:    Font shape `OML/cmr/m/n' in size <9> not available
 ------------------------------------------------------------------------------
  Bibliography
 ------------------------------------------------------------------------------
-(/home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7/Thesis.bbl
+(/home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr/Thesis.bbl
 Underfull \hbox (badness 2837) in paragraph at lines 35--40
 []\OT1/cmr/m/n/10.95 Tobias Grosser, Hong-bin Zheng, Raghesh A, An-dreas Simb^^
 ?urger, Armin
  []
 
 )
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 223.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 224.
  [14
 
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 223.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 224.
 
-(/home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7/Thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 223.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 223.
+(/home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr/Thesis.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 224.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 224.
 Package rerunfilecheck Info: File `Thesis.out' has not changed.
 (rerunfilecheck)             Checksum: 60234586CEC6BD8D490F9A4059DBDCA2;5331.
 
@@ -896,10 +930,10 @@ LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 12042 strings out of 493629
- 168451 string characters out of 3148779
- 306561 words of memory out of 3000000
- 14979 multiletter control sequences out of 15000+200000
+ 12048 strings out of 493629
+ 168514 string characters out of 3148779
+ 306617 words of memory out of 3000000
+ 14982 multiletter control sequences out of 15000+200000
  14999 words of font info for 55 fonts, out of 3000000 for 9000
  831 hyphenation exceptions out of 8191
  49i,11n,49p,486b,1731s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -916,11 +950,11 @@ ublic/amsfonts/cm/cmsl12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts
 xmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/share/texmf-dist/fonts
 /type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fonts/type1/public/
 amsfonts/symbols/msam7.pfb>
-Output written on /home/johannes/git/speculative-polly/thesis/latex/.tmp/sgPIj7
-/Thesis.pdf (23 pages, 270215 bytes).
+Output written on /home/johannes/git/speculative-polly/thesis/latex/.tmp/J6QWAr
+/Thesis.pdf (23 pages, 256389 bytes).
 PDF statistics:
- 581 PDF objects out of 1000 (max. 8388607)
- 423 compressed objects within 5 object streams
+ 528 PDF objects out of 1000 (max. 8388607)
+ 418 compressed objects within 5 object streams
  127 named destinations out of 1000 (max. 500000)
- 261 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 256 words of extra memory for PDF output out of 10000 (max. 10000000)
 

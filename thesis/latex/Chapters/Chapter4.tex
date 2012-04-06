@@ -65,14 +65,42 @@ TODO
 	\label{fig:polybenchCT}
 \end{figure}
 
+\begin{table}[htbp]
+  \caption{Results of running Polly and SPolly on SPEC 2000 benchmarks}
+  \begin{tabular}{| l | r | r | r | r | r | r | r |}
+    \hline
+    %\multirow{2}{*}{\textbf{Benchmark}} & \multirow{2}{*}{\textbf{\#func}} & \multicolumn{2}{c|}{\textbf{\#simple regions}} & \multirow{2}{*}{\textbf{\#instr}} &  \multicolumn{2}{c|}{\textbf{valid SCoPs}} &  \multicolumn{2}{c|}{\textbf{Avg detection time}} \\
+    \multirow{2}{*}{\textbf{Benchmark}} & \multirow{2}{*}{\textbf{\#instr}} & \multicolumn{2}{c|}{\textbf{\#simple regions}} &  \multicolumn{2}{c|}{\textbf{valid SCoPs}} &  \multicolumn{2}{c|}{\textbf{Avg detec. time}} \\
+    %\cline{6-9} \cline{3-4}
+    \cline{3-8} 
+    & & \textbf{initial} & \textbf{prepared} & \textbf{Polly} & \textbf{SPolly} & \textbf{Polly} & \textbf{SPolly} \\
+    \hline
+    \hline
+    188.ammp   & 19824  & 205 & 208 & 12 & 45 & &  \\
+    179.art    &  1667  & 66  &  66 &  5 & 16 & &  \\
+    256.bzip2  &  3585  & 114 & 116 & 13 &  7 & &  \\
+    186.crafty & 25541  & 305 & 310 & 23 & 23 & &  \\
+    183.equake &  2585  &  70 &  71 & 10 & 15 & &  \\
+    164.gzip   &  4773  &  92 &  95 &  6 &  0 & &  \\
+    181.mcf    &  1663 &  33 &  33  &  0 &  0 & &  \\
+    177.mesa   & 80952 & 816 & 832  & 94 &247 & &  \\
+    300.twolf  & 35796 & 679 & 716  &  6 &  0 & &  \\
+    175.vpr    & 19547 & 319 & 329  & 17 & 33 & &  \\
+    %188.ammp   & 161 & 205 & 208 & 19824  & 12 & 45 & &  \\
+    %179.art    & 22  & 66  &  66 &  1667  &  5 & 16 & &  \\
+    %256.bzip2  & 59  & 114 & 116 &  3585  & 13 &  7 & &  \\
+    %186.crafty & 105 & 305 & 310 & 25541  & 23 & 23 & &  \\
+    %183.equake & 24  &  70 &  71 &  2585  & 10 & 15 & &  \\
+    %164.gzip   & 59  &  92 &  95 &  4773  &  6 &  0 & &  \\
+    %181.mcf    & 24  &  33 &  33  &  1663 &  0 &  0 & &  \\
+    %177.mesa   & 769 & 816 & 832  & 80952 & 94 &247 & &  \\
+    %300.twolf  & 166 & 679 & 716  & 35796 &  6 &  0 & &  \\
+    %175.vpr    & 294 & 319 & 329  & 19547 & 17 & 33 & &  \\
+    \hline
+  \end{tabular}
+\end{table}
 
-\begin{figure}[htbp]
-	\centering
-        \includegraphics[width=0.5\textwidth]{SPEC2000CTsSCoPsOne.pdf}
-		\rule{35em}{0.5pt}
-	\caption{Details about speculative valid SCoPs}
-	\label{fig:SPEC2000CTsSCoPsOne}
-\end{figure}
+TODO time is higher because it is SPolly/polly version not spolly only
 
 \subsubsection{Available tests}
 
@@ -109,7 +137,7 @@ reported with a minimal test case and a detailed description why they occur.
 % ID | description | status | patch included | tool
 \begin{table}[htbp]
   \caption{Reported bugs}
-  \begin{tabularx}{\textwidth}{ c | X | p{2cm} | c | c }
+  \begin{tabularx}{0.9\textwidth}{ c | X | p{2cm} | c | c }
    ID & Description & Status & Patch provided  & Component \\
   \hline \hline
   12426 & Wrong argument mapping in OpenMP subfunctions & RESOLVED FIXED & yes & Polly \\

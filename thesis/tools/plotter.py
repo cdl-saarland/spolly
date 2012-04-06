@@ -42,7 +42,6 @@ while True:
     while "" in programs:
       programs.remove("")
 
-    programs.sort()
 
     print "Programs are:"
     print programs
@@ -116,14 +115,14 @@ while True:
   ylabel = raw_input("ylabel (empty=>None):")
   title  = raw_input("title  (empty=>None):")
   
-  stepping = 1
+  stepping = 1.0
   try:
     steppingStr = raw_input("Stepping[%i]:" % stepping)
     if steppingStr:
-      stepping = int(steppingStr)
+      stepping = float(steppingStr)
     assert(stepping > 0)
   except:
-    print "Stepping should be a positive integer... exit"
+    print "Stepping should be a positve float... exit"
     exit()
 
 
@@ -156,7 +155,10 @@ while True:
   ax.set_xticks(locs + (Width * (Nbars / 2.0)))
   # adjust the limits
   ax.set_xlim(0, N * (Ngaps + Nbars) * Width + Ngaps)
-  ax.set_yticks(np.arange(0, maximum + stepping + 1, stepping))
+  maximum2 = maximum *1.1
+  print "\n",maximum2,"\n"
+  ax.set_yticks(np.arange(0, maximum + stepping, stepping))
+  ax.set_ylim(0,maximum2)
   
   rot = int(options["rotation"])
   if rot < 0:

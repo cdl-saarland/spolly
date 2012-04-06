@@ -1,20 +1,20 @@
 
 
 
-polybenchCT.pdf
-[ 2mm, 3mm, adi, atax, bicg, cholesky, correlation, covariance, doitgen, dynprog, fdtd-2d, fdtd-apml, floyd-warshall, gemm, gemver, gesummv, gramschmidt, jacobi-1d-imper, jacobi-2d-imper, lu, ludcmp, mvt, reg_detect, seidel-2d, symm, syr2k, syrk, trisolv, trmm, ]
+SPEC2000CT.pdf
+[ ammp, art, bzip2, crafty, equake, gzip, mesa, mcf,twolf, vpr, ]
 2
 1
 
-Valid ScoPs
-[4, 4, 0, 3, 2, 0, 1, 1, 2, 1, 1, 0, 1, 3, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 2, 3, 0, 0]
+Polly
+[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
-Speculative Valid SCoPs
-[2, 3, 6, 1, 2, 1, 2, 2, 1, 1, 3, 5, 0, 1, 5, 2, 1, 1, 1, 0, 2, 3, 2, 0, 2, 2, 1, 2, 2]
-
-
+SPolly
+[4.75, 4.2, 1.5384615384615385, 2.0, 2.5, 1.0, 3.627659574468085, 1.0, 1.0, 2.9411764705882355]
 
 
+
+1
 n
 
 16

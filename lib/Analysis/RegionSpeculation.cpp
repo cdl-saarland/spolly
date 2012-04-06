@@ -357,7 +357,7 @@ CallInst *RegionSpeculation::createCall(Instruction *I) {
   //Module *M = builder.GetInsertBlock()->getParent()->getParent();
   Module *M = I->getParent()->getParent()->getParent();
   
-  DEBUGDEBUG(dbgs() << "@\t\t" << *I->getType() << "\t" << I->getNumOperands() << "\n");
+  DEBUG(dbgs() << "@\t\t" << *I->getType() << "\t" << I->getNumOperands() << "\n");
   
   unsigned argsC = I->getNumOperands();
   std::vector<Type *> argsT(argsC);
@@ -614,13 +614,13 @@ namespace {
         const SCEV *start = toInt64(AddRec->getStart(), SE, Int64Ty);
         const SCEV *step  = toInt64(AddRec->getStepRecurrence(*SE), SE, Int64Ty);
         const Loop *loop  = AddRec->getLoop();
-        dbgs() << " toint64 of addrec: " << *AddRec << "\n";
+        DEBUG(dbgs() << " toint64 of addrec: " << *AddRec << "\n");
         if (SE->hasLoopInvariantBackedgeTakenCount(loop)) {
           const SCEV *BTCount = toInt64(SE->getBackedgeTakenCount(loop), SE, Int64Ty);
-          dbgs() << "BTCOunt: " << *BTCount << "\n";
+          DEBUG(dbgs() << "BTCOunt: " << *BTCount << "\n");
           const SCEV *tripCount = SE->getAddExpr(BTCount,
                                       SE->getConstant(APInt(64, -1, true)));
-          dbgs() << "TripCount: " <<*tripCount << "\n";
+          DEBUG(dbgs() << "TripCount: " <<*tripCount << "\n");
           return SE->getAddExpr(start, SE->getMulExpr(step, tripCount));
         } else {
           return SE->getAddRecExpr(start, step, loop, AddRec->getNoWrapFlags());
@@ -975,7 +975,7 @@ namespace polly {
                                                   builderLoad.getInt64Ty());
           } else if (!(type->isFloatingPointTy() || type->isIntegerTy())) {
             // TODO only int, pointer and floats are supported at the moment
-            dbgs() << "Type " << *type << " is not supported yet TODO \n";
+            DEBUG(dbgs() << "Type " << *type << " is not supported yet TODO \n");
             cast<Instruction>(loadInst)->eraseFromParent();
             cast<Instruction>(loadInstCur)->eraseFromParent();
             continue;
@@ -1247,30 +1247,25 @@ namespace polly {
           RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
         
         if (parallelVersionSubfn) {
-          dbgs() << "\n\n\n\n\n\n\n\n\n\n hjkl\n\n";
+          DEBUG(dbgs() << "\n\n\n\n\n\n\n\n\n\n hjkl\n\n");
           parallelVersionSubfn->dump();
-          dbgs() << "\n\n\n\n\n\n\n\n\n\n hjkl\n\n";
+          DEBUG(dbgs() << "\n\n\n\n\n\n\n\n\n\n hjkl\n\n");
         }
         EnableSpolly = true;
         SpeculativeRegionNameStr = "";
         
         // If aliastests are available insert or rewire them
         if (aliasTestsAvailable()) {
-          dbgs() << " contains Aliasing instructions " << NumberOfAliasGroups << "\n";
+          DEBUG(dbgs() << " contains Aliasing instructions " << NumberOfAliasGroups << "\n");
           BasicBlock *entry, *enterScopBlock = 0;
           if (useOriginal)
             entry = RMK.first;
           else
             entry = cast<BasicBlock>(parallelValueMap->lookup(RMK.first));
           assert(entry && "Entry in parallel version was not found");
-          dbgs() << "\n\n --------------------------------\n";
-          dbgs() << "UO: " << useOriginal << "\n"; 
-          entry->getParent()->dump();
-          dbgs() << "\n\n --------------------------------\n";
 
           for (pred_iterator it = pred_begin(entry), end = pred_end(entry);
                it != end; it++) {
-              dbgs() << "  === "  << (*it)->getName() << "\n";
               if ((*it)->getName().startswith("polly.enterScop")) {
                 enterScopBlock = *it;
                 break;
@@ -1443,8 +1438,8 @@ namespace polly {
       bool inline registerMemoryAccess(const Instruction * const I,
                                        const SCEV * const scev,
                                        const Value * const V) {
-        dbgs() << "\n\n Register Memory Access: \n\t\t" << *I << "\n\t\t" 
-               << *scev << "\n\t\t" << *V << "\n\n\n";
+        DEBUG(dbgs() << "\n\n Register Memory Access: \n\t\t" << *I << "\n\t\t" 
+               << *scev << "\n\t\t" << *V << "\n\n\n");
         assert(I && scev && R->contains(I) && "Bad memory access");
           
         IntegerType *IntTy64 = Type::getInt64Ty(I->getContext());
@@ -1637,13 +1632,13 @@ namespace polly {
       ///
       /// @return A SpollyInfo::scoreSCEV 
       const SCEV *createSCEVForInstruction(const Instruction *I) {
-        dbgs() << " I: " << *I << "\n";
+        DEBUG(dbgs() << " I: " << *I << "\n");
         int score = 1;
 
         if (const LoadInst *LI = dyn_cast<LoadInst>(I)) {
           PointerType *pointerType = cast<PointerType>(LI->getPointerOperand()->getType());
           if (!(LI->getType()->isSized() && pointerType->isSized())) {
-            dbgs() << " not sized: " << *LI << "\n";
+            DEBUG(dbgs() << " not sized: " << *LI << "\n");
 
             // Statistic
             UnsizedPointer++;
@@ -1654,7 +1649,7 @@ namespace polly {
             if (!VectorType::isValidElementType(pointerType)) {
               // Statistics
               NonVectorizable++;
-              dbgs() << "   == Disable vector instructions \n";
+              DEBUG(dbgs() << "   == Disable vector instructions \n");
               // TODO when to do this ?
               //EnableVector = false;
             }
@@ -1690,7 +1685,7 @@ namespace polly {
       ///
       /// @return A SpollyInfo::scoreSCEV 
       const SCEV *createSCEVForBasicBlock(const BasicBlock *BB) {
-        dbgs() << " BB: " << BB->getNameStr() << "\n";
+        DEBUG(dbgs() << " BB: " << BB->getNameStr() << "\n");
         SmallVector<const SCEV *, 32> scevs;
 
         BasicBlock::const_iterator it = BB->begin(), end = BB->end();
@@ -1710,7 +1705,7 @@ namespace polly {
       ///
       /// @return A SpollyInfo::scoreSCEV 
       const SCEV *createSCEVForRegionElements(const Region *R) {
-        dbgs() << " RegionElements: " << R->getNameStr() << "\n";
+        DEBUG(dbgs() << " RegionElements: " << R->getNameStr() << "\n");
         SmallVector<const SCEV *, 32> scevs;
 
         // Handle all subregions and basicBlocks within this region
@@ -1720,11 +1715,11 @@ namespace polly {
 
         for (; it != end; it++) { 
           if ((*it)->isSubRegion()) {
-            dbgs() << "SubRegion: " << *it << " \n";
+            DEBUG(dbgs() << "SubRegion: " << *it << " \n");
             const Region *region = (*it)->getNodeAs<Region>();
             scevs.push_back(createSCEVForRegion(region));
           } else {
-            dbgs() << "BasicBlock: " << *it << " \n";
+            DEBUG(dbgs() << "BasicBlock: " << *it << " \n");
             const BasicBlock *BB = (*it)->getNodeAs<BasicBlock>();
             scevs.push_back(createSCEVForBasicBlock(BB));
           }
@@ -1801,8 +1796,8 @@ namespace polly {
       ///
       /// @return A SpollyInfo::scoreSCEV 
       const SCEV *createSCEVForLoop(const Region *R) {
-        dbgs() << " L: " << R->getNameStr() << "\n";
-        dbgs() << "\n\n scev for loop " << R->getNameStr() << " \n";
+        DEBUG(dbgs() << " L: " << R->getNameStr() << "\n");
+        DEBUG(dbgs() << "\n\n scev for loop " << R->getNameStr() << " \n");
         const Loop *loop = RS->LI->getLoopFor(R->getEntry());
         IntegerType *Ty = Type::getInt64Ty(RMK.first->getContext());
         
@@ -1831,7 +1826,7 @@ namespace polly {
           ProfilingValues[GV] = PL; 
           tripCount = RS->SE->getSCEV(GV);
         }
-        dbgs() << " tripcount " << *tripCount << "\n";
+        DEBUG(dbgs() << " tripcount " << *tripCount << "\n");
 
         const SCEV *tripCountTresholdSCEV = RS->SE->getConstant(tripCountTreshold);
         const SCEV *loopExp   = RS->SE->getUDivExpr(tripCount, tripCountTresholdSCEV);
@@ -1843,18 +1838,18 @@ namespace polly {
 
 
       const SCEV *createSCEVForBranch(BasicBlock *current, const Region *R) {
-        dbgs() << " Branch: " << current->getName() << "  " << R->getNameStr() << "\n"; 
+        DEBUG(dbgs() << " Branch: " << current->getName() << "  " << R->getNameStr() << "\n"); 
         if (current == R->getExit() || current == R->getEntry()) 
           return RS->SE->getConstant(APInt(64,0));
         
         Region *Rcurrent = RS->RI->getRegionFor(current);
         if (Rcurrent->getEntry() == current) {
-          dbgs() << "   == rec for region " << Rcurrent->getNameStr() << "\n";
+          DEBUG(dbgs() << "   == rec for region " << Rcurrent->getNameStr() << "\n");
           const SCEV *Rscore = createSCEVForRegion(Rcurrent);
           const SCEV *Escore = createSCEVForBranch(Rcurrent->getExit(), R);
           return RS->SE->getAddExpr(Rscore, Escore);
         } else {
-          dbgs() << "   == rec for BB " << current->getNameStr() << "\n";
+          DEBUG(dbgs() << "   == rec for BB " << current->getNameStr() << "\n");
           const SCEV *Bscore = createSCEVForBasicBlock(current);
           SmallVectorImpl<const SCEV*> scevs(2);
           scevs.push_back(Bscore);
@@ -1873,7 +1868,7 @@ namespace polly {
       /// 
       /// @return A SpollyInfo::scoreSCEV 
       const SCEV *createSCEVForConditional(const Region *R) {
-        dbgs() << " C: " << *R << "\n";
+        DEBUG(dbgs() << " C: " << *R << "\n");
         BasicBlock *entry = R->getEntry();
         IntegerType *Int64Ty = Type::getInt64Ty(entry->getContext());
         const SCEV *entryScore = createSCEVForBasicBlock(entry);
@@ -1890,8 +1885,8 @@ namespace polly {
 
         BasicBlock *branch0BB = guard->getSuccessor(0);
         BasicBlock *branch1BB = guard->getSuccessor(1);
-        dbgs() << "   Successors: " << branch0BB->getName() 
-               << " and " << branch1BB->getName() <<"\n";
+        DEBUG(dbgs() << "   Successors: " << branch0BB->getName() 
+               << " and " << branch1BB->getName() <<"\n");
  
         GlobalValue *GV0 = new GlobalVariable(Int64Ty, 
                                               false,
@@ -1940,9 +1935,9 @@ namespace polly {
         }
         BranchIsCrucial = false;
         
-        dbgs() << *branch0Score->getType() << "  " << *prob0->getType() << "\n";
-        dbgs() << *branch1Score->getType() << "  " << *prob1->getType() << "\n";
-        dbgs() << *toInt64(branch1Score, RS->SE, Int64Ty)->getType() << "\n";
+        DEBUG(dbgs() << *branch0Score->getType() << "  " << *prob0->getType() << "\n");
+        DEBUG(dbgs() << *branch1Score->getType() << "  " << *prob1->getType() << "\n");
+        DEBUG(dbgs() << *toInt64(branch1Score, RS->SE, Int64Ty)->getType() << "\n");
 
         const SCEV *divisor = RS->SE->getConstant(APInt(64, 100, false));
         const SCEV *branch0ScoreProb = 
@@ -1974,7 +1969,7 @@ namespace polly {
       /// 
       /// @return A SpollyInfo::scoreSCEV 
       const SCEV *createSCEVForRegion(const Region *R) {
-        dbgs() << " Region: " << R->getNameStr() << "\n";
+        DEBUG(dbgs() << " Region: " << R->getNameStr() << "\n");
         if (regionIsLoop(R, RS->LI)) {
           return createSCEVForLoop(R);
         } else if (regionIsConditional(R)) {
@@ -2041,9 +2036,9 @@ namespace polly {
             ToCheck.push_back(createMinMaxAccessPair(builder, *it, 
                                                      SCEVToValueMap));
             MinMaxPair AB = ToCheck.back();
-            dbgs() << "\n---------------------------------------\n";
-            dbgs() << *AB.first << "\n\n" << *AB.second 
-                   << "\n---------------------------------------\n";
+            DEBUG(dbgs() << "\n---------------------------------------\n");
+            DEBUG(dbgs() << *AB.first << "\n\n" << *AB.second 
+                   << "\n---------------------------------------\n");
           }
 
           for (std::vector<MinMaxPair>::const_iterator Ait = ToCheck.begin(),
@@ -2071,8 +2066,8 @@ namespace polly {
           
         }
 
-        dbgs() << "Result: ";
-        dbgs() << *results.front() << "\n";
+        DEBUG(dbgs() << "Result: ");
+        DEBUG(dbgs() << *results.front() << "\n");
         return results.front();
         
       }
@@ -2117,7 +2112,7 @@ namespace polly {
 
           // Remove groups with less than two AliasingValues
           if (AG->size() < 2) {
-            dbgs() << "Remove alias group with less than two members\n";
+            DEBUG(dbgs() << "Remove alias group with less than two members\n");
             AG->clear();
             groupNo--;  
             NumberOfAliasGroups--;
@@ -2447,7 +2442,8 @@ void RegionSpeculation::finalizeScopDetectionRun() {
   // All TemporaryRegions should be saved or deleted 
   assert(!TemporaryRegion
          && "TemporaryRegion was not 0 during finalization");
-
+  
+  return;
   std::set<Function *> changedFunctions;
   if (ReplaceByParallelVersion || ReplaceByParallelVersionSound) {
     for (iterator I2 = SpeculativeValidRegions.begin(),
@@ -2457,7 +2453,7 @@ void RegionSpeculation::finalizeScopDetectionRun() {
 
         Function *orig = getOriginalVersion(I->second);
         if (!(ReplaceByParallelVersion || checksAreSound(I->second))) continue;
-        dbgs() << I->second->getNameStr() << "  in  " << orig->getName() << "\n";
+        DEBUG(dbgs() << I->second->getNameStr() << "  in  " << orig->getName() << "\n");
         Module   *M = orig->getParent();
         if (changedFunctions.count(orig)) {
           orig->dump();
@@ -2630,9 +2626,10 @@ bool StatisticPrinter::runOnFunction(Function &F) {
 bool StatisticPrinter::doFinalization(Module &M) {
     PrintStatistics();
     std::string error;
-    dbgs() << "\n\n Write Module to " << (M.getModuleIdentifier() +".ll").c_str() << "\n\n";
+    DEBUG(dbgs() << "\n\n Write Module to "
+          << (M.getModuleIdentifier() +".ll").c_str() << "\n\n");
     raw_fd_ostream file ((M.getModuleIdentifier() +".ll").c_str(), error, 0);
-    dbgs() << "\t Error: " << error << "\n";
+    DEBUG(dbgs() << "\t Error: " << error << "\n");
     M.print(file, 0);
     file.close();
     assert(error.empty());
