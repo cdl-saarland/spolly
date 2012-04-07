@@ -92,6 +92,12 @@ IgnoreAliasing("polly-ignore-aliasing",
                cl::desc("Ignore possible aliasing of the array bases"),
                cl::Hidden, cl::init(false));
 
+static cl::opt<bool>
+AllowNonAffine("polly-allow-nonaffine",
+               cl::desc("Allow non affine access functions in arrays"),
+               cl::Hidden, cl::init(false));
+
+
 //===----------------------------------------------------------------------===//
 // Statistics.
 
@@ -234,14 +240,16 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
     const SCEV *RHS = SE->getSCEV(ICmp->getOperand(1));
     DEBUG(dbgs() << *LHS << "   " << *RHS << "\n");;
 
+    DEBUG(
     bool a0 = isAffineExpr(&Context.CurRegion, LHS, *SE);
     bool a1 = isAffineExpr(&Context.CurRegion, RHS, *SE);
-    DEBUG(dbgs() << "|| branch in BB '" << BB.getName() << "\n"
+    dbgs() << "|| branch in BB '" << BB.getName() << "\n"
                  << "\t with LHS: " << *ICmp->getOperand(0) << "\n"
                  << "\t  and RHS: " << *ICmp->getOperand(1) << "\n"
                  << "\t scev LHS: " << *LHS << "\n"
                  << "\t  and RHS: " << *RHS << "\n"
-                 << "\t affine: " << a0 << "  " << a1 << "\n"); 
+                 << "\t affine: " << a0 << "  " << a1 << "\n"; 
+    );
 
     if (!isAffineExpr(&Context.CurRegion, LHS, *SE) ||
         !isAffineExpr(&Context.CurRegion, RHS, *SE)) {
@@ -363,15 +371,17 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
   
   //DEBUG(dbgs() << "AccessFunction " << *AccessFunction << " " 
                //<< Context.CurRegion  << " " << SE << "\n");
-
+  
+  DEBUG(
   bool a0 = isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue);
-  DEBUG(dbgs() << "|| memory access in BB '" << Inst.getParent()->getName() << "\n"
+  dbgs() << "|| memory access in BB '" << Inst.getParent()->getName() << "\n"
                << "\t at: " << Inst << " \n" 
                << "\t  with AF: " << *AccessFunction << "\n"
                << "\t  with BV: " << *BaseValue << "\n"
-               << "\t affine: " << a0 << "\n"); 
+               << "\t affine: " << a0 << "\n"; 
+  );
 
-  if (!isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue))
+  if (!isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue) && !AllowNonAffine)
     INVALID(AffFunc, "Bad memory address " << *AccessFunction);
 
   // FIXME: Alias Analysis thinks IntToPtrInst aliases with alloca instructions
@@ -618,20 +628,25 @@ Region *ScopDetection::expandRegion(Region &R) {
     DetectionContext Context(*TmpRegion, *AA, false /*verifying*/);
     DEBUG(dbgs() << "\t\tTrying " << TmpRegion->getNameStr() << "\n");
     
-    if (!isValidExit(Context)) 
+    if (!allBlocksValid(Context)) 
       break;
 
-    if (allBlocksValid(Context)) {
+    if (isValidExit(Context)) {
       if (CurrentRegion != &R)
         delete CurrentRegion;
 
       CurrentRegion = TmpRegion;
+
+      TmpRegion = TmpRegion->getExpandedRegion();
+      continue;
     }
 
     Region *TmpRegion2 = TmpRegion->getExpandedRegion();
 
-    if (TmpRegion != &R && TmpRegion != CurrentRegion)
-      delete TmpRegion;
+    // The expected return value of getExpandedRegion is a NULL-pointer or a 
+    // 'fresh' allocated region, thus never R
+    assert(TmpRegion != &R && "Expanded region was not created by new");
+    delete TmpRegion;
 
     TmpRegion = TmpRegion2;  
   }
@@ -640,10 +655,8 @@ Region *ScopDetection::expandRegion(Region &R) {
     return NULL; 
   
   DEBUG(dbgs() << "\tto " << CurrentRegion->getNameStr() << "\n");
-
   return CurrentRegion;
 }
-
 
 void ScopDetection::findScops(Region &R) {
   DetectionContext Context(R, *AA, false /*verifying*/);

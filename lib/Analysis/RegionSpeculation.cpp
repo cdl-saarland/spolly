@@ -1545,8 +1545,9 @@ namespace polly {
         if (!maxAccesses.size())
           maxAccesses.push_back(RS->SE->getConstant(builder.getInt64Ty(),
                                                     0, /* signed */ true));
-        
-        //minAccesses.swap(maxAccesses);
+       
+        // This is because the stack is upside down :P 
+        minAccesses.swap(maxAccesses);
 
         // The baseValue as scev
         const SCEV *baseSCEV = 
@@ -1564,8 +1565,7 @@ namespace polly {
           Value *val = sambamba::SCEVToValue(builder, s, SCEVToValueMap, RS->SE,
                                              success, RS->TD);
           if (success) {
-            // maxAccessValues is right !
-            maxAccessValues.push_back(val);
+            minAccessValues.push_back(val);
           } else {
             success = true;
             checksAreSound = false;
@@ -1581,8 +1581,7 @@ namespace polly {
           Value *val = sambamba::SCEVToValue(builder, s, SCEVToValueMap, RS->SE,
                                              success, RS->TD);
           if (success) {
-            // minAccessValues is right !
-            minAccessValues.push_back(val);
+            maxAccessValues.push_back(val);
           } else {
             success = true;
             checksAreSound = false;
@@ -1616,11 +1615,32 @@ namespace polly {
           maxAccessValues.push_back(sel);
         }
 
-        assert(minAccessValues.size() == 1 
-               && "Expected one minimal access value");
-        assert(maxAccessValues.size() == 1 
-               && "Expected one maximal access value");
         
+        DEBUG(dbgs() << "#MinAccessValues: " << minAccessValues.size() << "\n");
+        //assert(minAccessValues.size() == 1 
+               //&& "Expected one minimal access value");
+        DEBUG(dbgs() << "#MaxAccessValues: " << maxAccessValues.size() << "\n");
+        //assert(maxAccessValues.size() == 1 
+               //&& "Expected one maximal access value");
+        
+        if (!minAccessValues.size()) {
+          success = true;
+          assert(!checksAreSound && "No minimal access should imply non sound checks");
+          minAccessValues.push_back(sambamba::SCEVToValue(builder, baseSCEV, SCEVToValueMap, RS->SE,
+                                             success, RS->TD));
+          assert(success); 
+
+        }
+
+        if (!maxAccessValues.size()) {
+          success = true;
+          assert(!checksAreSound && "No maxminal access should imply non sound checks");
+          minAccessValues.push_back(sambamba::SCEVToValue(builder, baseSCEV, SCEVToValueMap, RS->SE,
+                                             success, RS->TD));
+          assert(success); 
+        }
+
+
         return std::make_pair(minAccessValues.front(), maxAccessValues.front());
         
       }
