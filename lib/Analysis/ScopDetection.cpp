@@ -511,13 +511,6 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
     if (RS) {
       DEBUG(dbgs() << "-=-| FuncCall 1 disabled |-=-\n");
       
-      //StringRef sr = CI->getCalledFunction()->getName();
-      //DEBUG(dbgs() << "@\t func call to " << sr << "\n");
-      //if (sr.startswith("_spolly_call")) {
-        //DEBUG(dbgs() << "@\t ignore spolly call \n");
-        //return true;
-      //}
-
       spolly_hit = true;
       
       return RS->registerViolatingInstruction(&Inst, RegionSpeculation::FunctionCall);
@@ -653,11 +646,11 @@ Region *ScopDetection::expandRegion(Region &R) {
 
 
 void ScopDetection::findScops(Region &R) {
-  detectionContext = new DetectionContext(R, *AA, false /*verifying*/);
+  DetectionContext Context(R, *AA, false /*verifying*/);
   
   LastFailure = "";
   
-  if (isValidRegion(*detectionContext)) {
+  if (isValidRegion(Context)) {
 
     // Distinguish between speculative valid regions and real valid regions
     if (spolly_hit) {
@@ -677,7 +670,6 @@ void ScopDetection::findScops(Region &R) {
 
     }
     
-    //detectionContext->AST.clear();
     return;
   }
 
@@ -732,7 +724,6 @@ void ScopDetection::findScops(Region &R) {
 
   }
   
-  //detectionContext->AST.clear();
 }
 
 bool ScopDetection::allBlocksValid(DetectionContext &Context) const {
