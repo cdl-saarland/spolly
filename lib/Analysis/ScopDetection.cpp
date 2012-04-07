@@ -143,7 +143,7 @@ BADSCOP_STAT(Alias,           "Found base address alias");
 BADSCOP_STAT(SimpleRegion,    "Region not simple");
 BADSCOP_STAT(Other,           "Others");
 BADSCOP_STAT(Phi,             "non canonical phi node");
-BADSCOP_STAT(PHIOps,          "PHInode user inside SCOP");
+//BADSCOP_STAT(PHIOps,          "PHInode user inside SCOP");
 BADSCOP_STAT(BadMemoryAccess, "Bad memory access");
 
 
@@ -406,7 +406,7 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
   if (!AS.isMustAlias() && !IgnoreAliasing) { 
       DEBUG(dbgs() << "-=-| STATSCOP Alias 1 |-=-\n");
       DEBUG(dbgs() << "-=-| END Alias 1 |-=-\n");
-      AS.print(dbgs());
+      DEBUG(AS.print(dbgs()));
 
       if (RS) {
         DEBUG(dbgs() << "-=-| Alias 1 disabled |-=-\n");
@@ -542,11 +542,11 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       INVALID(Other, "Alloca instruction: " << Inst);
     }
 
-    if (hasPhiOperatorsOutsideScop(Inst, Context.CurRegion)) {
-      DEBUG(dbgs() << "-=-| STATSCOP PHI OPS |-=-\n");
-      DEBUG(dbgs() << "-=-| END PHI OPS |-=-\n");
-      INVALID(PHIOps, Inst << " depends on PHIs outside the SCOP");
-    }
+    //if (hasPhiOperatorsOutsideScop(Inst, Context.CurRegion)) {
+      //DEBUG(dbgs() << "-=-| STATSCOP PHI OPS |-=-\n");
+      //DEBUG(dbgs() << "-=-| END PHI OPS |-=-\n");
+      //INVALID(PHIOps, Inst << " depends on PHIs outside the SCOP");
+    //}
     DEBUG(dbgs() << " abcdefghj INSTRUCTION " << Inst << "\n\n");
 
     return true;
