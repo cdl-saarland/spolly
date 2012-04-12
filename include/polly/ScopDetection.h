@@ -79,6 +79,7 @@ namespace polly {
 
 extern bool EnableSpolly;
 extern std::string SpeculativeRegionNameStr;
+extern bool IgnoreOnlyFunction;
 
 // The Region Speculation class used to register violating instructions
 
@@ -247,6 +248,16 @@ public:
   /// @brief Add a speculative valid region to the valid regions
   void addValidRegion(const Region *R) {
     ValidRegions.insert(R);
+  }
+
+  /// @brief Add a speculative valid region to the valid regions
+  void addInvalidRegion(const Region *R, std::string s) {
+    InvalidRegions.insert(std::make_pair(R, s));
+  }
+
+  /// @brief Remove a speculative valid region to the valid regions
+  void removeValidRegion(const Region *R) {
+    ValidRegions.erase(R);
   }
 
   /// @brief Get the RegionSpeculation stored in this pass

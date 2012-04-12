@@ -13,18 +13,19 @@ TODO this section was just copied TODO \\
 TODO it is also incomplete TODO 
 \end{center}
 
+
+
+
 \section{LLVM - The Low Level Virtual Machine}
 \label{LLVM}
 The Low Level Virtual Machine is a compiler infrastructure designed to optimize
 during compiletime, linktime and runtime. Originally designed for C/C++, 
 many other frontends for a variety of languages exist by now. The source is 
-translated into an intermediate representation (LLVM-IR). 
-%which is available 
-%in three different, but equivalent forms. There is the in-memory compiler IR, 
-%the on-disk bitcode representation and human readable assembly language which 
-%is used through this proposal.
-The LLVM-IR is a type-safe, static single
-assignment based language designed for low-level operations. It is capable of 
+translated into an intermediate representation (LLVM-IR), which is available 
+in three different, but equivalent forms. There is the in-memory compiler IR, 
+the on-disk bitcode representation and human readable assembly language.
+The LLVM-IR is a type-safe, static single assignment based language,
+designed for low-level operations. It is capable of 
 representing high-level structures in a flexible way.
 Due to the fact that LLVM is built in a modular 
 way and can be extended easily, most of the state of the art analysis and
@@ -42,13 +43,14 @@ in the context of Sambamba in Section \ref{sambamba} in more detail.
   \item \url{http://www.llvm.org} \nocite{LLVM:Online}
 \end{itemize}
 
+% =============================================================================
+
 
 \section{The Polyhedral Model}
-The polyhedral model is a mathematical description of a set of (integer) points
-defined by a finite system of affine functions. If this set is bounded we will
-talk about polytopes whereas polyhedra are built the same way but consist of an
-unbounded point set.
-Polytopes can be used to describe the index space of a loop nest with 
+The polyhedral model is a mathematical description of a, may be infinite set of 
+integer points defined by a finite system of affine inequalities. 
+In the finite case they are also called polytopes.
+Polyhedra can be used to describe the index space of a loop nest with 
 affine loop bounds. The dimension of this space is determined by the depth of 
 the loop nest. Each occurring iteration vector, which is a vector 
 containing all surrounding induction variables, corresponds to a point in the 

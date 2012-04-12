@@ -83,16 +83,20 @@
 \@writefile{toc}{\contentsline {section}{\numberline {5.1}Quantitative Results}{10}{section.33}}
 \@writefile{toc}{\contentsline {section}{\numberline {5.2}Qualitative Results}{10}{section.34}}
 \@writefile{toc}{\contentsline {section}{\numberline {5.3}Interpretation}{10}{section.35}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {6}Conclusion}{11}{chapter.36}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Case Study - Matrix multiplication}{11}{chapter.36}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{Chapter6}{{6}{11}{Conclusion\relax }{chapter.36}{}}
+\newlabel{Chapter6}{{6}{11}{Case Study - Matrix multiplication\relax }{chapter.36}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusion}{12}{chapter.37}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{Chapter7}{{7}{12}{Conclusion\relax }{chapter.37}{}}
 \@writefile{toc}{\vspace  {2em}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}Matrix Multiplication Example}{12}{appendix.37}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}Matrix Multiplication Example}{13}{appendix.38}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{AppendixA}{{A}{12}{Matrix Multiplication Example\relax }{appendix.37}{}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/matmul.c}{12}{lstlisting.38}}
+\newlabel{AppendixA}{{A}{13}{Matrix Multiplication Example\relax }{appendix.38}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/matmul.c}{13}{lstlisting.39}}
 \@writefile{toc}{\vspace  {2em}}
 \bibstyle{unsrtnat}
 \bibdata{Bibliography}
@@ -106,5 +110,5 @@
 \bibcite{Polly:Online}{{8}{2011{}}{{Grosser}}{{}}}
 \bibcite{DBLP:conf/cc/StreitHZH12}{{9}{2012{}}{{Streit et~al.}}{{Streit, Hammacher, Zeller, and Hack}}}
 \bibcite{StreitHZH12:Online}{{10}{2012{}}{{Streit et~al.}}{{Streit, Hammacher, Zeller, and Hack}}}
-\@writefile{toc}{\contentsline {chapter}{Bibliography}{14}{dummy.92}}
-\newlabel{Bibliography}{{1}{14}{Matrix Multiplication Example\relax }{dummy.92}{}}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{15}{dummy.93}}
+\newlabel{Bibliography}{{1}{15}{Matrix Multiplication Example\relax }{dummy.93}{}}

@@ -49,11 +49,12 @@ namespace llvm {
   class DominatorTree;
   class TargetData;
   class SCEV;
+  class FunctionPassManager;
 }
 
 namespace polly {
   
-extern bool RegionSpeculationPrepareRegion;
+extern bool SPollyExtractRegions;
 
 class ScopStmt;
 class ScopDetection;
@@ -86,6 +87,8 @@ private:
   /// deleted or stored afterwards
   SPollyInfo *TemporaryRegion;
   
+  FunctionPassManager *fpm;
+
   /// @brief Analysis passes used.
   //@{
   ScopDetection *SD;
@@ -110,8 +113,6 @@ public:
   //@}
 
   /// @brief The default constructor
-  /// 
-  /// - Create the SPollyInfo ScalarEvolution object
   RegionSpeculation();
   
   /// @brief
@@ -143,6 +144,7 @@ public:
   std::string getNameStr(RegionMapKey &RMK);
   bool checksAreSound(RegionMapKey &RMK);
   int64_t getScore(RegionMapKey &RMK);
+  void changeCalledVersion(RegionMapKey &RMK, Function *Version); 
 
   void removeRegion(RegionMapKey &RMK);
 
@@ -153,7 +155,8 @@ public:
   std::string getNameStr(SPollyInfo *SPI);
   bool checksAreSound(SPollyInfo *SPI);
   int64_t getScore(SPollyInfo *SPI);
-  
+ 
+  void changeCalledVersion(SPollyInfo *SPI, Function *Version); 
   //@}
 
   /// @brief Register a memory access for the current region (TemporaryRegion)
@@ -206,11 +209,8 @@ public:
   ///  - Forget the given analysis
   void finalizeScopDetectionRun();
 
-  /// @brief TODO
-  bool speculateOnRegion(const Region *R);
-
   /// @brief
-  //void updateRegionPointer(RegionInfo *RI);
+  ScalarEvolution *getSE() { return SE; }
 
   /// @brief Verify the communication between ScopDetection and RegionSpeculation 
   ///

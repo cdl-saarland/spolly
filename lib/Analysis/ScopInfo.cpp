@@ -202,7 +202,6 @@ public:
     assert(Expr->isAffine() && "Only affine AddRecurrences allowed");
     assert(scop->getRegion().contains(Expr->getLoop())
            && "Scop does not contain the loop referenced in this AddRec");
-    dbgs() << "\n\n" << *Expr  << "\n\n";
 
     isl_pw_aff *Start = visit(Expr->getStart());
     isl_pw_aff *Step = visit(Expr->getOperand(1));
@@ -257,7 +256,6 @@ public:
       Value->setName(ValueName);
     }
 
-    dbgs() << "\n\n mmmm ValueName " << ValueName << "\n\n";
     isl_id *ID = isl_id_alloc(ctx, ValueName.c_str(), Value);
     Space = isl_space_set_alloc(ctx, 1, NbLoopSpaces);
     Space = isl_space_set_dim_id(Space, isl_dim_param, 0, ID);
@@ -883,12 +881,10 @@ void Scop::addParams(std::vector<const SCEV*> NewParameters) {
   for (std::vector<const SCEV*>::iterator PI = NewParameters.begin(),
        PE = NewParameters.end(); PI != PE; ++PI) {
     const SCEV *Parameter = *PI;
-    dbgs()  << "wwww Parameter" << *Parameter << "\n";
     if (ParameterIds.find(Parameter) != ParameterIds.end())
       continue;
 
     int dimension = Parameters.size();
-    dbgs() << "   wwww dimension " << dimension << "\n";
     Parameters.push_back(Parameter);
     ParameterIds[Parameter] = dimension;
   }
@@ -1103,7 +1099,6 @@ void ScopInfo::getAnalysisUsage(AnalysisUsage &AU) const {
 }
 
 bool ScopInfo::runOnRegion(Region *R, RGPassManager &RGM) {
-  dbgs() << "SI run on Region " << R << "  " << R->getNameStr() << "\n";
   LoopInfo &LI = getAnalysis<LoopInfo>();
   ScalarEvolution &SE = getAnalysis<ScalarEvolution>();
 
@@ -1112,7 +1107,6 @@ bool ScopInfo::runOnRegion(Region *R, RGPassManager &RGM) {
   // This region is no Scop.
   if (!tempScop) {
     scop = 0;
-    dbgs() << "SI end run on Region (no Scop) \n";
     return false;
   }
 
@@ -1122,7 +1116,6 @@ bool ScopInfo::runOnRegion(Region *R, RGPassManager &RGM) {
   
   scop = new Scop(*tempScop, LI, SE, ctx);
 
-  dbgs() << "SI end run on Region scop! \n";
     
   return false;
 }

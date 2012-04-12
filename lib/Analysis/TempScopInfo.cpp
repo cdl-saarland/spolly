@@ -87,12 +87,10 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
     if (isa<LoadInst>(&Inst) || isa<StoreInst>(&Inst)) {
 
       if (LoadInst *Load = dyn_cast<LoadInst>(&Inst)) {
-        dbgs() << *Load << "   " << *Load->getType() << "\n";
         Size = TD->getTypeStoreSize(Load->getType());
         Type = IRAccess::READ;
       } else {
         StoreInst *Store = cast<StoreInst>(&Inst);
-        dbgs() << *Store << "  " << *Store->getValueOperand()->getType() << "\n";
         Size = TD->getTypeStoreSize(Store->getValueOperand()->getType());
         Type = IRAccess::WRITE;
       }
@@ -261,8 +259,6 @@ void TempScopInfo::print(raw_ostream &OS, const Module *) const {
 }
 
 bool TempScopInfo::runOnFunction(Function &F) {
-  dbgs() << "TSI run on Function " << F.getName() << " \n";
-    
   DT = &getAnalysis<DominatorTree>();
   PDT = &getAnalysis<PostDominatorTree>();
   SE = &getAnalysis<ScalarEvolution>();
@@ -275,7 +271,6 @@ bool TempScopInfo::runOnFunction(Function &F) {
     TempScops.insert(std::make_pair(R, buildTempScop(*R)));
   }
 
-  dbgs() << "TSI end run on Function \n";
   return false;
 }
 
@@ -304,17 +299,13 @@ void TempScopInfo::clear() {
 
 
 bool TempScopInfo::doInitialization(Module &M) {
-  dbgs() << "TSI do   Initialization \n";
   TD = new TargetData(&M);
-  dbgs() << "TSI done Initialization \n";
 
   return false;
 }
 
 bool TempScopInfo::doFinalization(Module &M) {
-  dbgs() << "TSI do   Finalization \n";
   delete TD;
-  dbgs() << "TSI done Finalization \n";
 
   return false;
 }

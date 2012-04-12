@@ -72,6 +72,7 @@ using namespace llvm;
 using namespace polly;
 
 bool polly::EnableSpolly;
+bool polly::IgnoreOnlyFunction = false;
 //std::string polly::SpeculativeRegionNameStr = "for.body => for.end";
 std::string polly::SpeculativeRegionNameStr = "";
 
@@ -619,48 +620,61 @@ bool ScopDetection::isValidLoop(Loop *L, DetectionContext &Context) const {
 }
 
 Region *ScopDetection::expandRegion(Region &R) {
-  Region *CurrentRegion = &R;
-  Region *TmpRegion = R.getExpandedRegion();
+  // Initial no valid region was found (greater than R)
+  Region *LastValidRegion = NULL;
+  Region *ExpandedRegion  = R.getExpandedRegion();
 
   DEBUG(dbgs() << "\tExpanding " << R.getNameStr() << "\n");
 
-  while (TmpRegion) {
-    DetectionContext Context(*TmpRegion, *AA, false /*verifying*/);
-    DEBUG(dbgs() << "\t\tTrying " << TmpRegion->getNameStr() << "\n");
-    
-    if (!allBlocksValid(Context)) 
-      break;
+  while (ExpandedRegion) {
+    DetectionContext Context(*ExpandedRegion, *AA, false /* verifying */);
+    DEBUG(dbgs() << "\t\tTrying " << ExpandedRegion->getNameStr() << "\n");
 
+    // Check the exit first (cheap)
     if (isValidExit(Context)) {
-      if (CurrentRegion != &R)
-        delete CurrentRegion;
+      // If the exit is valid check all blocks
+      //  - if true, a valid region was found => store it + keep expanding
+      //  - if false, .tbd. => stop  (should this really end the loop?)
+      if (!allBlocksValid(Context))
+        break;
 
-      CurrentRegion = TmpRegion;
+      // Delete unnecessary regions (allocated by getExpandedRegion)
+      if (LastValidRegion)
+        delete LastValidRegion;
 
-      TmpRegion = TmpRegion->getExpandedRegion();
-      continue;
+      // Store this region, because it is the greatest valid (encountered so far)
+      LastValidRegion = ExpandedRegion;
+
+      // Create and test the next greater region (if any)
+      ExpandedRegion = ExpandedRegion->getExpandedRegion();
+
+    } else {
+      // Create and test the next greater region (if any)
+      Region *TmpRegion = ExpandedRegion->getExpandedRegion();
+
+      // Delete unnecessary regions (allocated by getExpandedRegion)
+      delete ExpandedRegion;
+
+      ExpandedRegion = TmpRegion;
     }
-
-    Region *TmpRegion2 = TmpRegion->getExpandedRegion();
-
-    // The expected return value of getExpandedRegion is a NULL-pointer or a 
-    // 'fresh' allocated region, thus never R
-    assert(TmpRegion != &R && "Expanded region was not created by new");
-    delete TmpRegion;
-
-    TmpRegion = TmpRegion2;  
   }
 
-  if (&R == CurrentRegion)
-    return NULL; 
-  
-  DEBUG(dbgs() << "\tto " << CurrentRegion->getNameStr() << "\n");
-  return CurrentRegion;
+  DEBUG(
+  if (LastValidRegion)
+    dbgs() << "\tto " << LastValidRegion->getNameStr() << "\n";
+  else
+    dbgs() << "\tExpanding " << R.getNameStr() << " failed\n";
+  );
+
+  return LastValidRegion;
 }
 
-void ScopDetection::findScops(Region &R) {
+void ScopDetection::findScops(Region &R) { 
+  if (InvalidRegions.count(&R))
+    return;
+
   DetectionContext Context(R, *AA, false /*verifying*/);
-  
+
   LastFailure = "";
   
   if (isValidRegion(Context)) {
@@ -865,15 +879,17 @@ bool ScopDetection::runOnFunction(llvm::Function &F) {
   
   releaseMemory();
 
-  if (OnlyFunction != "" && F.getName() != OnlyFunction)
+  if (OnlyFunction != "" && F.getName() != OnlyFunction && !IgnoreOnlyFunction)
     return false;
 
   if(!isValidFunction(F))
     return false;
 
   // Initialize the RegionSpeculation for this ScopDetection run 
-  if (RS) 
-    RS->initScopDetectionRun(F, AA, SE, LI, RI, DT, TD, this);
+  if (RS) {
+    RS->initScopDetectionRun(F, AA, SE, LI, RI, DT, TD, this); 
+    //SE = RS->getSE();
+  }
 
   findScops(*TopRegion);
  
@@ -957,6 +973,9 @@ bool ScopDetection::doInitialization(Module &M) {
 
 bool ScopDetection::doFinalization(Module &M) {
   spolly_hit = spolly_hit_tmp;
+  
+  if (releaseRS)
+    delete RS;
 
   return false;
 }
