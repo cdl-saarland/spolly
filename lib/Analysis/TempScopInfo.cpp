@@ -77,14 +77,12 @@ void TempScop::printDetail(llvm::raw_ostream &OS, ScalarEvolution *SE,
 
 void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
   AccFuncSetType Functions;
-  //const SCEV *pseudoAccessFunction = SE->getConstant(APInt::getNullValue(1u));
 
   for (BasicBlock::iterator I = BB.begin(), E = --BB.end(); I != E; ++I) {
     Instruction &Inst = *I;
-    unsigned Size;
-    enum IRAccess::TypeKind Type;
-    
     if (isa<LoadInst>(&Inst) || isa<StoreInst>(&Inst)) {
+      unsigned Size;
+      enum IRAccess::TypeKind Type;
 
       if (LoadInst *Load = dyn_cast<LoadInst>(&Inst)) {
         Size = TD->getTypeStoreSize(Load->getType());
@@ -100,7 +98,6 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
         dyn_cast<SCEVUnknown>(SE->getPointerBase(AccessFunction));
 
       assert(BasePointer && "Could not find base pointer");
-      // JD: why AccessFunction - BasePointer and not AccessFunction + BasePointer 
       AccessFunction = SE->getMinusSCEV(AccessFunction, BasePointer);
 
       bool IsAffine = isAffineExpr(&R, AccessFunction, *SE,
@@ -265,6 +262,7 @@ bool TempScopInfo::runOnFunction(Function &F) {
   LI = &getAnalysis<LoopInfo>();
   SD = &getAnalysis<ScopDetection>();
   AA = &getAnalysis<AliasAnalysis>();
+  TD = &getAnalysis<TargetData>();
 
   for (ScopDetection::iterator I = SD->begin(), E = SD->end(); I != E; ++I) {
     Region *R = const_cast<Region*>(*I);
@@ -275,6 +273,7 @@ bool TempScopInfo::runOnFunction(Function &F) {
 }
 
 void TempScopInfo::getAnalysisUsage(AnalysisUsage &AU) const {
+  AU.addRequired<TargetData>();
   AU.addRequiredTransitive<DominatorTree>();
   AU.addRequiredTransitive<PostDominatorTree>();
   AU.addRequiredTransitive<LoopInfo>();
@@ -297,19 +296,6 @@ void TempScopInfo::clear() {
   TempScops.clear();
 }
 
-
-bool TempScopInfo::doInitialization(Module &M) {
-  TD = new TargetData(&M);
-
-  return false;
-}
-
-bool TempScopInfo::doFinalization(Module &M) {
-  delete TD;
-
-  return false;
-}
-
 //===----------------------------------------------------------------------===//
 // TempScop information extraction pass implement
 char TempScopInfo::ID = 0;
@@ -323,6 +309,7 @@ INITIALIZE_PASS_DEPENDENCY(LoopInfo)
 INITIALIZE_PASS_DEPENDENCY(PostDominatorTree)
 INITIALIZE_PASS_DEPENDENCY(RegionInfo)
 INITIALIZE_PASS_DEPENDENCY(ScalarEvolution)
+INITIALIZE_PASS_DEPENDENCY(TargetData)
 INITIALIZE_PASS_END(TempScopInfo, "polly-analyze-ir",
                     "Polly - Analyse the LLVM-IR in the detected regions",
                     false, false)

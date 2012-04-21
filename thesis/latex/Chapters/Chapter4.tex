@@ -4,14 +4,43 @@
 \label{Chapter4}
 \lhead{Chapter 4. \emph{Evaluation}} % Write in your own chapter title to set the page header
 
-To evaluate the implementation, the SPEC2000 benchmark suite || TODO cite \\
-and the Polybench/C 3.2 || TODO cite \\
-suite were used to meassure correctness, applicability and speedup.
+\red
+\begin{shaded}
+
+The evaluation, as essential part of this thesis, allows to compare the this 
+work with others which share the same goals. Since it is hard to put effort in
+figures, the evaluation may provide information about the results of them.
+Correctness, applicability and speedup have been the stated goals which were 
+tested using the SPEC 2000 and Polybench 3.2 benchmark suites. While the former
+one contains general benchmarks used to evaluate most new optimizations, the 
+later one is especially designed for polyhedral optimizations as done by SPolly.
+These benchmarks might not reflect the reality in everyday optimization but
+they might be used to compare SPolly and Polly 
+(as presented in the diploma thesis of Tobias Grosser \cite{grosser:thesis}).
 
 
 \section{The Environment}
-Two computers were involved in the evaluation. The first one was a general 
-purpose machine running Arch linux with an
+
+(more details in table \ref{tab:EvaluationEnvironment}). 
+\begin{wraptable}[]{r}{0.42\textwidth}
+  \caption{The evaluation environment}
+  \begin{center}
+    \begin{tabular}{ r | c c }
+      & A & B \\
+      \hline
+            CPU & i5 M560 & X5570 \\ 
+    clock speed & 2.67GHz & 2.93GHz \\
+    smart cache & 3MB & 8MB \\
+        \#cores & 2 & 8 \\
+      \#threads & 4 & 16 \\
+            RAM & 6GB & 24 GB \\
+           LLVM & 3.0 debug & 3.0 \\
+             OS & Arch  & Gentoo R7 \\
+    \end{tabular}
+  \end{center}
+  \label{tab:EvaluationEnvironment}
+\end{wraptable}
+running Arch linux with an
 \textit{Intel(R) Core(TM) i5 CPU M 560 @ 2.67GHz} and 6GB RAM. Parallel versions
 could use up to four simultaneous running threads. 
 The second one ... TODO ... 
@@ -28,15 +57,15 @@ converted by clang to LLVM-IR files, optimized by opt and ... TODO linked TODO
 
 \section{Compile Time Evaluation}
 The main part of the compile time evaluation aims to get quantitative results 
-on the transformable code regions. These results correspond with the
-applicability of this work, as they both outline how many 
-regions may be transformed to increase the performance and which work is needed
-to be done to raise this number. As mentioned earlier this part is machine 
-independent if only these quantitative results are regarded, but there is one
-case where compile time transformation can improve the program with no need of
-speculation at all.
-These cases are explained and evaluated separately (see section
-\ref{soundCTtransformations}).
+about valid and invalid sSCoPs. These results correspond with the applicability 
+of this work, as they both outline how many regions can be taken into account now
+and which work is needed to increase this number. 
+As mentioned earlier this part is mainly machine independent, since the quantitative
+results are. There is one case where compile time transformation can improve the
+program with no need of speculation at all. 
+These cases are explained and evaluated separately in section 
+\ref{soundCTtransformations}.
+
 
 \subsection{Preperation}
 TODO
@@ -48,6 +77,10 @@ TODO
 \subsubsection{SPEC2000}
 TODO why not all spec2000 benchmarks ? \\
 TODO 
+
+\end{shaded}
+
+
 \begin{figure}[htbp]
 	\centering
         \includegraphics[width=0.9\textwidth]{SPEC2000CT.pdf}
@@ -91,6 +124,9 @@ TODO
 \end{table}
 TODO numbers can be produced via /home/johannes/git/sambamba/testdata/spec2000/timeAnalysis.py
 
+
+\red
+\begin{shaded}
 \subsubsection{Available tests}
 
 \paragraph{Alias tests}
@@ -122,6 +158,8 @@ as Sambamba and SPolly will be ported to a newer version.
 Others, which could be reproduced in the current trunk versions,
 have been reported and listed in figure \ref{tab:bugreports}. All bugs were 
 reported with a minimal test case and a detailed description why they occur.
+
+\end{shaded}
 
 % ID | description | status | patch included | tool
 \begin{table}[htbp]

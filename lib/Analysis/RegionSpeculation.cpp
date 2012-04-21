@@ -725,8 +725,8 @@ namespace polly {
 
     ValueToValueMapTy *profilingValueMap, *parallelValueMap;
 
-    Function *originalVersion, *profilingVersion, *parallelVersion,
-             *parallelVersionSubfn;
+    Function *originalVersion, *profilingVersion, *parallelVersion;
+    BasicBlock *parallelSplitBlock;
 
     /// @brief Information ...
     bool containsCalls, isValid, checksAreSound, BranchIsCrucial, EnableVector;
@@ -812,7 +812,6 @@ namespace polly {
         invariantCompareBlock = 0;
         invariantCompareValue = 0;   
         parallelVersion  = 0;
-        parallelVersionSubfn  = 0;
         profilingVersion = 0;
         originalVersion  = RMK.first->getParent();
         branchDepth = 0;
@@ -911,14 +910,19 @@ namespace polly {
           if (RS->SD)
             RS->SD->markFunctionAsInvalid(profilingVersion);
           
-          profilingVersion->setName(originalVersion->getName() + "_sp_pr");
+          profilingVersion->setName(originalVersion->getName() + "_SPPRO");
 
           createProfilingVersion();
         }
         return profilingVersion;
       } 
 
-      Function *getParallelVersion(Module *dstModule, bool useOriginal = false) {
+      BasicBlock *getParallelSplitBlock() {
+        return parallelSplitBlock;
+      }
+
+      Function *getParallelVersion(Module *dstModule, bool useOriginal = false,
+                                   unsigned forks = 16) {
         if (!parallelVersion) { 
           if (useOriginal) {
             assert(dstModule == originalVersion->getParent() 
@@ -935,7 +939,7 @@ namespace polly {
                                              /* ClonedCodeInfo* */ 0);
             if (RS->SD)
               RS->SD->markFunctionAsInvalid(parallelVersion);
-            parallelVersion->setName(originalVersion->getName() + "_sp_par");
+            parallelVersion->setName(originalVersion->getName() + "_SPOPT");
             dstModule->getFunctionList().push_back(parallelVersion);
 
           }
@@ -946,7 +950,7 @@ namespace polly {
                 assert(0);
           }
 
-          createParallelVersion(useOriginal);
+          createParallelVersion(useOriginal, forks);
         }
         return parallelVersion;
       }
@@ -1086,7 +1090,7 @@ namespace polly {
         // NewClonedEntry
         // TODO 0 instead of RS->SD ?
         BasicBlock *invTestBlock =
-          ClonedEntry->splitBasicBlock(--ClonedEntry->end(), "sp_profiling_inv_test");
+          ClonedEntry->splitBasicBlock(--ClonedEntry->end(), "SP_profiling_inv_test");
         invTestBlock->splitBasicBlock(--invTestBlock->end(), "new_entry");
 
         // Similar to the loops above, but this time the compare block is cloned
@@ -1228,14 +1232,14 @@ namespace polly {
           InstIt++;
         }
 
-        Constant *GV0 = Constant::getNullValue(profilingBlockBuilder.getInt64Ty());
+        //Constant *GV0 = Constant::getNullValue(profilingBlockBuilder.getInt64Ty());
         //Value *GV0 = new Argument(profilingBlockBuilder.getInt64Ty(),
                                   //testBlock->getName() +"_fail_prob");
         //DeleteVals.push_back(GV0);
-        //GlobalValue *GV0 = new GlobalVariable(profilingBlockBuilder.getInt64Ty(), 
-                                              //false,
-                                              //GlobalValue::LinkerPrivateLinkage, 0,
-                                              //testBlock->getName() +"_fail_prob");
+        GlobalValue *GV0 = new GlobalVariable(profilingBlockBuilder.getInt64Ty(), 
+                                              false,
+                                              GlobalValue::LinkerPrivateLinkage, 0,
+                                              testBlock->getName() +"_fail_prob");
 
         ProfiledValue *PB0 = new ProfiledValue(testBlock, 1, false);
         
@@ -1260,7 +1264,7 @@ namespace polly {
       void createProfilingVersion() {
         BasicBlock &entry = profilingVersion->getEntryBlock();
         BasicBlock *testBlock = entry.splitBasicBlock(entry.begin(), 
-                                                      "sp_profiling_entry");
+                                                      "SP_profiling_entry");
         
         if (aliasTestsAvailable()) {
           Instruction *aliasTestingValueClone = 
@@ -1329,7 +1333,7 @@ namespace polly {
       
 
       /// @brief Use Polly to insert parallel code
-      void createParallelVersion(bool useOriginal) {
+      void createParallelVersion(bool useOriginal, unsigned forks) {
         assert(    (useOriginal || parallelValueMap)
                && !(useOriginal && parallelValueMap)
                && "ValueToValueMap / useOriginal error");
@@ -1339,7 +1343,9 @@ namespace polly {
         // Enable parallelization for CodeGeneration
         // TODO
         EnablePollyVector = EnableVector; 
-        EnablePollyOpenMP = true;
+        EnablePollyOpenMP = false;
+        EnablePollyForkJoin = true;
+        PollyForks = forks;
 
         //
         Module *M = parallelVersion->getParent();
@@ -1349,14 +1355,12 @@ namespace polly {
 
         EnableSpolly = false;
 
+        //polly::registerPollyPreoptPasses(fpmPreOpt);
+        
         FunctionPassManager fpm(M);
         fpm.add(new TargetData(M));
-        // FIXME This pass is broken
-        //       - with vector code enabled it will crash
-        //       - without it will destroy the semantics -.-
-        //if (!EnablePollyVector)
-          fpm.add(createIslScheduleOptimizerPass());
-        //fpm.add(new CodeGeneration());
+
+        fpm.add(createIslScheduleOptimizerPass());
         fpm.add(polly::createCodeGenerationPass());
         fpm.doInitialization();
         fpm.run(*parallelVersion);
@@ -1365,38 +1369,38 @@ namespace polly {
         // Reset the state of the OnlyFunction argument        
         IgnoreOnlyFunction = false;
 
-        parallelVersionSubfn = 
-          M->getFunction(parallelVersion->getNameStr() + ".omp_subfn"); 
-        if (RS->SD && parallelVersionSubfn) 
-          RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
+        //parallelVersionSubfn = 
+          //M->getFunction(parallelVersion->getNameStr() + ".fj_subfn"); 
+        //if (RS->SD && parallelVersionSubfn) 
+          //RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
         
-        if (parallelVersionSubfn) {
-          DEBUG(dbgs() << "\n\nParallel version Subfunction:");
-          DEBUG(parallelVersionSubfn->dump());
-        }
+        //if (parallelVersionSubfn) {
+          //(dbgs() << "\n\nParallel version Subfunction:");
+          //(parallelVersionSubfn->dump());
+        //}
         EnableSpolly = true;
         SpeculativeRegionNameStr = "";
         
+        BasicBlock *entry, *enterScopBlock = 0;
+        if (useOriginal)
+          entry = RMK.first;
+        else
+          entry = cast<BasicBlock>(parallelValueMap->lookup(RMK.first));
+        assert(entry && "Entry in parallel version was not found");
+
+        for (pred_iterator it = pred_begin(entry), end = pred_end(entry);
+             it != end; it++) {
+          if ((*it)->getName().startswith("polly.split_new_and_old")) {
+            enterScopBlock = *it;
+            break;
+          }
+        }
+        assert(enterScopBlock && "Did not found polly split block");
+        parallelSplitBlock = enterScopBlock;
+
         // If aliastests are available insert or rewire them
         if (aliasTestsAvailable()) {
           DEBUG(dbgs() << " contains Aliasing instructions " << NumberOfAliasGroups << "\n");
-          BasicBlock *entry, *enterScopBlock = 0;
-          if (useOriginal)
-            entry = RMK.first;
-          else
-            entry = cast<BasicBlock>(parallelValueMap->lookup(RMK.first));
-          assert(entry && "Entry in parallel version was not found");
-
-          for (pred_iterator it = pred_begin(entry), end = pred_end(entry);
-               it != end; it++) {
-              if ((*it)->getName().startswith("polly.enterScop")) {
-                enterScopBlock = *it;
-                break;
-              }
-          }
-          
-          assert(enterScopBlock && "Did not found polly split block");
-       
           // The clone of the aliasTestingValue (no need to lookup it again)  
           Instruction *newCondition = 
             insertAliasTestingCode(enterScopBlock, parallelValueMap);
@@ -1475,12 +1479,12 @@ namespace polly {
           //Value *GV = new Argument(Ty, loop->getHeader()->getNameStr() 
                                    //+ "_loop_ex_prob");
           //DeleteVals.push_back(GV);
-          Constant *GV = Constant::getNullValue(Ty);
+          //Constant *GV = Constant::getNullValue(Ty);
 
-          //GlobalValue *GV = new GlobalVariable(Ty, false,
-                                               //GlobalValue::LinkerPrivateLinkage, 0,
-                                               //loop->getHeader()->getNameStr() 
-                                               //+ "_loop_ex_prob");
+          GlobalValue *GV = new GlobalVariable(Ty, false,
+                                               GlobalValue::LinkerPrivateLinkage, 0,
+                                               loop->getHeader()->getNameStr() 
+                                               + "_loop_ex_prob");
 
           ProfiledValue *PL = new ProfiledValue(loop);
           ProfilingValues.insert(PL); 
@@ -1965,7 +1969,7 @@ namespace polly {
               isValid = false;
             } else {
               BranchIsCrucial = true;
-              score = -10;
+              score = -1;
             }
           }
         }
@@ -2057,11 +2061,11 @@ namespace polly {
           //Value *GV = new Argument(Ty, loop->getHeader()->getNameStr()
                                        //+ "_loop_ex_prob");
           //DeleteVals.push_back(GV);
-          //GlobalValue *GV = new GlobalVariable(Ty, false,
-                                               //GlobalValue::LinkerPrivateLinkage, 0,
-                                               //loop->getHeader()->getNameStr() 
-                                               //+ "_loop_ex_prob");
-          Constant *GV = Constant::getNullValue(Ty);
+          GlobalValue *GV = new GlobalVariable(Ty, false,
+                                               GlobalValue::LinkerPrivateLinkage, 0,
+                                               loop->getHeader()->getNameStr() 
+                                               + "_loop_ex_prob");
+          //Constant *GV = Constant::getNullValue(Ty);
 
           ProfiledValue *PL = new ProfiledValue(loop);
           ProfilingValues.insert(PL); 
@@ -2130,20 +2134,20 @@ namespace polly {
                << " and " << branch1BB->getName() <<"\n");
 
         //Value *GV0 = new Argument(Int64Ty, branch0BB->getName() +"_ex_prob");
-        //GlobalValue *GV0 = new GlobalVariable(Int64Ty, 
-                                              //false,
-                                              //GlobalValue::LinkerPrivateLinkage, 0,
-                                              //branch0BB->getName() +"_ex_prob");
+        GlobalValue *GV0 = new GlobalVariable(Int64Ty, 
+                                              false,
+                                              GlobalValue::LinkerPrivateLinkage, 0,
+                                              branch0BB->getName() +"_ex_prob");
         //Value *GV1 = new Argument(Int64Ty, branch1BB->getName() +"_ex_prob");
-        //GlobalValue *GV1 = new GlobalVariable(Int64Ty, 
-                                              //false,
-                                              //GlobalValue::LinkerPrivateLinkage, 0,
-                                              //branch1BB->getName() +"_ex_prob");
+        GlobalValue *GV1 = new GlobalVariable(Int64Ty, 
+                                              false,
+                                              GlobalValue::LinkerPrivateLinkage, 0,
+                                              branch1BB->getName() +"_ex_prob");
 
         //DeleteVals.push_back(GV0); 
         //DeleteVals.push_back(GV1); 
         
-        Constant *GV = Constant::getNullValue(Int64Ty);
+        //Constant *GV = Constant::getNullValue(Int64Ty);
 
         ProfiledValue *PB0 = new ProfiledValue(entry, 0, true);
         ProfiledValue *PB1 = new ProfiledValue(entry, 1, true);
@@ -2152,8 +2156,8 @@ namespace polly {
         ProfilingValues.insert(PB1); 
 
         // Profiling support is added later
-        const SCEV *prob0 = toInt64(SE->getUnknown(GV), SE, Int64Ty);
-        const SCEV *prob1 = toInt64(SE->getUnknown(GV), SE, Int64Ty);
+        const SCEV *prob0 = toInt64(SE->getUnknown(GV0), SE, Int64Ty);
+        const SCEV *prob1 = toInt64(SE->getUnknown(GV1), SE, Int64Ty);
         
         SmallVector<const SCEV *, 32> branch0Scores;
         SmallVector<const SCEV *, 32> branch1Scores;
@@ -2183,8 +2187,22 @@ namespace polly {
         }
         BranchIsCrucial = false;
         
-        DEBUG(dbgs() << *branch0Score->getType() << "  " << *prob0->getType() << "\n");
-        DEBUG(dbgs() << *branch1Score->getType() << "  " << *prob1->getType() << "\n");
+        DEBUG(dbgs() << "B0Score " << *branch0Score << "  " << *prob0->getType() << "\n");
+        DEBUG(dbgs() << "B1Score "<< *branch1Score << "  " << *prob1->getType() << "\n");
+
+        const SCEV *tmp = branch0Score; 
+        if (PB0->isCrucial) 
+          branch0Score = SE->getNegativeSCEV(SE->getSMaxExpr(SE->getConstant(APInt(64, 1000)),
+                             SE->getMulExpr(SE->getConstant(APInt(64, 10, true)),
+                                            branch1Score)));
+        if (PB1->isCrucial) 
+          branch1Score = SE->getNegativeSCEV(SE->getSMaxExpr(SE->getConstant(APInt(64, 1000)),
+                             SE->getMulExpr(SE->getConstant(APInt(64, 10, true)),
+                                            tmp)));
+                                             
+
+        DEBUG(dbgs() << "B0Score " << *branch0Score << "  " << *prob0->getType() << "\n");
+        DEBUG(dbgs() << "B1Score "<< *branch1Score << "  " << *prob1->getType() << "\n");
         DEBUG(dbgs() << *toInt64(branch1Score, SE, Int64Ty)->getType() << "\n");
 
         const SCEV *divisor = SE->getConstant(APInt(64, 100, false));
@@ -2204,6 +2222,8 @@ namespace polly {
           CrucialCall++;
           isValid = false;
         }
+
+        BranchIsCrucial = PB0->isCrucial || PB1->isCrucial;
 
         DEBUG(dbgs() << *conditionalScore << "\n");
         DEBUG(dbgs() << "dsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
@@ -2238,19 +2258,19 @@ namespace polly {
       /// @param A The minimal and maximal access for a pointer
       /// @param B The minimal and maximal access for a pointer
       /// 
-      /// @return The value: (min(A) < max(B) || min(B) < max(A))
+      /// @return The value: (min(A) <= max(B) || min(B) <= max(A))
       ///
       Value *createAliasCheck(IRBuilder<> &builder,
                               MinMaxPair &A, MinMaxPair &B) {
         Value *minA = A.first, *maxA = A.second;
         Value *minB = B.first, *maxB = B.second;
   
-        Value *result0 = builder.CreateICmpSLT(minA, maxB,
-                                               minA->getNameStr() + "_lt_" 
+        Value *result0 = builder.CreateICmpULE(minA, maxB,
+                                               minA->getNameStr() + "_le_" 
                                                + maxB->getNameStr());
 
-        Value *result1 = builder.CreateICmpSLT(minB, maxA,
-                                               minB->getNameStr() + "_lt_" 
+        Value *result1 = builder.CreateICmpULE(minB, maxA,
+                                               minB->getNameStr() + "_le_" 
                                                + maxA->getNameStr());
         
         Value *result  = builder.CreateOr(result0, result1, result0->getNameStr()
@@ -2423,7 +2443,7 @@ namespace polly {
           return false;
         }
 
-        if (ExtractRegions) {
+        if (SPollyExtractRegions) {
           pred_iterator predecessor = pred_begin(RMK.first);
           while(R->contains(*predecessor)) {
             predecessor++;
@@ -2625,11 +2645,6 @@ namespace polly {
           OS << "\n\nParallel Version:\n";
           parallelVersion->print(OS);
           OS << "\n\n";
-          if (parallelVersionSubfn) {
-            OS << "\n\nProfiling Version (Subfn):\n";
-            parallelVersionSubfn->print(OS);
-            OS << "\n\n";
-          }
         }
 
 
@@ -2882,11 +2897,20 @@ Function *RegionSpeculation::getProfilingVersion(RegionMapKey &RMK) {
   return getProfilingVersion(SPI);
 }
 
-Function *RegionSpeculation::getParallelVersion(RegionMapKey &RMK, Module *dstModule, bool useOriginal) {
+Function *RegionSpeculation::getParallelVersion(RegionMapKey &RMK,
+                                                Module *dstModule, 
+                                                bool useOriginal,
+                                                unsigned forks) {
   assert(SpeculativeValidRegions.count(RMK) && "RMK was not found");
 
   SPollyInfo *SPI = SpeculativeValidRegions[RMK];
-  return getParallelVersion(SPI, dstModule, useOriginal);
+  return getParallelVersion(SPI, dstModule, useOriginal, forks);
+}
+BasicBlock *RegionSpeculation::getParallelSplitBlock(RegionMapKey &RMK) {
+  assert(SpeculativeValidRegions.count(RMK) && "RMK was not found");
+
+  SPollyInfo *SPI = SpeculativeValidRegions[RMK];
+  return getParallelSplitBlock(SPI);
 }
   
 void RegionSpeculation::changeCalledVersion(RegionMapKey &RMK, Function *Version) {
@@ -2908,8 +2932,14 @@ Function *RegionSpeculation::getProfilingVersion(SPollyInfo *SPI) {
   return SPI->getProfilingVersion();
 }
 
-Function *RegionSpeculation::getParallelVersion(SPollyInfo *SPI, Module *dstModule, bool useOriginal) {
-  return SPI->getParallelVersion(dstModule, useOriginal);
+Function *RegionSpeculation::getParallelVersion(SPollyInfo *SPI, 
+                                                Module *dstModule,
+                                                bool useOriginal,
+                                                unsigned forks) {
+  return SPI->getParallelVersion(dstModule, useOriginal, forks);
+}
+BasicBlock *RegionSpeculation::getParallelSplitBlock(SPollyInfo *SPI) {
+  return SPI->getParallelSplitBlock();
 }
 
 std::string RegionSpeculation::getNameStr(RegionMapKey &RMK) {

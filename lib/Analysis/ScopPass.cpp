@@ -14,7 +14,6 @@
 #include "polly/ScopPass.h"
 #include "polly/ScopInfo.h"
 
-#include "llvm/Support/Debug.h"
 using namespace llvm;
 using namespace polly;
 

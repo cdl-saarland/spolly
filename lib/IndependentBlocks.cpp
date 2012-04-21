@@ -146,7 +146,6 @@ bool IndependentBlocks::isSafeToMove(Instruction *Inst) {
     return false;
 
   return Inst->isSafeToSpeculativelyExecute();
-  //return isSafeToSpeculativelyExecute(Inst);
 }
 
 void IndependentBlocks::moveOperandTree(Instruction *Inst, const Region *R,
@@ -164,7 +163,7 @@ void IndependentBlocks::moveOperandTree(Instruction *Inst, const Region *R,
   while (!WorkStack.empty()) {
     Instruction *CurInst = WorkStack.back().first;
     ChildIt It = WorkStack.back().second;
-    //DEBUG(dbgs() << "Checking Operand of Node:\n" << *CurInst << "\n------>\n");
+    DEBUG(dbgs() << "Checking Operand of Node:\n" << *CurInst << "\n------>\n");
     if (It == CurInst->op_end()) {
       // Insert the new instructions in topological order.
       if (!CurInst->getParent())
@@ -179,7 +178,7 @@ void IndependentBlocks::moveOperandTree(Instruction *Inst, const Region *R,
       // Can not move no instruction value.
       if (Operand == 0) continue;
 
-      //DEBUG(dbgs() << "For Operand:\n" << *Operand << "\n--->");
+      DEBUG(dbgs() << "For Operand:\n" << *Operand << "\n--->");
 
       // If the Scop Region does not contain N, skip it and all its operand and
       // continue. because we reach a "parameter".
@@ -447,12 +446,6 @@ bool IndependentBlocks::isIndependentBlock(const Region *R,
         DEBUG(dbgs() << "Instruction used outside the Scop!\n");
         DEBUG(Inst->print(dbgs()));
         DEBUG(dbgs() << "\n");
-        DEBUG(UI->print(dbgs()));
-        DEBUG(dbgs() << "\n");
-        DEBUG(R->print(dbgs()));
-        DEBUG(dbgs() << "\n");
-        DEBUG(BB->print(dbgs()));
-        DEBUG(dbgs() << "\n");
         return false;
       }
     }
@@ -538,13 +531,11 @@ bool IndependentBlocks::runOnFunction(llvm::Function &F) {
 }
 
 void IndependentBlocks::verifyAnalysis() const {
-  return;
   for (ScopDetection::const_iterator I = SD->begin(), E = SD->end();I != E;++I)
     verifyScop(*I);
 }
 
 void IndependentBlocks::verifyScop(const Region *R) const {
-  DEBUG(dbgs() << "@\t IndependentBlocks::verifyScop " << *R << "\n");
   assert (areAllBlocksIndependent(R) && "Cannot generate independent blocks");
 }
 

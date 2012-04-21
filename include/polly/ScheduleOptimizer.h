@@ -14,6 +14,7 @@
 
 namespace polly {
   extern bool DisablePollyTiling;
+  extern int TileSize;
 }
 
 #endif

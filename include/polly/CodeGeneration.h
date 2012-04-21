@@ -17,6 +17,7 @@ namespace polly {
   extern bool EnablePollyOpenMP;
   extern unsigned  PollyForks;
   extern bool EnablePollyForkJoin;
+  extern bool EnablePollyForkJoinInline;
 }
 
 #endif

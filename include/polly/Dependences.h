@@ -26,6 +26,7 @@
 #include "polly/ScopPass.h"
 
 #include <map>
+#include "isl/ctx.h"
 
 struct isl_union_map;
 struct isl_union_set;
@@ -41,17 +42,6 @@ namespace polly {
   class ScopStmt;
 
   class Dependences : public ScopPass {
-
-    isl_union_map *must_dep, *may_dep;
-    isl_union_map *must_no_source, *may_no_source;
-
-    isl_union_map *war_dep;
-    isl_union_map *waw_dep;
-
-    isl_union_map *sink;
-    isl_union_map *must_source;
-    isl_union_map *may_source;
-
   public:
     static char ID;
 
@@ -64,24 +54,35 @@ namespace polly {
       TYPE_RAW = 0x2,
 
       // Write after write
-      TYPE_WAW = 0x4
+      TYPE_WAW = 0x4,
+
+      // All dependences
+      TYPE_ALL = (TYPE_WAR | TYPE_RAW | TYPE_WAW)
     };
 
     typedef std::map<ScopStmt*, isl_map*> StatementToIslMapTy;
 
     Dependences();
+
+    // @brief Check if a new scattering is valid.
+    //
+    // @param NewScattering The new scatterings
+    //
+    // @return bool True if the new scattering is valid, false it it reverses
+    //              dependences.
     bool isValidScattering(StatementToIslMapTy *NewScatterings);
 
     /// @brief Check if a dimension of the Scop can be executed in parallel.
     ///
-    /// @param loopDomain The subset of the scattering space that is executed in
+    /// @param LoopDomain The subset of the scattering space that is executed in
     ///                   parallel.
-    /// @param parallelDimension The scattering dimension that is being executed
+    /// @param ParallelDimension The scattering dimension that is being executed
     ///                          in parallel.
     ///
     /// @return bool Returns true, if executing parallelDimension in parallel is
     ///              valid for the scattering domain subset given.
-    bool isParallelDimension(isl_set *loopDomain, unsigned parallelDimension);
+    bool isParallelDimension(__isl_take isl_set *LoopDomain,
+                             unsigned ParallelDimension);
 
     /// @brief Check if a loop is parallel
     ///
@@ -91,21 +92,35 @@ namespace polly {
     ///
     /// @return bool Returns true if the incoming clast_for statement can
     ///              execute in parallel.
-    bool isParallelFor(const clast_for *f);
+    bool isParallelFor(const clast_for *For);
 
     /// @brief Get the dependences in this Scop.
     ///
-    /// @param dependenceKinds This integer defines the different kinds of
-    ///                        dependences that will be returned. To return
-    ///                        more than one kind, the different kinds are
-    ///                        'ored' together.
-    isl_union_map *getDependences(int dependenceKinds);
+    /// @param Kinds This integer defines the different kinds of dependences
+    ///              that will be returned. To return more than one kind, the
+    ///              different kinds are 'ored' together.
+    isl_union_map *getDependences(int Kinds);
 
     bool runOnScop(Scop &S);
     void printScop(raw_ostream &OS) const;
     virtual void releaseMemory();
     virtual void getAnalysisUsage(AnalysisUsage &AU) const;
+
+private:
+    // The different kinds of dependences we calculate.
+    isl_union_map *RAW;
+    isl_union_map *WAR;
+    isl_union_map *WAW;
+
+    /// @brief Collect information about the SCoP.
+    void collectInfo(Scop &S, isl_union_map **Read, isl_union_map **Write,
+                     isl_union_map **MayWrite, isl_union_map **Schedule);
+
+    // @brief Calculate the dependences for a certain SCoP.
+    void calculateDependences(Scop &S);
   };
+
+
 } // End polly namespace.
 
 namespace llvm {

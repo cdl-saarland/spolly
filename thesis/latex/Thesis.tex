@@ -13,6 +13,8 @@
 \hypersetup{urlcolor=black, colorlinks=true}  % Colours hyperlinks in blue, but this can be distracting if there are many links.
 \usepackage{tabularx}
 \usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{framed}
 
 %% ----------------------------------------------------------------
 \begin{document}
@@ -46,7 +48,7 @@
 % Declaration Page required for the Thesis, your institution may give you a different text to place here
 \Declaration{
 
-%\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
 
 I, Johannes Doerfert, declare that this thesis titled, `SPECULATIVE LOOP PARALLELIZATION' and the work presented in it are my own. I confirm that:
 
@@ -80,10 +82,10 @@ Date:\\
 
 \null\vfill
 % Now comes the "Funny Quote", written in italics
-\textit{``Write a funny quote here.''}
+\textit{``Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.''}
 
 \begin{flushright}
-If the quote is taken from someone, their name goes here
+Brian Kernighan, professor at Princeton University
 \end{flushright}
 
 \vfill\vfill\vfill\vfill\vfill\vfill\null
@@ -91,11 +93,24 @@ If the quote is taken from someone, their name goes here
 %% ----------------------------------------------------------------
 
 % The Abstract Page
-%\addtotoc{Abstract}  % Add the "Abstract" page entry to the Contents
+\addtotoc{Abstract}  % Add the "Abstract" page entry to the Contents
 \abstract{
-%\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
 
-The Thesis Abstract is written here (and usually kept to just this page). The page is kept centered vertically so can expand into the blank space above the title too\ldots
+SPolly, short for speculative Polly, is an attempt to combine two recent research 
+projects in the context of compilers.
+One the one hand side there is Polly, a LLVM project to increase data locality
+and parallelism of loop nests. On the other hand there is Sambamba, which 
+pursues a new, adaptive way of compiling and offers features like method 
+versioning, speculation and runtime adaption. As an extension of the former one
+and with the capabilities offered by the later one,
+SPolly can perform state-of-the-art loop optimizations on a wide range of loops,
+even in general purpose benchmarks as the SPEC 2000 benchmark suite. I will 
+explain when speculation is possible, how runtime information is used and how
+this is integrated into Polly and Sambama. At the end an evaluation on 
+SPEC 2000 benchmarks and the Polybench 3.2 benchmark suite is presented as well
+as some discussions on the results.
+
 
 }
 
@@ -106,7 +121,7 @@ The Thesis Abstract is written here (and usually kept to just this page). The pa
 
 % The Acknowledgements page, for thanking everyone
 \acknowledgements{
-%\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
 
 The acknowledgements and the people to thank go here, don't forget to include your project advisor\ldots
 
@@ -131,6 +146,12 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \listoftables  % Write out the List of Tables
 
 %% ----------------------------------------------------------------
+\lhead{\emph{List of Listings}}  % Set the left side page header to "List of Listings"
+\renewcommand*{\lstlistingname}{List of Listings}
+\lstlistoflistings % Write out the List of Listings 
+
+
+%% ----------------------------------------------------------------
 \setstretch{1.5}  % Set the line spacing to 1.5, this makes the following tables easier to read
 \clearpage  % Start a new page
 \lhead{\emph{Abbreviations}}  % Set the left side page header to "Abbreviations"
@@ -139,8 +160,22 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 % \textbf{Acronym} & \textbf{W}hat (it) \textbf{S}tands \textbf{F}or \\
 \textbf{AA} & \textbf{A}lias \textbf{A}nalysis \\
 \textbf{LLVM} & \textbf{L}ow \textbf{L}evel \textbf{V}irtual \textbf{M}achine \\
+\textbf{LLVM-IR} & LLVM \textbf{I}ntermediate \textbf{R}epresentation  \\
 \textbf{SCoP} & \textbf{S}tatic \textbf{Co}ntrol \textbf{P}art \\
 \textbf{SPolly} & \textbf{S}peculative \textbf{P}olly \\
+\textbf{isl} & \textbf{i}nteger \textbf{s}et \textbf{l}ibrary \\
+\textbf{cloog} & \textbf{C}hunky \textbf{Loo}p \textbf{G}enerator \\
+\textbf{SE} & \textbf{S}calar \textbf{E}volution  \\
+\textbf{SD} & \textbf{S}CoP \textbf{D}etection  \\
+\textbf{RS} & \textbf{R}egion \textbf{S}peculation (see ...)  \\
+\textbf{Polly} & \textbf{Poly}hedral \textbf{LL}VM   \\
+\textbf{CFG} & \textbf{C}ontrol \textbf{F}low \textbf{G}raph   \\
+\textbf{LOC} & \textbf{l}ines \textbf{o}f \textbf{c}ode   \\
+\textbf{ParCFG} & \textbf{Par}allel \textbf{CFG}   \\
+\textbf{OpenMP} & \textbf{Open} \textbf{M}ulti-\textbf{P}rocessing   \\
+\textbf{SIMD} & \textbf{S}ingle \textbf{I}nstruction \textbf{M}ultiple \textbf{D}ata   \\
+  
+
 
 }
 
@@ -174,7 +209,7 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \pagestyle{empty}  % Page style needs to be empty for this page
 \dedicatory{For/Dedicated to/To my\ldots}
 
-%\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
 
 
 %% ----------------------------------------------------------------

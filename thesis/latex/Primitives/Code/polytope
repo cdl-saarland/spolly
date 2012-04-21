@@ -1,0 +1,3 @@
+for(i = 1; i < N; i++)
+  for(k = 1; k < M; k++) 
+     A[i][k] = A[i-1][k] + A[i][k-1];

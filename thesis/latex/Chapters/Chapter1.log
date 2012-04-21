@@ -1,109 +1,158 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdflatex 2012.2.7)  2 APR 2012 20:57
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  21 APR 2012 02:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **/home/johannes/git/speculative-polly/thesis/latex/Chapters/Chapter1.tex
 (/home/johannes/git/speculative-polly/thesis/latex/Chapters/Chapter1.tex
-LaTeX2e <2011/06/27>
-Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, ge
-rman-x-2011-07-01, ngerman-x-2011-07-01, afrikaans, ancientgreek, ibycus, arabi
-c, armenian, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danis
-h, dutch, ukenglish, usenglishmax, esperanto, estonian, ethiopic, farsi, finnis
-h, french, galician, german, ngerman, swissgerman, monogreek, greek, hungarian,
- icelandic, assamese, bengali, gujarati, hindi, kannada, malayalam, marathi, or
-iya, panjabi, tamil, telugu, indonesian, interlingua, irish, italian, kurmanji,
- lao, latin, latvian, lithuanian, mongolian, mongolianlmc, bokmal, nynorsk, pol
-ish, portuguese, romanian, russian, sanskrit, serbian, serbianc, slovak, sloven
-ian, spanish, swedish, turkish, turkmen, ukrainian, uppersorbian, welsh, loaded
-.
 ! Undefined control sequence.
 l.3 \chapter
-            {Chapter Title Here} % Write in your own chapter title
-? 
+            {Introduction} % Write in your own chapter title
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-! LaTeX Error: Missing \begin{document}.
+! Undefined control sequence.
+l.4 \label
+          {Chapter1}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.3 \chapter{C
-              hapter Title Here} % Write in your own chapter title
-? 
-Missing character: There is no C in font nullfont!
-Missing character: There is no h in font nullfont!
-Missing character: There is no a in font nullfont!
-Missing character: There is no p in font nullfont!
-Missing character: There is no t in font nullfont!
-Missing character: There is no e in font nullfont!
-Missing character: There is no r in font nullfont!
-Missing character: There is no T in font nullfont!
-Missing character: There is no i in font nullfont!
-Missing character: There is no t in font nullfont!
-Missing character: There is no l in font nullfont!
-Missing character: There is no e in font nullfont!
-Missing character: There is no H in font nullfont!
-Missing character: There is no e in font nullfont!
-Missing character: There is no r in font nullfont!
-Missing character: There is no e in font nullfont!
 ! Undefined control sequence.
 l.5 \lhead
-          {Chapter 1. \emph{Chapter Title Here}} % Write in your own chapter...
+          {Chapter 1. \emph{Introduction}} % Write in your own chapter title...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-? q
-OK, entering \batchmode...
-Missing character: There is no C in font nullfont!
-Missing character: There is no h in font nullfont!
-Missing character: There is no a in font nullfont!
-Missing character: There is no p in font nullfont!
-Missing character: There is no t in font nullfont!
-Missing character: There is no e in font nullfont!
-Missing character: There is no r in font nullfont!
-Missing character: There is no 1 in font nullfont!
-Missing character: There is no . in font nullfont!
+! Undefined control sequence.
+l.5 \lhead{Chapter 1. \emph
+                           {Introduction}} % Write in your own chapter title...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-Overfull \hbox (20.0pt too wide) in paragraph at lines 3--6
-[]
- []
+! Undefined control sequence.
+l.7 \orange
+           
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
+! Undefined control sequence.
+l.8 \begin
+          {shaded}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-Overfull \hbox (26.0665pt too wide) in paragraph at lines 3--6
-\OT1/cmr/m/it/10 Chap-
- []
+! Undefined control sequence.
+l.9 \subsection
+               {Motivation}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
+! Undefined control sequence.
+l.11 ...ort for speculative Polly [TODO or \textbf
+                                                  {S}ambamba \textbf{Polly} ...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-Overfull \hbox (12.13878pt too wide) in paragraph at lines 3--6
-\OT1/cmr/m/it/10 ter
- []
+! Undefined control sequence.
+l.11 ...e Polly [TODO or \textbf{S}ambamba \textbf
+                                                  {Polly} :P],
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
+! Undefined control sequence.
+l.26 \subsection
+                {Overview}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-Overfull \hbox (13.7999pt too wide) in paragraph at lines 3--6
-\OT1/cmr/m/it/10 Ti-
- []
+! Undefined control sequence.
+l.35 on will be illustrated in chapter \ref
+                                           {Chapter2}.
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
+! Undefined control sequence.
+l.36 SPolly starts in chapter \ref
+                                  {Chapter3} with the realization,
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-Overfull \hbox (10.47769pt too wide) in paragraph at lines 3--6
-\OT1/cmr/m/it/10 tle
- []
+! Undefined control sequence.
+l.37 followed by an evaluation \ref
+                                   {Chapter4} of SPolly on the SPEC 2000 and
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
+! Undefined control sequence.
+l.39 Chapter \ref
+                 {Chapter5} discusses the results in the context of
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-Overfull \hbox (21.0901pt too wide) in paragraph at lines 3--6
-\OT1/cmr/m/it/10 Here 
- []
+! Undefined control sequence.
+l.41 Before chapter \ref
+                        {Chapter7}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
-)
-! Emergency stop.
-<*> ...ve-polly/thesis/latex/Chapters/Chapter1.tex
-                                                  
-*** (job aborted, no legal \end found)
+! Undefined control sequence.
+l.43 ...ation example is presented in chapter \ref
+                                                  {CaseStudy}.
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
 
- 
-Here is how much of TeX's memory you used:
- 10 strings out of 493629
- 490 string characters out of 3148779
- 49273 words of memory out of 3000000
- 3411 multiletter control sequences out of 15000+200000
- 3986 words of font info for 15 fonts, out of 3000000 for 9000
- 831 hyphenation exceptions out of 8191
- 14i,1n,10p,191b,69s stack positions out of 5000i,500n,10000p,200000b,50000s
-!  ==> Fatal error occurred, no output PDF file produced!
+[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] )</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
+Output written on /home/johannes/git/speculative-polly/thesis/latex/Chapters/.tmp/8Ej24y/Chapter1.pdf (1 page, 21773 bytes).
+PDF statistics:
+ 12 PDF objects out of 1000 (max. 8388607)
+ 7 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

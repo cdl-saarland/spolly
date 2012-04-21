@@ -27,7 +27,7 @@
 
 \newcommand\Declaration[1]{
 \btypeout{Declaration of Authorship}
-%\addtotoc{Declaration of Authorship}
+\addtotoc{Declaration of Authorship}
 \thispagestyle{plain}
 \null\vfil
 %\vskip 60\p@
@@ -108,17 +108,28 @@
 \setcounter{dbltopnumber}{9}
 \usepackage{graphicx}
 \usepackage{epstopdf}
-\usepackage[scriptsize]{subfigure}
+\usepackage{subfig}
 \usepackage{booktabs}
 \usepackage{rotating}
 \usepackage{listings}
 \usepackage{lstpatch}
 \usepackage{color}
-\usepackage{xcolor}
+\usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{titlesec}
 \usepackage[subfigure]{tocloft}
 
-% Numbered chapter heading style:
+\newcommand{\green}{
+\definecolor{shadecolor}{named}{Green}
+}
+\newcommand{\yellow}{
+\definecolor{shadecolor}{named}{Yellow}
+}
+\newcommand{\orange}{
+\definecolor{shadecolor}{named}{Orange}
+}
+\newcommand{\red}{
+\definecolor{shadecolor}{named}{Red}
+}
 
 \renewcommand{\@makechapterhead}[1]{%
   %\vspace*{10\p@}%
@@ -168,6 +179,8 @@
     \vskip 10\p@
   }}
 
+
+
 \renewcommand*\cftchapfont{\hypersetup{linkcolor=Maroon} \bf}
 \renewcommand{\cftfigfont}{Figure }
 \renewcommand{\cfttabfont}{Table }
@@ -176,22 +189,26 @@
 \renewcommand*\listfigurename{\chapterhead{List of Figures}}
 \renewcommand*\listtablename{\chapterhead{List of Tables}}
 
-\renewcommand{\cftsecindent}{0.4 em}
-\renewcommand{\cftsecnumwidth}{3.2 em}
-\renewcommand{\cftsubsecindent}{0.4 em}
-\renewcommand{\cftsubsecnumwidth}{3.2 em}
-\renewcommand{\cftsubsubsecindent}{0.4 em}
-\renewcommand{\cftsubsubsecnumwidth}{3.6 em}
-\renewcommand{\cftparaindent}{0.4 em}
-\renewcommand{\cftparanumwidth}{3.8 em}
-\setlength\cftparskip{-2pt}
-\setlength\cftbeforechapskip{0pt}
+%\renewcommand{\cftsecindent}{0.4 em}
+%\renewcommand{\cftsecnumwidth}{3.2 em}
+%\renewcommand{\cftsubsecindent}{0.4 em}
+%\renewcommand{\cftsubsecnumwidth}{3.2 em}
+%\renewcommand{\cftsubsubsecindent}{0.4 em}
+%\renewcommand{\cftsubsubsecnumwidth}{3.6 em}
+%\renewcommand{\cftparaindent}{0.4 em}
+%\renewcommand{\cftparanumwidth}{3.8 em}
 
-\lstset{captionpos=b,
+
+%\setlength\cftparskip{-2pt}
+%\setlength\cftbeforechapskip{0pt}
+
+\newcommand{\resetlst}{\lstset{captionpos=b,
         frame=tb,
         basicstyle=\scriptsize\ttfamily,
         showstringspaces=false,
-        keepspaces=true}
+        keepspaces=true}}%
+\resetlst%
+
 \usepackage[pdfpagemode={UseOutlines},bookmarks=true,
    bookmarksopenlevel=0,bookmarksnumbered=true,hypertexnames=false,
    colorlinks,linkcolor={black},citecolor={Maroon},urlcolor={red},
@@ -391,7 +408,7 @@
 \usepackage{longtable}
 \newcommand\listofsymbols[2]{
 \btypeout{\listsymbolname}
-%\addtotoc{\listsymbolname}
+\addtotoc{\listsymbolname} 
     \chapter*{\listsymbolname
       \@mkboth{
           \MakeUppercase\listsymbolname}{\MakeUppercase\listsymbolname}}
@@ -422,7 +439,7 @@
 }
 \newcommand\acknowledgements[1]{
 \btypeout{Acknowledgements}
-%\addtotoc{Acknowledgements}
+\addtotoc{Acknowledgements}
 \thispagestyle{plain}
 \begin{center}{\huge{\textit{Acknowledgements}} \par}\end{center}
 {\normalsize #1}

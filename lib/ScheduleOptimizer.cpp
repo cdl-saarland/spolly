@@ -19,36 +19,64 @@
 
 #include "polly/ScheduleOptimizer.h"
 
-#include "polly/Cloog.h"
-#include "polly/LinkAllPasses.h"
 #include "polly/CodeGeneration.h"
-#include "polly/Support/GICHelper.h"
 #include "polly/Dependences.h"
+#include "polly/LinkAllPasses.h"
 #include "polly/ScopInfo.h"
 
 #include "isl/aff.h"
-#include "isl/space.h"
-#include "isl/map.h"
-#include "isl/constraint.h"
-#include "isl/schedule.h"
 #include "isl/band.h"
+#include "isl/constraint.h"
+#include "isl/map.h"
+#include "isl/options.h"
+#include "isl/schedule.h"
+#include "isl/space.h"
 
 #define DEBUG_TYPE "polly-opt-isl"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/CommandLine.h"
-
-static const int CONSTANT_BOUND = 20;
 
 using namespace llvm;
 using namespace polly;
 
 namespace polly {
   bool DisablePollyTiling;
+  int TileSize = 32;
 }
 static cl::opt<bool, true>
 DisableTiling("polly-no-tiling",
 	      cl::desc("Disable tiling in the scheduler"), cl::Hidden,
               cl::location(polly::DisablePollyTiling), cl::init(false));
+
+static cl::opt<std::string>
+OptimizeDeps("polly-opt-optimize-only",
+             cl::desc("Only a certain kind of dependences (all/raw)"),
+             cl::Hidden, cl::init("all"));
+
+static cl::opt<std::string>
+SimplifyDeps("polly-opt-simplify-deps",
+             cl::desc("Dependences should be simplified (yes/no)"),
+             cl::Hidden, cl::init("yes"));
+
+static cl::opt<int>
+MaxConstantTerm("polly-opt-max-constant-term",
+                cl::desc("The maximal constant term allowed (-1 is unlimited)"),
+                cl::Hidden, cl::init(20));
+
+static cl::opt<int>
+MaxCoefficient("polly-opt-max-coefficient",
+               cl::desc("The maximal coefficient allowed (-1 is unlimited)"),
+               cl::Hidden, cl::init(20));
+
+static cl::opt<std::string>
+FusionStrategy("polly-opt-fusion",
+               cl::desc("The fusion strategy to choose (min/max)"),
+               cl::Hidden, cl::init("min"));
+
+static cl::opt<std::string>
+MaximizeBandDepth("polly-opt-maximize-bands",
+                cl::desc("Maximize the band depth (yes/no)"),
+                cl::Hidden, cl::init("yes"));
 
 namespace {
 
@@ -77,10 +105,6 @@ static int getSingleMap(__isl_take isl_map *map, void *user) {
 static void extendScattering(Scop &S, unsigned NewDimensions) {
   for (Scop::iterator SI = S.begin(), SE = S.end(); SI != SE; ++SI) {
     ScopStmt *Stmt = *SI;
-
-    if (Stmt->isFinalRead())
-      continue;
-
     unsigned OldDimensions = Stmt->getNumScattering();
     isl_space *Space;
     isl_basic_map *ChangeScattering;
@@ -225,7 +249,7 @@ isl_union_map *getScheduleForBand(isl_band *Band, int *Dimensions) {
   ctx = isl_union_map_get_ctx(PartialSchedule);
   Space = isl_union_map_get_space(PartialSchedule);
 
-  TileMap = getTileMap(ctx, *Dimensions, Space);
+  TileMap = getTileMap(ctx, *Dimensions, Space, TileSize);
   TileUMap = isl_union_map_from_map(isl_map_from_basic_map(TileMap));
   TileUMap = isl_union_map_align_params(TileUMap, Space);
   *Dimensions = 2 * *Dimensions;
@@ -268,7 +292,7 @@ isl_union_map *getScheduleForBand(isl_band *Band, int *Dimensions) {
 //
 // This transformation creates a loop at the innermost level. The loop has a
 // constant number of iterations, if the number of loop iterations at
-// DimToVectorize can be devided by VectorWidth. The default VectorWidth is
+// DimToVectorize can be divided by VectorWidth. The default VectorWidth is
 // currently constant and not yet target specific. This function does not reason
 // about parallelism.
 static isl_map *getPrevectorMap(isl_ctx *ctx, int DimToVectorize,
@@ -331,8 +355,6 @@ static isl_map *getPrevectorMap(isl_ctx *ctx, int DimToVectorize,
   isl_constraint_set_constant_si(c, VectorWidth - 1);
   TilingMap = isl_map_add_constraint(TilingMap, c);
 
-  isl_map_dump(TilingMap);
-
   return TilingMap;
 }
 
@@ -350,6 +372,7 @@ static isl_union_map *getScheduleForBandList(isl_band_list *BandList) {
   NumBands = isl_band_list_n_band(BandList);
   Schedule = isl_union_map_empty(isl_space_params_alloc(ctx, 0));
 
+  dbgs()<< "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
   for (int i = 0; i < NumBands; i++) {
     isl_band *Band;
     isl_union_map *PartialSchedule;
@@ -360,7 +383,9 @@ static isl_union_map *getScheduleForBandList(isl_band_list *BandList) {
     PartialSchedule = getScheduleForBand(Band, &ScheduleDimensions);
     Space = isl_union_map_get_space(PartialSchedule);
 
+    dbgs()<< "000000000000000000000000000001111 " << i << "\n";
     if (isl_band_has_children(Band)) {
+      dbgs()<< "111111111111111111111111111111111 " << i << "\n";
       isl_band_list *Children;
       isl_union_map *SuffixSchedule;
 
@@ -370,12 +395,14 @@ static isl_union_map *getScheduleForBandList(isl_band_list *BandList) {
 							 SuffixSchedule);
       isl_band_list_free(Children);
     } else if (EnablePollyVector) {
-      for (int i = ScheduleDimensions - 1 ;  i >= 0 ; i--) {
-	if (isl_band_member_is_zero_distance(Band, i)) {
+      dbgs() << "aoidsjoidajdsaoijdsaoijdsa\n\n";
+      for (int j = 0;  j < isl_band_n_member(Band); j++) {
+	if (isl_band_member_is_zero_distance(Band, j)) {
           isl_map *TileMap;
           isl_union_map *TileUMap;
-
-	  TileMap = getPrevectorMap(ctx, i, ScheduleDimensions);
+          dbgs() << "SADSSDADSDSASSDADSASDADSSDA\n\n";
+	  TileMap = getPrevectorMap(ctx, ScheduleDimensions - j - 1,
+                                    ScheduleDimensions);
 	  TileUMap = isl_union_map_from_map(TileMap);
           TileUMap = isl_union_map_align_params(TileUMap,
                                                 isl_space_copy(Space));
@@ -406,70 +433,122 @@ bool IslScheduleOptimizer::runOnScop(Scop &S) {
   Dependences *D = &getAnalysis<Dependences>();
 
   // Build input data.
-  int dependencyKinds = Dependences::TYPE_RAW
-                          | Dependences::TYPE_WAR
-                          | Dependences::TYPE_WAW;
+  int ValidityKinds = Dependences::TYPE_RAW | Dependences::TYPE_WAR
+                      | Dependences::TYPE_WAW;
+  int ProximityKinds;
 
-  isl_union_map *validity = D->getDependences(dependencyKinds);
-  isl_union_map *proximity = D->getDependences(dependencyKinds);
-  isl_union_set *domain = NULL;
+  if (OptimizeDeps == "all")
+    ProximityKinds = Dependences::TYPE_RAW | Dependences::TYPE_WAR
+                     | Dependences::TYPE_WAW;
+  else if (OptimizeDeps == "raw")
+    ProximityKinds = Dependences::TYPE_RAW;
+  else {
+    errs() << "Do not know how to optimize for '" << OptimizeDeps << "'"
+        << " Falling back to optimizing all dependences.\n";
+    ProximityKinds = Dependences::TYPE_RAW | Dependences::TYPE_WAR
+                     | Dependences::TYPE_WAW;
 
-  for (Scop::iterator SI = S.begin(), SE = S.end(); SI != SE; ++SI)
-    if ((*SI)->isFinalRead())
-      continue;
-    else if (!domain)
-      domain = isl_union_set_from_set((*SI)->getDomain());
-    else
-      domain = isl_union_set_union(domain,
-        isl_union_set_from_set((*SI)->getDomain()));
+  }
 
-  if (!domain)
+
+  isl_union_set *Domain = S.getDomains();
+
+  if (!Domain)
     return false;
 
+  isl_union_map *Validity = D->getDependences(ValidityKinds);
+  isl_union_map *Proximity = D->getDependences(ProximityKinds);
+
+  // Simplify the dependences by removing the constraints introduced by the
+  // domains. This can speed up the scheduling time significantly, as large
+  // constant coefficients will be removed from the dependences. The
+  // introduction of some additional dependences reduces the possible
+  // transformations, but in most cases, such transformation do not seem to be
+  // interesting anyway. In some cases this option may stop the scheduler to
+  // find any schedule.
+  if (SimplifyDeps == "yes") {
+    Validity = isl_union_map_gist_domain(Validity, isl_union_set_copy(Domain));
+    Validity = isl_union_map_gist_range(Validity, isl_union_set_copy(Domain));
+    Proximity = isl_union_map_gist_domain(Proximity,
+                                          isl_union_set_copy(Domain));
+    Proximity = isl_union_map_gist_range(Proximity, isl_union_set_copy(Domain));
+  } else if (SimplifyDeps != "no") {
+    errs() << "warning: Option -polly-opt-simplify-deps should either be 'yes' "
+              "or 'no'. Falling back to default: 'yes'\n";
+  }
+
   DEBUG(dbgs() << "\n\nCompute schedule from: ");
-  DEBUG(dbgs() << "Domain := "; isl_union_set_dump(domain); dbgs() << ";\n");
-  DEBUG(dbgs() << "Proximity := "; isl_union_map_dump(proximity);
+  DEBUG(dbgs() << "Domain := "; isl_union_set_dump(Domain); dbgs() << ";\n");
+  DEBUG(dbgs() << "Proximity := "; isl_union_map_dump(Proximity);
         dbgs() << ";\n");
-  DEBUG(dbgs() << "Validity := "; isl_union_map_dump(validity);
+  DEBUG(dbgs() << "Validity := "; isl_union_map_dump(Validity);
         dbgs() << ";\n");
 
-  isl_schedule *schedule;
+  int IslFusionStrategy;
 
-  isl_options_set_schedule_max_constant_term(S.getIslCtx(), CONSTANT_BOUND);
-  isl_options_set_schedule_maximize_band_depth(S.getIslCtx(), 1);
-  schedule  = isl_union_set_compute_schedule(domain, validity, proximity);
+  if (FusionStrategy == "max") {
+    IslFusionStrategy = ISL_SCHEDULE_FUSE_MAX;
+  } else if (FusionStrategy == "min") {
+    IslFusionStrategy = ISL_SCHEDULE_FUSE_MIN;
+  } else {
+    errs() << "warning: Unknown fusion strategy. Falling back to maximal "
+              "fusion.\n";
+    IslFusionStrategy = ISL_SCHEDULE_FUSE_MAX;
+  }
 
-  DEBUG(dbgs() << "Computed schedule: ");
-  DEBUG(dbgs() << stringFromIslObj(schedule));
-  DEBUG(dbgs() << "Individual bands: ");
+  int IslMaximizeBands;
 
-  isl_union_map *ScheduleMap = getScheduleMap(schedule);
+  if (MaximizeBandDepth == "yes") {
+    IslMaximizeBands = 1;
+  } else if (MaximizeBandDepth == "no") {
+    IslMaximizeBands = 0;
+  } else {
+    errs() << "warning: Option -polly-opt-maximize-bands should either be 'yes'"
+              " or 'no'. Falling back to default: 'yes'\n";
+    IslMaximizeBands = 1;
+  }
+
+  isl_options_set_schedule_fuse(S.getIslCtx(), IslFusionStrategy);
+  isl_options_set_schedule_maximize_band_depth(S.getIslCtx(), IslMaximizeBands);
+  isl_options_set_schedule_max_constant_term(S.getIslCtx(), MaxConstantTerm);
+  isl_options_set_schedule_max_coefficient(S.getIslCtx(), MaxCoefficient);
+
+  isl_options_set_on_error(S.getIslCtx(), ISL_ON_ERROR_CONTINUE);
+  isl_schedule *Schedule;
+  Schedule  = isl_union_set_compute_schedule(Domain, Validity, Proximity);
+  isl_options_set_on_error(S.getIslCtx(), ISL_ON_ERROR_ABORT);
+
+  // In cases the scheduler is not able to optimize the code, we just do not
+  // touch the schedule.
+  if (!Schedule)
+    return false;
+
+  DEBUG(dbgs() << "Schedule := "; isl_schedule_dump(Schedule);
+        dbgs() << ";\n");
+
+  isl_union_map *ScheduleMap = getScheduleMap(Schedule);
 
   for (Scop::iterator SI = S.begin(), SE = S.end(); SI != SE; ++SI) {
-    ScopStmt *stmt = *SI;
-
-    if (stmt->isFinalRead())
-      continue;
-
-    isl_set *domain = stmt->getDomain();
-    isl_union_map *stmtBand;
-    stmtBand = isl_union_map_intersect_domain(isl_union_map_copy(ScheduleMap),
-					      isl_union_set_from_set(domain));
-    isl_map *stmtSchedule;
-    isl_union_map_foreach_map(stmtBand, getSingleMap, &stmtSchedule);
-    stmt->setScattering(stmtSchedule);
-    isl_union_map_free(stmtBand);
+    ScopStmt *Stmt = *SI;
+    isl_set *Domain = Stmt->getDomain();
+    isl_union_map *StmtBand;
+    StmtBand = isl_union_map_intersect_domain(isl_union_map_copy(ScheduleMap),
+					      isl_union_set_from_set(Domain));
+    isl_map *StmtSchedule;
+    isl_union_map_foreach_map(StmtBand, getSingleMap, &StmtSchedule);
+    Stmt->setScattering(StmtSchedule);
+    isl_union_map_free(StmtBand);
   }
 
   isl_union_map_free(ScheduleMap);
-  isl_schedule_free(schedule);
+  isl_schedule_free(Schedule);
 
-  unsigned maxScatDims = 0;
+  unsigned MaxScatDims = 0;
 
   for (Scop::iterator SI = S.begin(), SE = S.end(); SI != SE; ++SI)
-    maxScatDims = std::max((*SI)->getNumScattering(), maxScatDims);
+    MaxScatDims = std::max((*SI)->getNumScattering(), MaxScatDims);
 
-  extendScattering(S, maxScatDims);
+  extendScattering(S, MaxScatDims);
   return false;
 }
 

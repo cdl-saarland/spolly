@@ -139,8 +139,9 @@ public:
   //typedef std::pair<Function *, ValueToValueMapTy *> FunctionPair;
   Function *getOriginalVersion(RegionMapKey &RMK);
   Function *getProfilingVersion(RegionMapKey &RMK);
+  BasicBlock *getParallelSplitBlock(RegionMapKey &RMK); 
   Function *getParallelVersion(RegionMapKey &RMK, Module *dstModule, 
-                               bool useOriginal = false);
+                               bool useOriginal = false, unsigned forks = 16);
   std::string getNameStr(RegionMapKey &RMK);
   bool checksAreSound(RegionMapKey &RMK);
   int64_t getScore(RegionMapKey &RMK);
@@ -151,7 +152,8 @@ public:
   Function *getOriginalVersion(SPollyInfo *SPI);
   Function *getProfilingVersion(SPollyInfo *SPI);
   Function *getParallelVersion(SPollyInfo *SPI, Module *dstModule,
-                               bool useOriginal = false);
+                               bool useOriginal = false, unsigned forks = 16);
+  BasicBlock *getParallelSplitBlock(SPollyInfo *SPI);
   std::string getNameStr(SPollyInfo *SPI);
   bool checksAreSound(SPollyInfo *SPI);
   int64_t getScore(SPollyInfo *SPI);

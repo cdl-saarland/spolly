@@ -43,6 +43,7 @@ struct isl_map;
 struct isl_basic_map;
 struct isl_id;
 struct isl_set;
+struct isl_union_set;
 struct isl_space;
 struct isl_constraint;
 
@@ -140,15 +141,18 @@ public:
 
   /// @brief Get the stride of this memory access in the specified domain
   ///        subset.
-  isl_set *getStride(const isl_set *domainSubset) const;
+  isl_set *getStride(__isl_take const isl_set *domainSubset) const;
+
+  /// @brief Is the stride of the access equal to a certain width.
+  bool isStrideX(__isl_take const isl_set *DomainSubset, int StrideWidth) const;
 
   /// @brief Is consecutive memory accessed for a given
   ///        statement instance set?
-  bool isStrideOne(const isl_set *domainSubset) const;
+  bool isStrideOne(__isl_take const isl_set *domainSubset) const;
 
   /// @brief Is always the same memory accessed for a given
   ///        statement instance set?
-  bool isStrideZero(const isl_set *domainSubset) const;
+  bool isStrideZero(__isl_take const isl_set *domainSubset) const;
 
   /// @brief Get the statement that contains this memory access.
   ScopStmt *getStatement() const { return statement; }
@@ -279,9 +283,6 @@ class ScopStmt {
            BasicBlock &bb, SmallVectorImpl<Loop*> &NestLoops,
            SmallVectorImpl<unsigned> &Scatter);
 
-  /// Create the finalization statement.
-  ScopStmt(Scop &parent, SmallVectorImpl<unsigned> &Scatter);
-
   friend class Scop;
 public:
 
@@ -293,6 +294,11 @@ public:
   ///
   /// @return The iteration domain of this ScopStmt.
   isl_set *getDomain() const;
+
+  /// @brief Get the space of the iteration domain
+  ///
+  /// @return The space of the iteration domain
+  isl_space *getDomainSpace() const;
 
   /// @brief Get an isl string representing this domain.
   std::string getDomainStr() const;
@@ -313,12 +319,6 @@ public:
 
   MemoryAccess &getAccessFor(const Instruction *Inst) {
     return *InstructionToAccess[Inst];
-  }
-
-  void setAccessFor(const Instruction *oldInst, const Instruction *newInst) {
-    MemoryAccess* MA = InstructionToAccess[oldInst];
-    InstructionToAccess.erase(oldInst);
-    InstructionToAccess[newInst] = MA;
   }
 
   void setBasicBlock(BasicBlock *Block) { BB = Block; }
@@ -349,12 +349,6 @@ public:
 
   /// @brief Return the SCEV for a loop dimension.
   const SCEVAddRecExpr *getSCEVForDimension(unsigned Dimension) const;
-
-  /// @brief Is this statement the final read statement?
-  ///
-  /// A final read statement is scheduled after all statements to model
-  /// that all data used in the Scop is read after the Scop.
-  bool isFinalRead() { return getBasicBlock() == NULL; }
 
   /// @brief Align the parameters in the statement to the scop context
   void realignParams();
@@ -570,6 +564,9 @@ public:
   ///
   /// @return The isl context of this static control part.
   isl_ctx *getIslCtx() const;
+
+  /// @brief Get a union set containing the iteration domains of all statements.
+  __isl_give isl_union_set *getDomains();
 };
 
 /// @brief Print Scop scop to raw_ostream O.

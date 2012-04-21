@@ -33,12 +33,14 @@ namespace polly {
   Pass *createCloogInfoPass();
   Pass *createCodeGenerationPass();
   Pass *createCodePreparationPass();
+  Pass *createDeadCodeElimPass();
   Pass *createDependencesPass();
   Pass *createDOTOnlyPrinterPass();
   Pass *createDOTOnlyViewerPass();
   Pass *createDOTPrinterPass();
   Pass *createDOTViewerPass();
   Pass *createIndependentBlocksPass();
+  Pass *createIndVarSimplifyPass();
   Pass *createJSONExporterPass();
   Pass *createJSONImporterPass();
   Pass *createRegionSimplifyPass();
@@ -79,12 +81,14 @@ namespace {
        createCloogInfoPass();
        createCodeGenerationPass();
        createCodePreparationPass();
+       createDeadCodeElimPass();
        createDependencesPass();
        createDOTOnlyPrinterPass();
        createDOTOnlyViewerPass();
        createDOTPrinterPass();
        createDOTViewerPass();
        createIndependentBlocksPass();
+       createIndVarSimplifyPass();
        createJSONExporterPass();
        createJSONImporterPass();
        createRegionSimplifyPass();
@@ -111,6 +115,7 @@ namespace llvm {
   class PassRegistry;
   void initializeCodeGenerationPass(llvm::PassRegistry&);
   void initializeCodePreparationPass(llvm::PassRegistry&);
+  void initializeDeadCodeElimPass(llvm::PassRegistry&);
   void initializeIndependentBlocksPass(llvm::PassRegistry&);
   void initializeJSONExporterPass(llvm::PassRegistry&);
   void initializeJSONImporterPass(llvm::PassRegistry&);
@@ -118,6 +123,7 @@ namespace llvm {
 #ifdef SCOPLIB_FOUND
   void initializePoccPass(llvm::PassRegistry&);
 #endif
+  void initializePollyIndVarSimplifyPass(llvm::PassRegistry&);
   void initializeRegionSimplifyPass(llvm::PassRegistry&);
 }
 

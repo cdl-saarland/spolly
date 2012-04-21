@@ -284,8 +284,6 @@ public:
   virtual void getAnalysisUsage(AnalysisUsage &AU) const;
   virtual void releaseMemory() { clear(); }
   virtual bool runOnFunction(Function &F);
-  virtual bool doInitialization(Module &M);
-  virtual bool doFinalization(Module &M);
   virtual void print(raw_ostream &OS, const Module *) const;
   //@}
 };

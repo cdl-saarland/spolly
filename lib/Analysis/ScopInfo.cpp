@@ -237,25 +237,8 @@ public:
     Value *Value = Expr->getValue();
 
     isl_space *Space;
-    
-    /// SPOLLY HACK
-    Type *t;
-    if (Expr->isSizeOf(t)) {
-      ScalarEvolution &SE = *scop->getSE();
-      IntegerType *IT = dyn_cast<IntegerType>(Value->getType());
-      assert(IT && "Integer type expected");
-
-      // TODO
-      const SCEV *sizeOf = SE.getConstant(ConstantInt::get(IT, 64));
-      return visit(sizeOf);
-    }
 
     std::string ValueName = Value->getName();
-    if (ValueName.empty()) {
-      ValueName = "myVal";
-      Value->setName(ValueName);
-    }
-
     isl_id *ID = isl_id_alloc(ctx, ValueName.c_str(), Value);
     Space = isl_space_set_alloc(ctx, 1, NbLoopSpaces);
     Space = isl_space_set_dim_id(Space, isl_dim_param, 0, ID);
@@ -341,12 +324,12 @@ MemoryAccess::MemoryAccess(const IRAccess &Access, ScopStmt *Statement) {
 
   setBaseName();
 
-  // Devide the access function by the size of the elements in the array.
+  // Divide the access function by the size of the elements in the array.
   //
   // A stride one array access in C expressed as A[i] is expressed in LLVM-IR
   // as something like A[i * elementsize]. This hides the fact that two
   // subsequent values of 'i' index two values that are stored next to each
-  // other in memory. By this devision we make this characteristic obvious
+  // other in memory. By this division we make this characteristic obvious
   // again.
   isl_int v;
   isl_int_init(v);
@@ -400,35 +383,23 @@ void MemoryAccess::dump() const {
 //     : i0 = o0, i1 = o1, ..., i(X-1) = o(X-1), iX < oX
 //
 static isl_map *getEqualAndLarger(isl_space *setDomain) {
-  isl_space *mapDomain = isl_space_map_from_set(setDomain);
-  isl_basic_map *bmap = isl_basic_map_universe(isl_space_copy(mapDomain));
-  isl_local_space *MapLocalSpace = isl_local_space_from_space(mapDomain);
+  isl_space *Space = isl_space_map_from_set(setDomain);
+  isl_map *Map = isl_map_universe(isl_space_copy(Space));
+  isl_local_space *MapLocalSpace = isl_local_space_from_space(Space);
 
   // Set all but the last dimension to be equal for the input and output
   //
   //   input[i0, i1, ..., iX] -> output[o0, o1, ..., oX]
   //     : i0 = o0, i1 = o1, ..., i(X-1) = o(X-1)
-  for (unsigned i = 0; i < isl_basic_map_n_in(bmap) - 1; ++i) {
-    isl_int v;
-    isl_int_init(v);
-    isl_constraint *c = isl_equality_alloc(isl_local_space_copy(MapLocalSpace));
-
-    isl_int_set_si(v, 1);
-    isl_constraint_set_coefficient(c, isl_dim_in, i, v);
-    isl_int_set_si(v, -1);
-    isl_constraint_set_coefficient(c, isl_dim_out, i, v);
-
-    bmap = isl_basic_map_add_constraint(bmap, c);
-
-    isl_int_clear(v);
-  }
+  for (unsigned i = 0; i < isl_map_dim(Map, isl_dim_in) - 1; ++i)
+    Map = isl_map_equate(Map, isl_dim_in, i, isl_dim_out, i);
 
   // Set the last dimension of the input to be strict smaller than the
   // last dimension of the output.
   //
   //   input[?,?,?,...,iX] -> output[?,?,?,...,oX] : iX < oX
   //
-  unsigned lastDimension = isl_basic_map_n_in(bmap) - 1;
+  unsigned lastDimension = isl_map_dim(Map, isl_dim_in) - 1;
   isl_int v;
   isl_int_init(v);
   isl_constraint *c = isl_inequality_alloc(isl_local_space_copy(MapLocalSpace));
@@ -440,15 +411,15 @@ static isl_map *getEqualAndLarger(isl_space *setDomain) {
   isl_constraint_set_constant(c, v);
   isl_int_clear(v);
 
-  bmap = isl_basic_map_add_constraint(bmap, c);
+  Map = isl_map_add_constraint(Map, c);
 
   isl_local_space_free(MapLocalSpace);
-  return isl_map_from_basic_map(bmap);
+  return Map;
 }
 
-isl_set *MemoryAccess::getStride(const isl_set *domainSubset) const {
+isl_set *MemoryAccess::getStride(__isl_take const isl_set *domainSubset) const {
   isl_map *accessRelation = getAccessRelation();
-  isl_set *scatteringDomain = isl_set_copy(const_cast<isl_set*>(domainSubset));
+  isl_set *scatteringDomain = const_cast<isl_set*>(domainSubset);
   isl_map *scattering = getStatement()->getScattering();
 
   scattering = isl_map_reverse(scattering);
@@ -475,58 +446,28 @@ isl_set *MemoryAccess::getStride(const isl_set *domainSubset) const {
   return isl_map_deltas(nextScatt);
 }
 
-bool MemoryAccess::isStrideZero(const isl_set *domainSubset) const {
-  isl_set *stride = getStride(domainSubset);
-  isl_space *StrideSpace = isl_set_get_space(stride);
-  isl_local_space *StrideLS = isl_local_space_from_space(StrideSpace);
-  isl_constraint *c = isl_equality_alloc(StrideLS);
+bool MemoryAccess::isStrideX(__isl_take const isl_set *DomainSubset,
+                             int StrideWidth) const {
+  isl_set *Stride, *StrideX;
+  bool IsStrideX;
 
-  isl_int v;
-  isl_int_init(v);
-  isl_int_set_si(v, 1);
-  isl_constraint_set_coefficient(c, isl_dim_set, 0, v);
-  isl_int_set_si(v, 0);
-  isl_constraint_set_constant(c, v);
-  isl_int_clear(v);
+  Stride = getStride(DomainSubset);
+  StrideX = isl_set_universe(isl_set_get_space(Stride));
+  StrideX = isl_set_fix_si(StrideX, isl_dim_set, 0, StrideWidth);
+  IsStrideX = isl_set_is_equal(Stride, StrideX);
 
-  isl_basic_set *bset = isl_basic_set_universe(isl_set_get_space(stride));
+  isl_set_free(StrideX);
+  isl_set_free(Stride);
 
-  bset = isl_basic_set_add_constraint(bset, c);
-  isl_set *strideZero = isl_set_from_basic_set(bset);
-
-  bool isStrideZero = isl_set_is_equal(stride, strideZero);
-
-  isl_set_free(strideZero);
-  isl_set_free(stride);
-
-  return isStrideZero;
+  return IsStrideX;
 }
 
-bool MemoryAccess::isStrideOne(const isl_set *domainSubset) const {
-  isl_set *stride = getStride(domainSubset);
-  isl_space *StrideSpace = isl_set_get_space(stride);
-  isl_local_space *StrideLSpace = isl_local_space_from_space(StrideSpace);
-  isl_constraint *c = isl_equality_alloc(StrideLSpace);
+bool MemoryAccess::isStrideZero(const isl_set *DomainSubset) const {
+  return isStrideX(DomainSubset, 0);
+}
 
-  isl_int v;
-  isl_int_init(v);
-  isl_int_set_si(v, 1);
-  isl_constraint_set_coefficient(c, isl_dim_set, 0, v);
-  isl_int_set_si(v, -1);
-  isl_constraint_set_constant(c, v);
-  isl_int_clear(v);
-
-  isl_basic_set *bset = isl_basic_set_universe(isl_set_get_space(stride));
-
-  bset = isl_basic_set_add_constraint(bset, c);
-  isl_set *strideOne = isl_set_from_basic_set(bset);
-
-  bool isStrideOne = isl_set_is_equal(stride, strideOne);
-
-  isl_set_free(strideOne);
-  isl_set_free(stride);
-
-  return isStrideOne;
+bool MemoryAccess::isStrideOne(const isl_set *DomainSubset) const {
+  return isStrideX(DomainSubset, 1);
 }
 
 void MemoryAccess::setNewAccessRelation(isl_map *newAccess) {
@@ -546,54 +487,30 @@ void ScopStmt::setScattering(isl_map *NewScattering) {
 }
 
 void ScopStmt::buildScattering(SmallVectorImpl<unsigned> &Scatter) {
-  unsigned NumberOfIterators = getNumIterators();
-  unsigned ScatSpace = Parent.getMaxLoopDepth() * 2 + 1;
-  isl_space *Space = isl_space_alloc(getIslCtx(), 0, NumberOfIterators,
-                                     ScatSpace);
+  unsigned NbIterators = getNumIterators();
+  unsigned NbScatteringDims = Parent.getMaxLoopDepth() * 2 + 1;
+
+  isl_space *Space = isl_space_alloc(getIslCtx(), 0, NbIterators,
+                                     NbScatteringDims);
   Space = isl_space_set_tuple_name(Space, isl_dim_out, "scattering");
   Space = isl_space_set_tuple_name(Space, isl_dim_in, getBaseName());
-  isl_local_space *LSpace = isl_local_space_from_space(isl_space_copy(Space));
-  isl_basic_map *bmap = isl_basic_map_universe(Space);
-  isl_int v;
-  isl_int_init(v);
+
+  Scattering = isl_map_universe(Space);
 
   // Loop dimensions.
-  for (unsigned i = 0; i < NumberOfIterators; ++i) {
-    isl_constraint *c = isl_equality_alloc(isl_local_space_copy(LSpace));
-    isl_int_set_si(v, 1);
-    isl_constraint_set_coefficient(c, isl_dim_out, 2 * i + 1, v);
-    isl_int_set_si(v, -1);
-    isl_constraint_set_coefficient(c, isl_dim_in, i, v);
-
-    bmap = isl_basic_map_add_constraint(bmap, c);
-  }
+  for (unsigned i = 0; i < NbIterators; ++i)
+    Scattering = isl_map_equate(Scattering, isl_dim_out, 2 * i + 1,
+                                isl_dim_in, i);
 
   // Constant dimensions
-  for (unsigned i = 0; i < NumberOfIterators + 1; ++i) {
-    isl_constraint *c = isl_equality_alloc(isl_local_space_copy(LSpace));
-    isl_int_set_si(v, -1);
-    isl_constraint_set_coefficient(c, isl_dim_out, 2 * i, v);
-    isl_int_set_si(v, Scatter[i]);
-    isl_constraint_set_constant(c, v);
-
-    bmap = isl_basic_map_add_constraint(bmap, c);
-  }
+  for (unsigned i = 0; i < NbIterators + 1; ++i)
+    Scattering = isl_map_fix_si(Scattering, isl_dim_out, 2 * i, Scatter[i]);
 
   // Fill scattering dimensions.
-  for (unsigned i = 2 * NumberOfIterators + 1; i < ScatSpace ; ++i) {
-    isl_constraint *c = isl_equality_alloc(isl_local_space_copy(LSpace));
-    isl_int_set_si(v, 1);
-    isl_constraint_set_coefficient(c, isl_dim_out, i, v);
-    isl_int_set_si(v, 0);
-    isl_constraint_set_constant(c, v);
+  for (unsigned i = 2 * NbIterators + 1; i < NbScatteringDims; ++i)
+    Scattering = isl_map_fix_si(Scattering, isl_dim_out, i, 0);
 
-    bmap = isl_basic_map_add_constraint(bmap, c);
-  }
-
-  isl_int_clear(v);
-  Scattering = isl_map_from_basic_map(bmap);
   Scattering = isl_map_align_params(Scattering, Parent.getParamSpace());
-  isl_local_space_free(LSpace);
 }
 
 void ScopStmt::buildAccesses(TempScop &tempScop, const Region &CurRegion) {
@@ -602,8 +519,6 @@ void ScopStmt::buildAccesses(TempScop &tempScop, const Region &CurRegion) {
   for (AccFuncSetType::const_iterator I = AccFuncs->begin(),
        E = AccFuncs->end(); I != E; ++I) {
     MemAccs.push_back(new MemoryAccess(I->first, this));
-    DEBUG(dbgs() << "@-----------------------------\n@ " << *(I->second) 
-          << "\n@ " << MemAccs.back() << "\n");
     InstructionToAccess[I->second] = MemAccs.back();
   }
 }
@@ -734,56 +649,6 @@ ScopStmt::ScopStmt(Scop &parent, TempScop &tempScop,
   buildAccesses(tempScop, CurRegion);
 }
 
-ScopStmt::ScopStmt(Scop &parent, SmallVectorImpl<unsigned> &Scatter)
-  : Parent(parent), BB(NULL), IVS(0) {
-
-  BaseName = "FinalRead";
-
-  // Build iteration domain.
-  std::string IterationDomainString = "{[i0] : i0 = 0}";
-  Domain = isl_set_read_from_str(getIslCtx(), IterationDomainString.c_str());
-  Domain = isl_set_set_tuple_name(Domain, getBaseName());
-
-  // Build scattering.
-  unsigned ScatSpace = Parent.getMaxLoopDepth() * 2 + 1;
-  isl_space *Space = isl_space_alloc(getIslCtx(), 0, 1, ScatSpace);
-  Space = isl_space_set_tuple_name(Space, isl_dim_out, "scattering");
-  Space = isl_space_set_tuple_name(Space, isl_dim_in, getBaseName());
-  isl_basic_map *bmap = isl_basic_map_universe(isl_space_copy(Space));
-  isl_int v;
-  isl_int_init(v);
-
-  isl_constraint *c = isl_equality_alloc(isl_local_space_from_space(Space));
-  isl_int_set_si(v, -1);
-  isl_constraint_set_coefficient(c, isl_dim_out, 0, v);
-
-  // TODO: This is incorrect. We should not use a very large number to ensure
-  // that this statement is executed last.
-  isl_int_set_si(v, 200000000);
-  isl_constraint_set_constant(c, v);
-
-  bmap = isl_basic_map_add_constraint(bmap, c);
-  isl_int_clear(v);
-  Scattering = isl_map_from_basic_map(bmap);
-
-  // Build memory accesses, use SetVector to keep the order of memory accesses
-  // and prevent the same memory access inserted more than once.
-  SetVector<const Value*> BaseAddressSet;
-
-  for (Scop::const_iterator SI = Parent.begin(), SE = Parent.end(); SI != SE;
-       ++SI) {
-    ScopStmt *Stmt = *SI;
-
-    for (MemoryAccessVec::const_iterator I = Stmt->memacc_begin(),
-         E = Stmt->memacc_end(); I != E; ++I)
-      BaseAddressSet.insert((*I)->getBaseAddr());
-  }
-
-  for (SetVector<const Value*>::iterator BI = BaseAddressSet.begin(),
-       BE = BaseAddressSet.end(); BI != BE; ++BI)
-    MemAccs.push_back(new MemoryAccess(*BI, this));
-}
-
 std::string ScopStmt::getDomainStr() const {
   return stringFromIslObj(Domain);
 }
@@ -834,6 +699,10 @@ isl_set *ScopStmt::getDomain() const {
   return isl_set_copy(Domain);
 }
 
+isl_space *ScopStmt::getDomainSpace() const {
+  return isl_set_get_space(Domain);
+}
+
 ScopStmt::~ScopStmt() {
   while (!MemAccs.empty()) {
     delete MemAccs.back();
@@ -881,10 +750,12 @@ void Scop::addParams(std::vector<const SCEV*> NewParameters) {
   for (std::vector<const SCEV*>::iterator PI = NewParameters.begin(),
        PE = NewParameters.end(); PI != PE; ++PI) {
     const SCEV *Parameter = *PI;
+
     if (ParameterIds.find(Parameter) != ParameterIds.end())
       continue;
 
     int dimension = Parameters.size();
+
     Parameters.push_back(Parameter);
     ParameterIds[Parameter] = dimension;
   }
@@ -947,7 +818,6 @@ Scop::Scop(TempScop &tempScop, LoopInfo &LI, ScalarEvolution &ScalarEvolution,
   // Build the iteration domain, access functions and scattering functions
   // traversing the region tree.
   buildScop(tempScop, getRegion(), NestLoops, Scatter, LI);
-  Stmts.push_back(new ScopStmt(*this, Scatter));
 
   realignParams();
 
@@ -1027,6 +897,19 @@ void Scop::print(raw_ostream &OS) const {
 void Scop::dump() const { print(dbgs()); }
 
 isl_ctx *Scop::getIslCtx() const { return IslCtx; }
+
+__isl_give isl_union_set *Scop::getDomains() {
+  isl_union_set *Domain = NULL;
+
+  for (Scop::iterator SI = begin(), SE = end(); SI != SE; ++SI)
+    if (!Domain)
+      Domain = isl_union_set_from_set((*SI)->getDomain());
+    else
+      Domain = isl_union_set_union(Domain,
+        isl_union_set_from_set((*SI)->getDomain()));
+
+  return Domain;
+}
 
 ScalarEvolution *Scop::getSE() const { return SE; }
 
@@ -1113,10 +996,9 @@ bool ScopInfo::runOnRegion(Region *R, RGPassManager &RGM) {
   // Statistics.
   ++ScopFound;
   if (tempScop->getMaxLoopDepth() > 0) ++RichScopFound;
-  
+
   scop = new Scop(*tempScop, LI, SE, ctx);
 
-    
   return false;
 }
 
