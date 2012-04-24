@@ -1341,9 +1341,9 @@ namespace polly {
         (dbgs() << "Insert Parallel Code for " << getNameStr() << "\n");
         
         // Enable parallelization for CodeGeneration
-        // TODO
         EnablePollyVector = EnableVector; 
-        EnablePollyOpenMP = false;
+        // HACK for the evaluation
+        EnablePollyOpenMP = useOriginal;
         EnablePollyForkJoin = true;
         PollyForks = forks;
 
@@ -1369,10 +1369,10 @@ namespace polly {
         // Reset the state of the OnlyFunction argument        
         IgnoreOnlyFunction = false;
 
-        //parallelVersionSubfn = 
-          //M->getFunction(parallelVersion->getNameStr() + ".fj_subfn"); 
-        //if (RS->SD && parallelVersionSubfn) 
-          //RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
+        Function *parallelVersionSubfn = 
+          M->getFunction(parallelVersion->getNameStr() + ".fj_subfn"); 
+        if (RS->SD && parallelVersionSubfn) 
+          RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
         
         //if (parallelVersionSubfn) {
           //(dbgs() << "\n\nParallel version Subfunction:");
