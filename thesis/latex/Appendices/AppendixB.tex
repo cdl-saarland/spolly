@@ -1,0 +1,56 @@
+% Appendix A
+
+\chapter{SPolly As Static Optimizer Pass}
+\label{AppendixB}
+\lhead{Appendix B. \emph{SPolly As Static Optimizer Pass}}
+
+\begin{table}[htbp]
+  \caption{Command line options to interact with SPolly}
+  \begin{tabularx}{\textwidth}{ l p{1mm} X  }
+    Command line option     && Description  \\
+    \hline
+    -enable-spolly          && Enables SPolly during SCoP detection,\par
+                                (options containing spolly will not work without) \\ 
+    -spolly-replace         && Replaces all sSCoPs by optimized versions \par 
+                                (may not be sound)  \\
+    -spolly-replace-sound   && As spolly-replace, but sound due to runtime checks \par
+                                (iff sound checks can be introduced)\\
+    -spolly-extract-regions && Extracts all sSCoPs into their own sub function \\
+    -polly-forks=N          && Set the block size which is used when 
+                             polly-fork-join code generation is enabled\\
+    -enable-polly-fork-join && Extracts the body of the outermost,
+                             parallelizeable loop, performs loop blocking with
+                             block size N and unrolls the new introduced loop 
+                             completely \par
+                             (one loop with N calls in the body remains)\\
+    -polly-inline-forks     && Inline the call instruction in each fork \\
+  \end{tabularx}
+  \label{tab:CommandLineOptions}
+\end{table}
+
+\begin{table}[htbp]
+  \caption{Brief overview of Polly's optimization options}
+  \begin{tabularx}{\textwidth}{ l p{1mm} X}
+    Short or option name          && Description \\
+    \hline
+    -polly-no-tiling              && Disable tiling in the scheduler  \\
+    -polly-tile-size=N\footnotemark[1] && Create tiles of size N \\
+    -polly-opt-optimize-only=STR  && Only a certain kind of dependences (all/raw) \\
+    -polly-opt-simplify-deps      && Simplify dependences within a SCoP    \\
+    -polly-opt-max-constant-term  && The maximal constant term allowed (in the scheduling) \\
+    -polly-opt-max-coefficient    && The maximal coefficient allowed (in the scheduling)  \\
+    -polly-opt-fusion             && The fusion strategy to choose (min/max) \\
+    -polly-opt-maximize-bands     && Maximize the band depth (yes/no) \\
+    -polly-vector-width=N\footnotemark[1]  && Try to create vector loops with N iterations \\
+    -enable-polly-openmp          && Enable OpenMP parallelized loop creation \\
+    -enable-polly-vector          && Enable loop vectorization (SIMD) \\
+    -enable-polly-atLeastOnce     && Indicates that every loop is at leas executed once \\
+    -enable-polly-aligned         && Always assumed aligned memory accesses \\
+    -enable-polly-grouped-unroll  && Perform grouped unrolling, but don't generate SIMD \\
+     &&  \\ 
+  \end{tabularx}
+  \label{tab:PollyOptions}
+  \footnotemark[1] Not available from the command line \\
+\end{table}
+
+

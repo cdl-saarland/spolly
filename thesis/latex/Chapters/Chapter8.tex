@@ -1,0 +1,21 @@
+
+Polly, by default, does not use target specific data like cache 
+sizes, but instead constants as tiling block size (32) or vector width (4).  
+
+
+The first nine options listed in table \reg{tab:PollyOptions} adjust the new 
+created scheduling, 
+
+
+
+\subsubsection{Non Constant Loop Bounds}
+For now, the profiler is only capable of monitoring average trip counts,
+not the most occurring ones (with their arity), thus it is not yet possible to 
+create specialized versions for different constant trip counts.
+This is an open point for future work, 
+mostly dependent on the profiling infrastructure because once extracted, the 
+non constant trip count is just an argument which could be replaced by a constant
+without further efforts. 
+
+\subsubsection{Invariant variables}
+...
