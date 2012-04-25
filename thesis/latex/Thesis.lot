@@ -1,16 +1,19 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {3.1}{\ignorespaces Lines of code for Polly, SPolly and Sambamba components\relax }}{8}{table.caption.47}
-\contentsline {table}{\numberline {3.2}{\ignorespaces Scores for the sSCoPs presented in various listings\relax }}{11}{table.caption.75}
-\contentsline {table}{\numberline {3.3}{\ignorespaces Functionality of the SPolly Sambamba module\relax }}{16}{table.caption.157}
-\contentsline {table}{\numberline {3.4}{\ignorespaces Command line options to interact with SPolly\relax }}{17}{table.caption.160}
-\contentsline {table}{\numberline {3.5}{\ignorespaces Brief overview of Polly's optimization options\relax }}{17}{table.caption.161}
+\contentsline {table}{\numberline {3.1}{\ignorespaces Scores for the sSCoPs presented in various listings\relax }}{11}{table.caption.76}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces The evaluation environment\relax }}{18}{table.caption.167}
-\contentsline {table}{\numberline {4.2}{\ignorespaces Results of running Polly and SPolly on SPEC 2000 benchmarks\relax }}{20}{table.caption.175}
-\contentsline {table}{\numberline {4.3}{\ignorespaces Reported bugs\relax }}{21}{table.caption.182}
+\contentsline {table}{\numberline {4.1}{\ignorespaces Lines of code for Polly, SPolly and Sambamba components\relax }}{13}{table.caption.80}
+\contentsline {table}{\numberline {4.2}{\ignorespaces Restrictions on sSCoPs\relax }}{15}{table.caption.85}
+\contentsline {table}{\numberline {4.3}{\ignorespaces Functionality of the SPolly Sambamba module\relax }}{22}{table.caption.174}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces The evaluation environment\relax }}{23}{table.caption.179}
+\contentsline {table}{\numberline {5.2}{\ignorespaces Results of running Polly and SPolly on SPEC 2000 benchmarks\relax }}{25}{table.caption.187}
+\contentsline {table}{\numberline {5.3}{\ignorespaces Reported bugs\relax }}{26}{table.caption.194}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {6.1}{\ignorespaces Case study results\relax }}{28}{table.caption.240}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\addvspace {10\p@ }
+\contentsline {table}{\numberline {B.1}{\ignorespaces Command line options to interact with SPolly\relax }}{33}{table.caption.299}
+\contentsline {table}{\numberline {B.2}{\ignorespaces Brief overview of Polly's optimization options\relax }}{34}{table.caption.300}

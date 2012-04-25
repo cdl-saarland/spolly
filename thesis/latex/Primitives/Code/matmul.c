@@ -1,26 +1,30 @@
-#define N 1536
+#define N 1024
 
-float A[N][N], B[N][N], C[N][N];
+#ifdef I1
+  #include "matmul1.c"
+  #define ARGS  
+  extern float A[N][N], B[N][N], C[N][N];
+#endif
+#ifdef I2
+  #include "matmul2.c"
+  #define ARGS A, B, C
+  float A[N][N], B[N][N], C[N][N];
+#endif
+#ifdef I3
+  #include "matmul3.c"
+  #define ARGS &A, &B, &C
+  float A[N * N], B[N * N], C[N * N];
+#endif
 
-void init_arrays(float A[N][N], float B[N][N]) {
+
+void init_arrays(float A[N][N], float B[N][N], float C[N][N]) {
     int i, j;
 
     for (i=0; i<N; i++) {
         for (j=0; j<N; j++) {
             A[i][j] = (1+(i*j)%1024)/2.0;
             B[i][j] = (1+(i*j)%1024)/2.0;
-        }
-    }
-}
-
-void multiply_arrays(float A[N][N], float B[N][N], float C[N][N]) {
-    int i, j, k;
-
-    for(i=0; i<N; i++)  {
-        for(j=0; j<N; j++)  {
             C[i][j] = 0;
-            for(k=0; k<N; k++)
-                C[i][j] = C[i][j] + A[i][k] * B[k][j];
         }
     }
 }
@@ -39,15 +43,17 @@ double sum_array(float C[N][N]) {
 }
 
 int main() {
-    double sum_no_alias, sum_alias;
-
-    init_arrays(A, B);
-    multiply_arrays(A, B, C);
-    sum_no_alias = sum_array(C);
+    double sum;
+    
+    int i;
+    for (i = 0; i < 10; i++) {
+      init_arrays(A, B, C);
+      matmul(ARGS);
+      sum = sum_array(C);
      
-    init_arrays(A, A);
-    multiply_arrays(A, A, C);
-    sum_alias = sum_array(C);
+      if (sum != 69920704991472.0)
+        return 1;
+    }
 
-    return sum_no_alias != sum_alias;
+    return 0;
 }

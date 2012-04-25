@@ -4,64 +4,63 @@
 \vspace {1em}
 \contentsline {chapter}{Acknowledgements}{iv}{dummy.3}
 \vspace {1em}
-\contentsline {chapter}{Abbreviations}{x}{dummy.4}
+\contentsline {chapter}{Abbreviations}{vii}{dummy.4}
 \vspace {2em}
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.7}
-\contentsline {subsection}{\numberline {1.0.1}Motivation}{1}{subsection.8}
-\contentsline {subsection}{\numberline {1.0.2}Overview}{1}{subsection.9}
-\contentsline {chapter}{\numberline {2}Background Theory}{3}{chapter.11}
-\contentsline {section}{\numberline {2.1}LLVM - The Low Level Virtual Machine}{3}{section.12}
-\contentsline {section}{\numberline {2.2}The Polyhedral Model}{4}{section.13}
-\contentsline {section}{\numberline {2.3}Polly - A Polyhedral Optimizer For LLVM}{5}{section.36}
-\contentsline {subsection}{\numberline {2.3.1}Static Control Parts}{5}{subsection.37}
-\contentsline {subsubsection}{\numberline {2.3.1.1}SCoP Detection}{6}{subsubsection.39}
-\contentsline {subsection}{\numberline {2.3.2}Loop Optimizations}{6}{subsection.40}
-\contentsline {subsubsection}{\numberline {2.3.2.1}Parallel Code Generation}{6}{subsubsection.41}
-\contentsline {section}{\numberline {2.4}Sambamba - A Framework For Adaptive Program Optimization}{7}{section.43}
-\contentsline {subsection}{\numberline {2.4.1}ParCFGs}{7}{subsection.44}
-\contentsline {subsection}{\numberline {2.4.2}Parallelizer}{7}{subsection.45}
-\contentsline {chapter}{\numberline {3}Implementation}{8}{chapter.46}
-\contentsline {section}{\numberline {3.1}Speculative Polly}{9}{section.48}
-\contentsline {subsection}{\numberline {3.1.1}Region Speculation}{10}{subsection.50}
-\contentsline {subsubsection}{\numberline {3.1.1.1}Region Scores}{10}{subsubsection.51}
-\contentsline {subsubsection}{\numberline {3.1.1.2}Memory Accesses}{11}{subsubsection.76}
-\contentsline {subsubsection}{\numberline {3.1.1.3}Aliasing}{11}{subsubsection.77}
-\contentsline {subsubsection}{\numberline {3.1.1.4}Non Invariantcy}{11}{subsubsection.78}
-\contentsline {subsubsection}{\numberline {3.1.1.5}SCoP extraction}{11}{subsubsection.79}
-\contentsline {subsubsection}{\numberline {3.1.1.6}Profiling Versions}{11}{subsubsection.80}
-\contentsline {subsubsection}{\numberline {3.1.1.7}Parallel Versions}{11}{subsubsection.81}
-\contentsline {subsection}{\numberline {3.1.2}Code Generation}{11}{subsection.82}
-\contentsline {subsection}{\numberline {3.1.3}Introduced tests}{13}{subsection.108}
-\contentsline {subsubsection}{\numberline {3.1.3.1}Alias tests}{13}{subsubsection.112}
-\contentsline {subsubsection}{\numberline {3.1.3.2}Invariants tests}{15}{subsubsection.128}
-\contentsline {section}{\numberline {3.2}Sambama Compile Time Module}{15}{section.155}
-\contentsline {section}{\numberline {3.3}Sambama Runtime Module}{16}{section.156}
-\contentsline {subsection}{\numberline {3.3.1}Profiling}{16}{subsection.158}
-\contentsline {section}{\numberline {3.4}Profiling For Sambamba}{16}{section.159}
-\contentsline {chapter}{\numberline {4}Evaluation}{18}{chapter.165}
-\contentsline {section}{\numberline {4.1}The Environment}{18}{section.166}
-\contentsline {section}{\numberline {4.2}Compile Time Evaluation}{19}{section.168}
-\contentsline {subsection}{\numberline {4.2.1}Preperation}{19}{subsection.169}
-\contentsline {subsection}{\numberline {4.2.2}Quantitative Results}{19}{subsection.170}
-\contentsline {subsubsection}{\numberline {4.2.2.1}SPEC2000}{19}{subsubsection.171}
-\contentsline {subsubsection}{\numberline {4.2.2.2}Polybench 3.2}{20}{subsubsection.173}
-\contentsline {subsubsection}{\numberline {4.2.2.3}Available tests}{20}{subsubsection.176}
-\contentsline {paragraph}{Alias tests}{20}{paragraph*.177}
-\contentsline {paragraph}{Invariant tests}{20}{paragraph*.178}
-\contentsline {subsection}{\numberline {4.2.3}Sound Transformations}{21}{subsection.179}
-\contentsline {section}{\numberline {4.3}Runtime Evaluation}{21}{section.180}
-\contentsline {section}{\numberline {4.4}Problems}{21}{section.181}
-\contentsline {chapter}{\numberline {5}Discussion}{22}{chapter.183}
-\contentsline {section}{\numberline {5.1}Quantitative Results}{22}{section.184}
-\contentsline {section}{\numberline {5.2}Qualitative Results}{22}{section.185}
-\contentsline {section}{\numberline {5.3}Interpretation}{22}{section.186}
-\contentsline {chapter}{\numberline {6}Case Study}{23}{chapter.187}
-\contentsline {section}{\numberline {6.1}Matrix Multiplication}{23}{section.188}
-\contentsline {subsection}{\numberline {6.1.1}Case 1}{23}{subsection.189}
-\contentsline {subsection}{\numberline {6.1.2}Case 2}{23}{subsection.190}
-\contentsline {subsection}{\numberline {6.1.3}Case 3}{23}{subsection.191}
-\contentsline {chapter}{\numberline {7}Conclusion}{24}{chapter.192}
+\contentsline {section}{\numberline {1.1}Related Work}{1}{section.8}
+\contentsline {section}{\numberline {1.2}Overview}{2}{section.9}
+\contentsline {chapter}{\numberline {2}Background}{3}{chapter.10}
+\contentsline {section}{\numberline {2.1}LLVM - The Low Level Virtual Machine}{3}{section.11}
+\contentsline {section}{\numberline {2.2}The Polyhedral Model}{4}{section.12}
+\contentsline {section}{\numberline {2.3}Polly - A Polyhedral Optimizer For LLVM}{6}{section.38}
+\contentsline {subsection}{\numberline {2.3.1}Static Control Parts}{6}{subsection.39}
+\contentsline {subsection}{\numberline {2.3.2}SCoP Detection}{6}{subsection.41}
+\contentsline {subsection}{\numberline {2.3.3}Loop Optimizations}{7}{subsection.42}
+\contentsline {subsubsection}{\numberline {2.3.3.1}Parallel Code Generation}{7}{subsubsection.43}
+\contentsline {section}{2.4 \nobreakspace {} Sambamba - A Framework For Adaptive Program Optimization}{8}{section*.44}
+\contentsline {subsection}{\numberline {2.3.4}Sambambas Parallelizer}{9}{subsection.46}
+\contentsline {subsection}{\numberline {2.3.5}Parallel Control Flow Graphs}{9}{subsection.48}
+\contentsline {chapter}{\numberline {3}Concept}{10}{chapter.50}
+\contentsline {section}{\numberline {3.1}SPolly In A Nutshell}{10}{section.51}
+\contentsline {section}{\numberline {3.2}Region Scores}{10}{section.52}
+\contentsline {chapter}{\numberline {4}Implementation}{13}{chapter.79}
+\contentsline {section}{\numberline {4.1}Speculative Polly}{14}{section.81}
+\contentsline {subsection}{\numberline {4.1.1}Speculative SCoPs}{15}{subsection.83}
+\contentsline {subsection}{\numberline {4.1.2}Region Speculation}{15}{subsection.84}
+\contentsline {subsubsection}{\numberline {4.1.2.1}sSCoP extraction}{16}{subsubsection.88}
+\contentsline {subsubsection}{\numberline {4.1.2.2}sSCoP Versions}{16}{subsubsection.89}
+\contentsline {paragraph}{The Profiling Version\\}{16}{paragraph*.90}
+\contentsline {paragraph}{The Optimized Version \\}{16}{paragraph*.91}
+\contentsline {subsubsection}{\numberline {4.1.2.3}Introduced tests}{17}{subsubsection.92}
+\contentsline {paragraph}{Alias tests \\}{17}{paragraph*.96}
+\contentsline {paragraph}{Invariants tests \\}{18}{paragraph*.118}
+\contentsline {paragraph}{Complete Checks \\}{19}{paragraph*.145}
+\contentsline {subsection}{\numberline {4.1.3}Code Generation}{20}{subsection.146}
+\contentsline {section}{\numberline {4.2}Sambama Compile Time Module}{20}{section.172}
+\contentsline {section}{\numberline {4.3}Sambama Runtime Module}{22}{section.173}
+\contentsline {subsection}{\numberline {4.3.1}Profiling}{22}{subsection.175}
+\contentsline {section}{\numberline {4.4}Profiling For Sambamba}{22}{section.176}
+\contentsline {chapter}{\numberline {5}Evaluation}{23}{chapter.177}
+\contentsline {section}{\numberline {5.1}The Environment}{23}{section.178}
+\contentsline {section}{\numberline {5.2}Compile Time Evaluation}{24}{section.180}
+\contentsline {subsection}{\numberline {5.2.1}Preperation}{24}{subsection.181}
+\contentsline {subsection}{\numberline {5.2.2}Quantitative Results}{24}{subsection.182}
+\contentsline {subsubsection}{\numberline {5.2.2.1}SPEC2000}{24}{subsubsection.183}
+\contentsline {subsubsection}{\numberline {5.2.2.2}Polybench 3.2}{25}{subsubsection.185}
+\contentsline {subsubsection}{\numberline {5.2.2.3}Available tests}{25}{subsubsection.188}
+\contentsline {paragraph}{Alias tests}{25}{paragraph*.189}
+\contentsline {paragraph}{Invariant tests}{25}{paragraph*.190}
+\contentsline {subsection}{\numberline {5.2.3}Sound Transformations}{26}{subsection.191}
+\contentsline {section}{\numberline {5.3}Runtime Evaluation}{26}{section.192}
+\contentsline {section}{\numberline {5.4}Problems}{26}{section.193}
+\contentsline {chapter}{\numberline {6}Case Study}{27}{chapter.195}
+\contentsline {section}{\numberline {6.1}Matrix Multiplication}{27}{section.196}
+\contentsline {subsection}{\numberline {6.1.1}Case A}{27}{subsection.197}
+\contentsline {subsection}{\numberline {6.1.2}Case B}{28}{subsection.212}
+\contentsline {subsection}{\numberline {6.1.3}Case C}{28}{subsection.226}
+\contentsline {chapter}{\numberline {7}Conclusion}{29}{chapter.241}
 \vspace {2em}
-\contentsline {chapter}{\numberline {A}Matrix Multiplication Example}{25}{appendix.193}
+\contentsline {chapter}{\numberline {A}Case Study Source Code}{32}{appendix.242}
+\contentsline {chapter}{\numberline {B}SPolly As Static Optimizer Pass}{33}{appendix.298}
 \vspace {2em}
-\contentsline {chapter}{Bibliography}{26}{dummy.194}
+\contentsline {chapter}{Bibliography}{35}{dummy.301}

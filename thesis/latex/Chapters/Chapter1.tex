@@ -4,50 +4,92 @@
 \label{Chapter1}
 \lhead{Chapter 1. \emph{Introduction}} % Write in your own chapter title to set the page header
 
-\orange
-\begin{shaded}
-\subsection{Motivation}
+%\section{Motivation}
 
-SPolly, short for speculative Polly [TODO or \textbf{S}ambamba \textbf{Polly} :P],
+Multiprocessors became the normal state in everyday computing. Automatic
+parallelization did not. Programmers still write sequential code which will be
+translated to sequential binaries and executed by a single thread using only
+one of many cores. % This kind of execution is still normality. 
+Benefits of modern multiprocessors are still unused because neither programmers 
+nor compilers may utilize their potential to the full. Even if parallelism could
+employ all threads and cores, it is unclear how to expose a reasonable  
+amount out of sequential code.
+Apart from the retrieval, parallelism faces the same problems as sequential
+code does. Slow I/O accesses caused by bad cache locality is a well known one. 
+Heavy research is going on in both fields with various results. 
+As there are promising approaches suffering from poor applicability on general 
+purpose code, the real problem has changed. 
+
+One of this techniques is called polyhedral optimization.
+The underlying polytope model is a mathematical description of loop nests with 
+their data dependencies. Optimal solutions in terms of e.g., locality or 
+parallelism can be derived using this model while it implicitly applies 
+traditional optimizations as loop blocking and unrolling. 
+Various preliminary results reveal the potential but also the
+limits of this technique.
+
+
+\section{Related Work}
+Research on parallelism and data locality is very popular nowadays, as is the 
+polytope model to tackle these problems. With or without speculation, there are
+promising attempts all using the polytope model, but the wide range 
+impact on general purpose code is still missing.
+
+Tobias Grosser describes in his thesis\cite{grosser:thesis} a speedup of up to
+$8$ times for matrix multiplication, archived by his polyhedral optimizer 
+Polly\cite{grosser.11.impact}. He could also produce similar results for other
+benchmarks of the Polybench\cite{Polybench:Online} benchmark suite. 
+Other publications on this 
+topic\cite{Bondhugula:2008:PAP:1379022.1375595,BCBPR10,Pradelle:2012:PPB:2086696.2086718} 
+show similar results, but they are also limited to the Polybench benchmark suite.
+Admittedly, Polybench is well suited for comparative studies, between these 
+approaches, but it has less significance for general applicability. 
+Baghdadi et. al.\cite{BCBPR10} revealed a huge potential for speculative loop 
+optimizations. They state that aggressive loop nest optimizations (including 
+parallel execution) are profitable and possible, even though data and flow 
+dependencies would statically prevent them. 
+Theirs hand made tests also showed 
+the impact when different kinds of conflict management are used.
+[TODO use this sentence or loose it]
+
+
+
+
+
+\section{Overview}
+
+SPolly, short for speculative Polly,
 is an attempt to combine two recent research projects in the context of compilers.
-One the one hand side there is Polly, a LLVM project to increase data locality
-and parallelism of loop nests. On the other hand there is Sambamba, which 
-pursues a new, adaptive way of compiling and offers features like method 
+One the one hand there is Polly, a LLVM project to increase data locality
+and parallelism for loop nests. On the other hand there is Sambamba, which 
+pursues an adaptive way of compiling and offers features like method 
 versioning, speculation and runtime adaption. As an extension of the former one
 and with the capabilities offered by the later one,
 SPolly can perform state-of-the-art loop optimizations on a wide range of loops,
 even in general purpose benchmarks as the SPEC 2000 benchmark suite. 
 
-The presented results will show that speculative optimizations performed by
-SPolly not only try to increase parallelism but also data locality --  two
-bottlenecks of modern computation are tackled at the same time. 
-
-
-\subsection{Overview}
-
-This thesis is about the work on SPolly, a speculative loop optimizer based on
-Polly and Sambamba. The key idea is to enable more loop optimizations due to 
-speculation. To demarcate this from guessing, static and dynamic information 
-is collected and used by an heuristic to choose promising candidates. 
+The key idea is to enable more loop optimizations due to speculation.
+To demarcate this from guessing, static and dynamic information 
+is combined and used by an heuristic to choose promising candidates. 
 
 The rest of the thesis will be organised as follows. 
-The background theory and the tools SPolly is based 
-on will be illustrated in chapter \ref{Chapter2}.
-SPolly starts in chapter \ref{Chapter3} with the realization,
-followed by an evaluation (chapter \ref{Chapter4}) on the SPEC 2000 and 
-Polybench 3.2 benchmark suites. 
-Chapter \ref{Chapter5} discusses the results in the context of
-possible future work.
-Before chapter \ref{Chapter7}
-will conclude this thesis, a case study on different versions of the matrix 
-multiplication example is presented in chapter \ref{Chapter6}. 
+First Chapter \ref{Chapter2} will provide information on the used tools and techniques,
+especially Polly and Sambamba. Afterwards the concepts and ideas for this work
+are stated in Chapter \ref{Chapter3}. 
+Technical details about SPolly are given in Chapter \ref{Chapter4} followed by 
+an evaluation on the SPEC 2000 and Polybench 3.2 benchmark suites 
+(Chapter \ref{Chapter5}). 
+While Chapter \ref{Chapter7} concludes the thesis and provides ideas for
+future work, a detailed case study on different versions of the matrix 
+multiplication example is presented in Chapter \ref{Chapter6}. 
 
-\end{shaded}
+\vspace*{4cm}
+{\Large \it Notes:\\}
+{
+  \it
+For simplicity source code is presented in a C like language only. \\
+TODO more ?
+}
 
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.9\textwidth]{Figures/Overview.eps}
-  \caption{Overview [TODO]}
-  \label{fig:Overview}  
-\end{figure}
+

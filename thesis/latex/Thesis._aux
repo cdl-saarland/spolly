@@ -20,201 +20,273 @@
 \@writefile{toc}{\vspace  {1em}}
 \@writefile{toc}{\contentsline {chapter}{Acknowledgements}{iv}{dummy.3}}
 \@writefile{toc}{\vspace  {1em}}
-\citation{grosser.11.impact}
 \gdef \LT@i {\LT@entry 
     {1}{65.63947pt}\LT@entry 
     {1}{184.81241pt}}
-\@writefile{toc}{\contentsline {chapter}{Abbreviations}{ix}{dummy.4}}
+\@writefile{toc}{\contentsline {chapter}{Abbreviations}{vii}{dummy.4}}
+\citation{grosser:thesis}
+\citation{grosser.11.impact}
+\citation{Polybench:Online}
+\citation{Bondhugula:2008:PAP:1379022.1375595,BCBPR10,Pradelle:2012:PPB:2086696.2086718}
+\citation{BCBPR10}
 \@writefile{toc}{\vspace  {2em}}
 \@writefile{toc}{\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.7}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \newlabel{Chapter1}{{1}{1}{Introduction\relax }{chapter.7}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.0.1}Motivation}{1}{subsection.8}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.0.2}Overview}{1}{subsection.9}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1.1}{\ignorespaces Overview [TODO]\relax }}{2}{figure.caption.10}}
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:Overview}{{1.1}{2}{Overview [TODO]\relax \relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.1}Related Work}{1}{section.8}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}Overview}{2}{section.9}}
 \citation{LLVM:CGO04}
 \citation{LLVM:Online}
-\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background Theory}{3}{chapter.11}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}Background}{3}{chapter.10}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{Chapter2}{{2}{3}{Background Theory\relax }{chapter.11}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.1}LLVM - The Low Level Virtual Machine}{3}{section.12}}
-\newlabel{LLVM}{{2.1}{3}{LLVM - The Low Level Virtual Machine\relax }{section.12}{}}
+\newlabel{Chapter2}{{2}{3}{Background\relax }{chapter.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}LLVM - The Low Level Virtual Machine}{3}{section.11}}
+\newlabel{LLVM}{{2.1}{3}{LLVM - The Low Level Virtual Machine\relax }{section.11}{}}
+\citation{BPCB10}
+\citation{BPCB10}
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}The Polyhedral Model}{4}{section.12}}
+\newlabel{def:polytope}{{2.1}{4}{Polytope\relax }{theorem.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces 2-dimensional polytope\relax }}{4}{figure.caption.14}}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:Polytope2d}{{2.1}{4}{2-dimensional polytope\relax \relax }{figure.caption.14}{}}
 \citation{Lengauer93loopparallelization}
+\citation{Bondhugula:2008:PAP:1379022.1375595}
 \citation{PoCC:Online}
-\@writefile{toc}{\contentsline {section}{\numberline {2.2}The Polyhedral Model}{4}{section.13}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/polytope}{4}{lstlisting.16}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces A sample loop nest and the corresponding polytope model\relax }}{4}{figure.caption.14}}
-\newlabel{fig:loopInThePolytopeModel}{{2.1}{4}{A sample loop nest and the corresponding polytope model\relax \relax }{figure.caption.14}{}}
-\citation{raghesh2011framework}
-\citation{grosser.11.impact}
-\citation{grosser.11.impact}
+\citation{Pradelle:2012:PPB:2086696.2086718}
+\citation{BCGST03}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/ExampleLoopNest.c}{5}{lstlisting.17}}
+\newlabel{lst:ExampleLoopNest}{{2.2a}{5}{Subfigure 2 2.2a\relax }{lstnumber.23}{}}
+\newlabel{sub@lst:ExampleLoopNest}{{(a)}{a}{Subfigure 2 2.2a\relax }{lstnumber.23}{}}
+\newlabel{fig:ExampleLoopNestPolytope}{{2.2b}{5}{Subfigure 2 2.2b\relax }{subfigure.24}{}}
+\newlabel{sub@fig:ExampleLoopNestPolytope}{{(b)}{b}{Subfigure 2 2.2b\relax }{subfigure.24}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/ExampleLoopNestTransformed.c}{5}{lstlisting.26}}
+\newlabel{lst:ExampleLoopNestTransformed}{{2.2c}{5}{Subfigure 2 2.2c\relax }{lstnumber.36}{}}
+\newlabel{sub@lst:ExampleLoopNestTransformed}{{(c)}{c}{Subfigure 2 2.2c\relax }{lstnumber.36}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces An example loop nest with its polyhedral representation\relax }}{5}{figure.caption.15}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Simple loop nest}}}{5}{subfigure.2.1}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Polyhedral representation for listing \ref {lst:ExampleLoopNest}}}}{5}{subfigure.2.2}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Optimized version of listing \ref {lst:ExampleLoopNest}}}}{5}{subfigure.2.3}}
+\newlabel{fig:ExampleLoopNest}{{2.2}{5}{An example loop nest with its polyhedral representation\relax \relax }{figure.caption.15}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Polly - A Polyhedral Optimizer For LLVM}{6}{section.38}}
+\newlabel{Polly}{{2.3}{6}{Polly - A Polyhedral Optimizer For LLVM\relax }{section.38}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Static Control Parts}{6}{subsection.39}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces SCoP CFG\relax }}{6}{figure.caption.40}}
+\newlabel{fig:PossibleSCoPCFG}{{2.3}{6}{SCoP CFG\relax \relax }{figure.caption.40}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}SCoP Detection}{6}{subsection.41}}
+\citation{Bondhugula:2008:PAP:1379022.1375595}
 \citation{grosser.11.impact}
 \citation{grosser:thesis}
 \citation{raghesh2011framework}
+\citation{Bondhugula:2008:PAP:1379022.1375595}
 \citation{Polly:Online}
+\citation{ISL:Online}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Loop Optimizations}{7}{subsection.42}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.3.1}Parallel Code Generation}{7}{subsubsection.43}}
+\citation{JIMBOREAN-2012-664345}
+\@writefile{toc}{\contentsline {section}{2.4 \nobreakspace  {} Sambamba - A Framework For Adaptive Program Optimization}{8}{section*.44}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces Sambamba in a nutshell\relax }}{8}{figure.caption.45}}
+\newlabel{fig:SambambaConcept}{{2.4}{8}{Sambamba in a nutshell\relax \relax }{figure.caption.45}{}}
 \citation{DBLP:conf/cc/StreitHZH12}
 \citation{StreitHZH12:Online}
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Polly - A Polyhedral Optimizer For LLVM}{5}{section.21}}
-\newlabel{Polly}{{2.3}{5}{Polly - A Polyhedral Optimizer For LLVM\relax }{section.21}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Static Control Parts}{5}{subsection.22}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.1.1}SCoP Detection}{5}{subsubsection.23}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}Loop Optimizations}{5}{subsection.24}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.2.1}Parallel Code Generation}{5}{subsubsection.25}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces The architecture of Polly\cite  {grosser.11.impact}\relax }}{6}{figure.caption.26}}
-\newlabel{fig:PollyArchitecture}{{2.2}{6}{The architecture of Polly\cite {grosser.11.impact}\relax \relax }{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.4}Sambamba - A Framework For Adaptive Program Optimization}{6}{section.27}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}ParCFGs}{7}{subsection.28}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}Parallelizer}{7}{subsection.29}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {3}Implementation}{8}{chapter.30}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.4}Sambambas Parallelizer}{9}{subsection.46}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.5}{\ignorespaces Symboliced transaction queue with 3 worker threads\relax }}{9}{figure.caption.47}}
+\newlabel{fig:TransactionQueue}{{2.5}{9}{Symboliced transaction queue with 3 worker threads\relax \relax }{figure.caption.47}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.5}Parallel Control Flow Graphs}{9}{subsection.48}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2.6}{\ignorespaces A parallel section with 3 transactions\relax }}{9}{figure.caption.49}}
+\newlabel{fig:ParallelSectionEx}{{2.6}{9}{A parallel section with 3 transactions\relax \relax }{figure.caption.49}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}Concept}{10}{chapter.50}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{Chapter3}{{3}{8}{Implementation\relax }{chapter.30}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces Lines of code for Polly, SPolly and Sambamba components\relax }}{8}{table.caption.31}}
-\newlabel{tab:LinesOfCode}{{3.1}{8}{Lines of code for Polly, SPolly and Sambamba components\relax \relax }{table.caption.31}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.1}Speculative Polly}{9}{section.32}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces SPolly architecture\relax }}{9}{figure.caption.33}}
-\newlabel{fig:SPollyArchitecture}{{3.1}{9}{SPolly architecture\relax \relax }{figure.caption.33}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Region Speculation}{10}{subsection.34}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1.1}Region Scores}{10}{subsubsection.35}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/sSCoPstatic.c}{10}{lstlisting.38}}
-\newlabel{lst:sSCoPstatic}{{3.2a}{10}{Subfigure 3 3.2a\relax }{lstnumber.41}{}}
-\newlabel{sub@lst:sSCoPstatic}{{(a)}{a}{Subfigure 3 3.2a\relax }{lstnumber.41}{}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/sSCoPbranch.c}{10}{lstlisting.43}}
-\newlabel{lst:sSCoPbranch}{{3.2b}{10}{Subfigure 3 3.2b\relax }{lstnumber.50}{}}
-\newlabel{sub@lst:sSCoPbranch}{{(b)}{b}{Subfigure 3 3.2b\relax }{lstnumber.50}{}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/sSCoPprintf.c}{10}{lstlisting.52}}
-\newlabel{lst:sSCoPprintf}{{3.2c}{10}{Subfigure 3 3.2c\relax }{lstnumber.58}{}}
-\newlabel{sub@lst:sSCoPprintf}{{(c)}{c}{Subfigure 3 3.2c\relax }{lstnumber.58}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces example sSCoPs\relax }}{10}{figure.caption.36}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {complete static sSCoP}}}{10}{subfigure.2.1}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Branch within a sSCoP}}}{10}{subfigure.2.2}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {irreversible call within a sSCoP}}}{10}{subfigure.2.3}}
-\newlabel{ScoredSCoPs}{{3.2}{10}{example sSCoPs\relax \relax }{figure.caption.36}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3.2}{\ignorespaces Scores for the sSCoPs presented in various listings\relax }}{11}{table.caption.59}}
-\newlabel{tab:Scores}{{3.2}{11}{Scores for the sSCoPs presented in various listings\relax \relax }{table.caption.59}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Code Generation}{11}{subsection.60}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Introduced tests}{11}{subsection.86}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/ForkJoinCodeGenerationSRC.c}{12}{lstlisting.63}}
-\newlabel{lst:ForkJoinCodeGenerationSRC}{{3.3a}{12}{Subfigure 3 3.3a\relax }{lstnumber.69}{}}
-\newlabel{sub@lst:ForkJoinCodeGenerationSRC}{{(a)}{a}{Subfigure 3 3.3a\relax }{lstnumber.69}{}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/ForkJoinCodeGenerationOUT.c}{12}{lstlisting.71}}
-\newlabel{lst:ForkJoinCodeGenerationOUT}{{3.3b}{12}{Subfigure 3 3.3b\relax }{lstnumber.83}{}}
-\newlabel{sub@lst:ForkJoinCodeGenerationOUT}{{(b)}{b}{Subfigure 3 3.3b\relax }{lstnumber.83}{}}
-\newlabel{fig:ForkJoinCFG}{{3.3c}{12}{Subfigure 3 3.3c\relax }{subfigure.84}{}}
-\newlabel{sub@fig:ForkJoinCFG}{{(c)}{c}{Subfigure 3 3.3c\relax }{subfigure.84}{}}
-\newlabel{fig:ForkJoinParCFG}{{3.3d}{12}{Subfigure 3 3.3d\relax }{subfigure.85}{}}
-\newlabel{sub@fig:ForkJoinParCFG}{{(d)}{d}{Subfigure 3 3.3d\relax }{subfigure.85}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces Forked CFG produced by SPolly and resulting ParCFG\relax }}{12}{figure.caption.61}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {source}}}{12}{subfigure.3.1}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {after N-fork creation}}}{12}{subfigure.3.2}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {SPolly forked CFG}}}{12}{subfigure.3.3}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(d)}{\ignorespaces {SPolly ParCFG}}}{12}{subfigure.3.4}}
-\newlabel{fig:CreateParCFG}{{3.3}{12}{Forked CFG produced by SPolly and resulting ParCFG\relax \relax }{figure.caption.61}{}}
-\newlabel{fig:PollySCoPCFG}{{3.4a}{13}{Subfigure 3 3.4a\relax }{subfigure.88}{}}
-\newlabel{sub@fig:PollySCoPCFG}{{(a)}{a}{Subfigure 3 3.4a\relax }{subfigure.88}{}}
-\newlabel{fig:SPollySCoPCFG}{{3.4b}{13}{Subfigure 3 3.4b\relax }{subfigure.89}{}}
-\newlabel{sub@fig:SPollySCoPCFG}{{(b)}{b}{Subfigure 3 3.4b\relax }{subfigure.89}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.4}{\ignorespaces CFG produced by Polly and SPolly, respectively\relax }}{13}{figure.caption.87}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Polly CFG}}}{13}{subfigure.4.1}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {SPolly optimized CFG}}}{13}{subfigure.4.2}}
-\newlabel{fig:SCoPCFG}{{3.4}{13}{CFG produced by Polly and SPolly, respectively\relax \relax }{figure.caption.87}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.3.1}Alias tests}{13}{subsubsection.90}}
-\newlabel{fig:AliastestConcept}{{3.5a}{14}{Subfigure 3 3.5a\relax }{subfigure.92}{}}
-\newlabel{sub@fig:AliastestConcept}{{(a)}{a}{Subfigure 3 3.5a\relax }{subfigure.92}{}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/aliastestbsp.c}{14}{lstlisting.94}}
-\newlabel{lst:AliastestAccessesSrc}{{3.5b}{14}{Subfigure 3 3.5b\relax }{lstnumber.104}{}}
-\newlabel{sub@lst:AliastestAccessesSrc}{{(b)}{b}{Subfigure 3 3.5b\relax }{lstnumber.104}{}}
-\newlabel{fig:AliastestAccesses}{{3.5c}{14}{Subfigure 3 3.5c\relax }{subfigure.105}{}}
-\newlabel{sub@fig:AliastestAccesses}{{(c)}{c}{Subfigure 3 3.5c\relax }{subfigure.105}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.5}{\ignorespaces Alias tests concept\relax }}{14}{figure.caption.91}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Alias test from a birds eye view}}}{14}{subfigure.5.1}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Aliasing accesses}}}{14}{subfigure.5.2}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Statically derived accesses}}}{14}{subfigure.5.3}}
-\newlabel{fig:Aliastest}{{3.5}{14}{Alias tests concept\relax \relax }{figure.caption.91}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.3.2}Invariants tests}{14}{subsubsection.106}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.2}Sambama Compile Time Module}{14}{section.133}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/InvariantTestSRC.c}{15}{lstlisting.109}}
-\newlabel{lst:InvariantTestSRC}{{3.6a}{15}{Subfigure 3 3.6a\relax }{lstnumber.118}{}}
-\newlabel{sub@lst:InvariantTestSRC}{{(a)}{a}{Subfigure 3 3.6a\relax }{lstnumber.118}{}}
-\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/InvariantTest.c}{15}{lstlisting.120}}
-\newlabel{lst:InvariantTestOut}{{3.6b}{15}{Subfigure 3 3.6b\relax }{lstnumber.132}{}}
-\newlabel{sub@lst:InvariantTestOut}{{(b)}{b}{Subfigure 3 3.6b\relax }{lstnumber.132}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3.6}{\ignorespaces Invariant test introduced by SPolly\relax }}{15}{figure.caption.107}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {source}}}{15}{subfigure.6.1}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {source with invariant tests}}}{15}{subfigure.6.2}}
-\newlabel{lst:InvariantTest}{{3.6}{15}{Invariant test introduced by SPolly\relax \relax }{figure.caption.107}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.3}Sambama Runtime Module}{15}{section.134}}
-\@writefile{lot}{\contentsline {table}{\numberline {3.3}{\ignorespaces Functionality of the SPolly Sambamba module\relax }}{16}{table.caption.135}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.1}Profiling}{16}{subsection.136}}
-\@writefile{toc}{\contentsline {section}{\numberline {3.4}Profiling For Sambamba}{16}{section.137}}
-\@writefile{lot}{\contentsline {table}{\numberline {3.4}{\ignorespaces Brief overview of Polly's optimization options\relax }}{17}{table.caption.138}}
-\newlabel{tab:PollyOptions}{{3.4}{17}{Brief overview of Polly's optimization options\relax \relax }{table.caption.138}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3.5}{\ignorespaces Command line options to interact with SPolly\relax }}{17}{table.caption.139}}
-\newlabel{tab:CommandLineOptions}{{3.5}{17}{Command line options to interact with SPolly\relax \relax }{table.caption.139}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {4}Evaluation}{18}{chapter.140}}
+\newlabel{Chapter3}{{3}{10}{Concept\relax }{chapter.50}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}SPolly In A Nutshell}{10}{section.51}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Region Scores}{10}{section.52}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/sSCoPstatic.c}{10}{lstlisting.55}}
+\newlabel{lst:sSCoPstatic}{{3.1a}{10}{Subfigure 3 3.1a\relax }{lstnumber.58}{}}
+\newlabel{sub@lst:sSCoPstatic}{{(a)}{a}{Subfigure 3 3.1a\relax }{lstnumber.58}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/sSCoPbranch.c}{10}{lstlisting.60}}
+\newlabel{lst:sSCoPbranch}{{3.1b}{10}{Subfigure 3 3.1b\relax }{lstnumber.67}{}}
+\newlabel{sub@lst:sSCoPbranch}{{(b)}{b}{Subfigure 3 3.1b\relax }{lstnumber.67}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/sSCoPprintf.c}{10}{lstlisting.69}}
+\newlabel{lst:sSCoPprintf}{{3.1c}{10}{Subfigure 3 3.1c\relax }{lstnumber.75}{}}
+\newlabel{sub@lst:sSCoPprintf}{{(c)}{c}{Subfigure 3 3.1c\relax }{lstnumber.75}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces example sSCoPs\relax }}{10}{figure.caption.53}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {complete static sSCoP}}}{10}{subfigure.1.1}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Branch within a sSCoP}}}{10}{subfigure.1.2}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {irreversible call within a sSCoP}}}{10}{subfigure.1.3}}
+\newlabel{fig:ScoredSCoPs}{{3.1}{10}{example sSCoPs\relax \relax }{figure.caption.53}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces Scores for the sSCoPs presented in various listings\relax }}{11}{table.caption.76}}
+\newlabel{tab:Scores}{{3.1}{11}{Scores for the sSCoPs presented in various listings\relax \relax }{table.caption.76}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.2}{\ignorespaces Draft paper: SPolly at compile time\relax }}{12}{figure.caption.77}}
+\newlabel{fig:draftPaperCT}{{3.2}{12}{Draft paper: SPolly at compile time\relax \relax }{figure.caption.77}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3.3}{\ignorespaces Draft paper: SPolly at runtime\relax }}{12}{figure.caption.78}}
+\newlabel{fig:draftPaperCT}{{3.3}{12}{Draft paper: SPolly at runtime\relax \relax }{figure.caption.78}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Implementation}{13}{chapter.79}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{Chapter4}{{4}{18}{Evaluation\relax }{chapter.140}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4.1}The Environment}{18}{section.141}}
-\@writefile{toc}{\contentsline {section}{\numberline {4.2}Compile Time Evaluation}{18}{section.142}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}Preperation}{19}{subsection.143}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.2}Quantitative Results}{19}{subsection.144}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2.1}SPEC2000}{19}{subsubsection.145}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{19}{figure.caption.146}}
-\newlabel{fig:SPEC2000CT}{{4.1}{19}{Numbers of valid and speculative valid SCoPs\relax \relax }{figure.caption.146}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2.2}Polybench 3.2}{19}{subsubsection.147}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2.3}Available tests}{19}{subsubsection.150}}
-\@writefile{toc}{\contentsline {paragraph}{Alias tests}{19}{paragraph*.151}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{20}{figure.caption.148}}
-\newlabel{fig:polybenchCT}{{4.2}{20}{Numbers of valid and speculative valid SCoPs\relax \relax }{figure.caption.148}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Results of running Polly and SPolly on SPEC 2000 benchmarks\relax }}{20}{table.caption.149}}
-\@writefile{toc}{\contentsline {paragraph}{Invariant tests}{20}{paragraph*.152}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.3}Sound Transformations}{20}{subsection.153}}
-\newlabel{soundCTtransformations}{{4.2.3}{20}{Sound Transformations\relax }{subsection.153}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4.3}Runtime Evaluation}{21}{section.154}}
-\@writefile{toc}{\contentsline {section}{\numberline {4.4}Problems}{21}{section.155}}
-\@writefile{lot}{\contentsline {table}{\numberline {4.2}{\ignorespaces Reported bugs\relax }}{21}{table.caption.156}}
-\newlabel{tab:bugreports}{{4.2}{21}{Reported bugs\relax \relax }{table.caption.156}{}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {5}Discussion}{22}{chapter.157}}
+\newlabel{Chapter4}{{4}{13}{Implementation\relax }{chapter.79}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Lines of code for Polly, SPolly and Sambamba components\relax }}{13}{table.caption.80}}
+\newlabel{tab:LinesOfCode}{{4.1}{13}{Lines of code for Polly, SPolly and Sambamba components\relax \relax }{table.caption.80}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}Speculative Polly}{14}{section.81}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces SPolly architecture\relax }}{14}{figure.caption.82}}
+\newlabel{fig:SPollyArchitecture}{{4.1}{14}{SPolly architecture\relax \relax }{figure.caption.82}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.1}Speculative SCoPs}{15}{subsection.83}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.2}Region Speculation}{15}{subsection.84}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.2}{\ignorespaces Restrictions on sSCoPs\relax }}{15}{table.caption.85}}
+\newlabel{tab:sSCoPConstraints}{{4.2}{15}{Restrictions on sSCoPs\relax \relax }{table.caption.85}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2.1}sSCoP extraction}{16}{subsubsection.88}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2.2}sSCoP Versions}{16}{subsubsection.89}}
+\@writefile{toc}{\contentsline {paragraph}{The Profiling Version\\}{16}{paragraph*.90}}
+\@writefile{toc}{\contentsline {paragraph}{The Optimized Version \\}{16}{paragraph*.91}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2.3}Introduced tests}{17}{subsubsection.92}}
+\newlabel{fig:PollySCoPCFG}{{4.2a}{17}{Subfigure 4 4.2a\relax }{subfigure.94}{}}
+\newlabel{sub@fig:PollySCoPCFG}{{(a)}{a}{Subfigure 4 4.2a\relax }{subfigure.94}{}}
+\newlabel{fig:SPollySCoPCFG}{{4.2b}{17}{Subfigure 4 4.2b\relax }{subfigure.95}{}}
+\newlabel{sub@fig:SPollySCoPCFG}{{(b)}{b}{Subfigure 4 4.2b\relax }{subfigure.95}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces CFG produced by Polly and SPolly, respectively\relax }}{17}{figure.caption.93}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Polly CFG}}}{17}{subfigure.2.1}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {SPolly optimized CFG}}}{17}{subfigure.2.2}}
+\newlabel{fig:SCoPCFG}{{4.2}{17}{CFG produced by Polly and SPolly, respectively\relax \relax }{figure.caption.93}{}}
+\@writefile{toc}{\contentsline {paragraph}{Alias tests \\}{17}{paragraph*.96}}
+\newlabel{fig:AliastestConcept}{{4.3a}{18}{Subfigure 4 4.3a\relax }{subfigure.98}{}}
+\newlabel{sub@fig:AliastestConcept}{{(a)}{a}{Subfigure 4 4.3a\relax }{subfigure.98}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/aliastestbsp.c}{18}{lstlisting.100}}
+\newlabel{lst:AliastestAccessesSrc}{{4.3b}{18}{Subfigure 4 4.3b\relax }{lstnumber.110}{}}
+\newlabel{sub@lst:AliastestAccessesSrc}{{(b)}{b}{Subfigure 4 4.3b\relax }{lstnumber.110}{}}
+\newlabel{fig:AliastestAccesses}{{4.3c}{18}{Subfigure 4 4.3c\relax }{subfigure.111}{}}
+\newlabel{sub@fig:AliastestAccesses}{{(c)}{c}{Subfigure 4 4.3c\relax }{subfigure.111}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/aliastestout.c}{18}{lstlisting.113}}
+\newlabel{lst:AliastestAccessesOut}{{4.3d}{18}{Subfigure 4 4.3d\relax }{lstnumber.117}{}}
+\newlabel{sub@lst:AliastestAccessesOut}{{(d)}{d}{Subfigure 4 4.3d\relax }{lstnumber.117}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Alias tests concept\relax }}{18}{figure.caption.97}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Alias test from a birds eye view}}}{18}{subfigure.3.1}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Aliasing accesses}}}{18}{subfigure.3.2}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Statically derived min/maximal accesses}}}{18}{subfigure.3.3}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(d)}{\ignorespaces {Introduced compare chain}}}{18}{subfigure.3.4}}
+\newlabel{fig:Aliastest}{{4.3}{18}{Alias tests concept\relax \relax }{figure.caption.97}{}}
+\@writefile{toc}{\contentsline {paragraph}{Invariants tests \\}{18}{paragraph*.118}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/InvariantTestSRC.c}{19}{lstlisting.121}}
+\newlabel{lst:InvariantTestSRC}{{4.4a}{19}{Subfigure 4 4.4a\relax }{lstnumber.130}{}}
+\newlabel{sub@lst:InvariantTestSRC}{{(a)}{a}{Subfigure 4 4.4a\relax }{lstnumber.130}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/InvariantTest.c}{19}{lstlisting.132}}
+\newlabel{lst:InvariantTestOut}{{4.4b}{19}{Subfigure 4 4.4b\relax }{lstnumber.144}{}}
+\newlabel{sub@lst:InvariantTestOut}{{(b)}{b}{Subfigure 4 4.4b\relax }{lstnumber.144}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces Invariant test introduced by SPolly\relax }}{19}{figure.caption.119}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {source}}}{19}{subfigure.4.1}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {source with invariant tests}}}{19}{subfigure.4.2}}
+\newlabel{lst:InvariantTest}{{4.4}{19}{Invariant test introduced by SPolly\relax \relax }{figure.caption.119}{}}
+\@writefile{toc}{\contentsline {paragraph}{Complete Checks \\}{19}{paragraph*.145}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.3}Code Generation}{20}{subsection.146}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}Sambama Compile Time Module}{20}{section.172}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/ForkJoinCodeGenerationSRC.c}{21}{lstlisting.149}}
+\newlabel{lst:ForkJoinCodeGenerationSRC}{{4.5a}{21}{Subfigure 4 4.5a\relax }{lstnumber.155}{}}
+\newlabel{sub@lst:ForkJoinCodeGenerationSRC}{{(a)}{a}{Subfigure 4 4.5a\relax }{lstnumber.155}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/ForkJoinCodeGenerationOUT.c}{21}{lstlisting.157}}
+\newlabel{lst:ForkJoinCodeGenerationOUT}{{4.5b}{21}{Subfigure 4 4.5b\relax }{lstnumber.169}{}}
+\newlabel{sub@lst:ForkJoinCodeGenerationOUT}{{(b)}{b}{Subfigure 4 4.5b\relax }{lstnumber.169}{}}
+\newlabel{fig:ForkJoinCFG}{{4.5c}{21}{Subfigure 4 4.5c\relax }{subfigure.170}{}}
+\newlabel{sub@fig:ForkJoinCFG}{{(c)}{c}{Subfigure 4 4.5c\relax }{subfigure.170}{}}
+\newlabel{fig:ForkJoinParCFG}{{4.5d}{21}{Subfigure 4 4.5d\relax }{subfigure.171}{}}
+\newlabel{sub@fig:ForkJoinParCFG}{{(d)}{d}{Subfigure 4 4.5d\relax }{subfigure.171}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces Forked CFG produced by SPolly and resulting ParCFG\relax }}{21}{figure.caption.147}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Initial loop nest}}}{21}{subfigure.5.1}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Listing \ref {lst:ForkJoinCodeGenerationSRC} after N-fork creation}}}{21}{subfigure.5.2}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {SPolly forked CFG}}}{21}{subfigure.5.3}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(d)}{\ignorespaces {SPolly ParCFG}}}{21}{subfigure.5.4}}
+\newlabel{fig:CreateParCFG}{{4.5}{21}{Forked CFG produced by SPolly and resulting ParCFG\relax \relax }{figure.caption.147}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.3}Sambama Runtime Module}{22}{section.173}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.3}{\ignorespaces Functionality of the SPolly Sambamba module\relax }}{22}{table.caption.174}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.1}Profiling}{22}{subsection.175}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.4}Profiling For Sambamba}{22}{section.176}}
+\citation{grosser:thesis}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Evaluation}{23}{chapter.177}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{Chapter5}{{5}{22}{Discussion\relax }{chapter.157}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.1}Quantitative Results}{22}{section.158}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.2}Qualitative Results}{22}{section.159}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.3}Interpretation}{22}{section.160}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {6}Case Study}{23}{chapter.161}}
+\newlabel{Chapter5}{{5}{23}{Evaluation\relax }{chapter.177}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}The Environment}{23}{section.178}}
+\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces The evaluation environment\relax }}{23}{table.caption.179}}
+\newlabel{tab:EvaluationEnvironment}{{5.1}{23}{The evaluation environment\relax \relax }{table.caption.179}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}Compile Time Evaluation}{24}{section.180}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.1}Preperation}{24}{subsection.181}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.2}Quantitative Results}{24}{subsection.182}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.2.1}SPEC2000}{24}{subsubsection.183}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{24}{figure.caption.184}}
+\newlabel{fig:SPEC2000CT}{{5.1}{24}{Numbers of valid and speculative valid SCoPs\relax \relax }{figure.caption.184}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.2.2}Polybench 3.2}{25}{subsubsection.185}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.2}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{25}{figure.caption.186}}
+\newlabel{fig:polybenchCT}{{5.2}{25}{Numbers of valid and speculative valid SCoPs\relax \relax }{figure.caption.186}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5.2}{\ignorespaces Results of running Polly and SPolly on SPEC 2000 benchmarks\relax }}{25}{table.caption.187}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.2.3}Available tests}{25}{subsubsection.188}}
+\@writefile{toc}{\contentsline {paragraph}{Alias tests}{25}{paragraph*.189}}
+\@writefile{toc}{\contentsline {paragraph}{Invariant tests}{25}{paragraph*.190}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.3}Sound Transformations}{26}{subsection.191}}
+\newlabel{soundCTtransformations}{{5.2.3}{26}{Sound Transformations\relax }{subsection.191}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.3}Runtime Evaluation}{26}{section.192}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.4}Problems}{26}{section.193}}
+\@writefile{lot}{\contentsline {table}{\numberline {5.3}{\ignorespaces Reported bugs\relax }}{26}{table.caption.194}}
+\newlabel{tab:bugreports}{{5.3}{26}{Reported bugs\relax \relax }{table.caption.194}{}}
+\citation{grosser:thesis,JIMBOREAN-2012-664345}
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Case Study}{27}{chapter.195}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{Chapter6}{{6}{23}{Case Study\relax }{chapter.161}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.1}Matrix Multiplication}{23}{section.162}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Case 1}{23}{subsection.163}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Case 2}{23}{subsection.164}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}Case 3}{23}{subsection.165}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusion}{24}{chapter.166}}
+\newlabel{Chapter6}{{6}{27}{Case Study\relax }{chapter.195}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.1}Matrix Multiplication}{27}{section.196}}
+\newlabel{MatrixMultiplication}{{6.1}{27}{Matrix Multiplication\relax }{section.196}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Case A}{27}{subsection.197}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/matmul1prep.c}{27}{lstlisting.199}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6.1}{\ignorespaces Matmul case A\relax }}{27}{figure.caption.198}}
+\newlabel{lst:MatmulVersionA}{{6.1}{27}{Matmul case A\relax \relax }{figure.caption.198}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Case B}{28}{subsection.212}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/matmul2prep.c}{28}{lstlisting.214}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6.2}{\ignorespaces Matmul case B\relax }}{28}{figure.caption.213}}
+\newlabel{lst:MatmulVersionB}{{\caption@xref {lst:MatmulVersionB}{ on input line 56}}{28}{Case B\relax }{figure.caption.213}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}Case C}{28}{subsection.226}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/matmul3prep.c}{28}{lstlisting.228}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6.3}{\ignorespaces Matmul case C\relax }}{28}{figure.caption.227}}
+\newlabel{lst:MatmulVersionC}{{6.3}{28}{Matmul case C\relax \relax }{figure.caption.227}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6.1}{\ignorespaces Case study results\relax }}{28}{table.caption.240}}
+\newlabel{tab:CaseStudyResults}{{6.1}{28}{Case study results\relax \relax }{table.caption.240}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusion}{29}{chapter.241}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{Chapter7}{{7}{24}{Conclusion\relax }{chapter.166}{}}
+\newlabel{Chapter7}{{7}{29}{Conclusion\relax }{chapter.241}{}}
 \@writefile{toc}{\vspace  {2em}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}Matrix Multiplication Example}{25}{appendix.167}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}Case Study Source Code}{30}{appendix.242}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{AppendixA}{{A}{25}{Matrix Multiplication Example\relax }{appendix.167}{}}
+\newlabel{AppendixA}{{A}{30}{Case Study Source Code\relax }{appendix.242}{}}
+\@writefile{lol}{\contentsline {lstlisting}{Primitives/Code/matmul1.c}{30}{lstlisting.244}}
+\@writefile{lof}{\contentsline {figure}{\numberline {A.1}{\ignorespaces Matmul case A (full)\relax }}{30}{figure.caption.243}}
+\newlabel{lst:MatmulVersionAFull}{{A.1}{30}{Matmul case A (full)\relax \relax }{figure.caption.243}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {B}SPolly As Static Optimizer Pass}{31}{appendix.298}}
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{AppendixB}{{B}{31}{SPolly As Static Optimizer Pass\relax }{appendix.298}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {B.1}{\ignorespaces Command line options to interact with SPolly\relax }}{31}{table.caption.299}}
+\newlabel{tab:CommandLineOptions}{{B.1}{31}{Command line options to interact with SPolly\relax \relax }{table.caption.299}{}}
 \@writefile{toc}{\vspace  {2em}}
+\@writefile{lot}{\contentsline {table}{\numberline {B.2}{\ignorespaces Brief overview of Polly's optimization options\relax }}{32}{table.caption.300}}
+\newlabel{tab:PollyOptions}{{B.2}{32}{Brief overview of Polly's optimization options\relax \relax }{table.caption.300}{}}
 \bibstyle{unsrtnat}
 \bibdata{Bibliography}
-\bibcite{LLVM:CGO04}{{1}{2004{}}{{Lattner and Adve}}{{}}}
-\bibcite{LLVM:Online}{{2}{2004{}}{{Lattner and Adve}}{{}}}
-\bibcite{Lengauer93loopparallelization}{{3}{1993}{{Lengauer}}{{}}}
-\bibcite{PoCC:Online}{{4}{2009}{{Pouchet}}{{}}}
-\bibcite{grosser.11.impact}{{5}{2011}{{Grosser et~al.}}{{Grosser, Zheng, A, Simb{\"u}rger, Gr{\"o}sslinger, and Pouchet}}}
-\bibcite{grosser:thesis}{{6}{2011{}}{{Grosser}}{{}}}
-\bibcite{raghesh2011framework}{{7}{2011}{{RAGHESH}}{{}}}
-\bibcite{Polly:Online}{{8}{2011{}}{{Grosser}}{{}}}
-\bibcite{DBLP:conf/cc/StreitHZH12}{{9}{2012{}}{{Streit et~al.}}{{Streit, Hammacher, Zeller, and Hack}}}
-\bibcite{StreitHZH12:Online}{{10}{2012{}}{{Streit et~al.}}{{Streit, Hammacher, Zeller, and Hack}}}
-\@writefile{toc}{\contentsline {chapter}{Bibliography}{26}{dummy.168}}
-\newlabel{Bibliography}{{5}{26}{Matrix Multiplication Example\relax }{dummy.168}{}}
+\bibcite{Polly:Online}{{1}{2011{}}{{Grosser}}{{}}}
+\bibcite{grosser:thesis}{{2}{2011{}}{{Grosser}}{{}}}
+\bibcite{grosser.11.impact}{{3}{2011}{{Grosser et~al.}}{{Grosser, Zheng, A, Simb{\"u}rger, Gr{\"o}sslinger, and Pouchet}}}
+\bibcite{Polybench:Online}{{4}{2010}{{Pouchet}}{{}}}
+\bibcite{Bondhugula:2008:PAP:1379022.1375595}{{5}{2008}{{Bondhugula et~al.}}{{Bondhugula, Hartono, Ramanujam, and Sadayappan}}}
+\bibcite{BCBPR10}{{6}{2010}{{Baghdadi et~al.}}{{Baghdadi, Cohen, Bastoul, Pouchet, and Rauchwerger}}}
+\bibcite{Pradelle:2012:PPB:2086696.2086718}{{7}{2012}{{Pradelle et~al.}}{{Pradelle, Ketterlin, and Clauss}}}
+\bibcite{LLVM:CGO04}{{8}{2004{}}{{Lattner and Adve}}{{}}}
+\bibcite{LLVM:Online}{{9}{2004{}}{{Lattner and Adve}}{{}}}
+\bibcite{BPCB10}{{10}{2010}{{Benabderrahmane et~al.}}{{Benabderrahmane, Pouchet, Cohen, and Bastoul}}}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{33}{dummy.301}}
+\newlabel{Bibliography}{{5}{33}{SPolly As Static Optimizer Pass\relax }{dummy.301}{}}
+\bibcite{Lengauer93loopparallelization}{{11}{1993}{{Lengauer}}{{}}}
+\bibcite{PoCC:Online}{{12}{2009}{{Pouchet}}{{}}}
+\bibcite{BCGST03}{{13}{2003}{{Bastoul et~al.}}{{Bastoul, Cohen, Girbal, Sharma, and Temam}}}
+\bibcite{raghesh2011framework}{{14}{2011}{{RAGHESH}}{{}}}
+\bibcite{ISL:Online}{{15}{2004}{{Verdoolaege}}{{}}}
+\bibcite{JIMBOREAN-2012-664345}{{16}{2012}{{Jimborean et~al.}}{{Jimborean, Mastrangelo, Loechner, and Clauss}}}
+\bibcite{DBLP:conf/cc/StreitHZH12}{{17}{2012{}}{{Streit et~al.}}{{Streit, Hammacher, Zeller, and Hack}}}
+\bibcite{StreitHZH12:Online}{{18}{2012{}}{{Streit et~al.}}{{Streit, Hammacher, Zeller, and Hack}}}

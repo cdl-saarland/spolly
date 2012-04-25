@@ -1,5 +1,21 @@
 % Appendix A
 
-\chapter{Matrix Multiplication Example}
+\chapter{Case Study Source Code}
 \label{AppendixA}
-\lhead{Appendix A. \emph{Matrix Multiplication Example}}
+\lhead{Appendix A. \emph{Case Study Source Code}}
+
+All presented cases of the example matrix multiplication 
+(see section \ref{MatrixMultiplication}) are embedded into a small template.
+Listing \ref{lst:MatmulVersionAFull} shows the template instanciated with the 
+first matrix multiplication case (A). Apart from the main method and the matumul function 
+time measurement and a correctness check are included.
+
+
+\begin{figure}[htpb]
+  \centering
+    \begin{minipage}[c]{\textwidth}
+      \lstinputlisting[basicstyle=\tiny]{Primitives/Code/matmul1.c}
+    \end{minipage}
+   \caption{Matmul case A (full)}
+   \label{lst:MatmulVersionAFull}
+\end{figure}

@@ -28,6 +28,16 @@
   bibsource = {DBLP, http://dblp.uni-trier.de}
 }
 
+@InProceedings{BCBPR10,
+  author =        {Riyadh Baghdadi and Albert Cohen and C\'{e}dric Bastoul and Louis-No\"{e}l Pouchet and Lawrence Rauchwerger},
+  title =         {The potential of synergistic static, dynamic and speculative loop nest optimizations for automatic parallelization},
+  booktitle =     {Workshop on Parallel Execution of Sequential Programs on Multi-core Architectures ({PESPMA'10})},
+  year =          2010,
+  address =       {Saint-Malo, France},
+  month =         jun,
+}
+
+
 @misc{StreitHZH12:Online,
   author    = {Kevin Streit and
                Clemens Hammacher and
@@ -40,7 +50,7 @@
 
 @InProceedings{grosser.11.impact,
   author    = { Tobias Grosser and Hongbin Zheng and Raghesh A and Andreas Simb{\"u}rger and Armin Gr{\"o}sslinger and  Louis-No{\"e}l Pouchet},
-  title     = { Polly - Polyhedral optimization in LLVM },
+  title     = { Polly - Polyhedral Optimization in LLVM },
   booktitle = { First International Workshop on Polyhedral Compilation Techniques (IMPACT'11)},
   address   = { Chamonix, France},
   month     = apr,
@@ -49,7 +59,7 @@
 
 @misc{Polly:Online,
   author    = {Tobias Grosser},
-  title     = {Polly - Polyhedral optimization in LLVM },
+  title     = {Polly - Polyhedral Optimization in LLVM },
   year      = {2011},
   url       = {http://polly.llvm.org}
 }
@@ -89,6 +99,14 @@
   url       = {http://www.llvm.org},
 }
 
+
+@misc{ISL:Online,
+  author    = {Sven Verdoolaege},
+  title     = "{Integer Set Library}",
+  year      = {2004}, 
+  url       = {http://www.kotnet.org/~skimo/isl/},
+}
+
 @phdthesis{raghesh2011framework,
    title={A Framework for Automatic OpenMP Code Generation},
    author={RAGHESH, A.},
@@ -102,4 +120,99 @@
   title     = "{PoCC - The Polyhedral Compiler Collection}",
   year      = {2009},
   url       = {http://www.cse.ohio-state.edu/~pouchet/software/pocc/},
+}
+
+@misc{Polybench:Online,
+  author    = {Louis-No{\"e}l Pouchet},
+  title     = "{Polybench, the Polyhedral Benchmark suite}",
+  year      = {2010},
+  url       = {http://www.cse.ohio-state.edu/~pouchet/software/polybench/},
+}
+
+@article{Bondhugula:2008:PAP:1379022.1375595,
+ author = {Bondhugula, Uday and Hartono, Albert and Ramanujam, J. and Sadayappan, P.},
+ title = {A practical automatic polyhedral parallelizer and locality optimizer},
+ journal = {SIGPLAN Not.},
+ issue_date = {June 2008},
+ volume = {43},
+ number = {6},
+ month = jun,
+ year = {2008},
+ issn = {0362-1340},
+ pages = {101--113},
+ numpages = {13},
+ url = {http://doi.acm.org/10.1145/1379022.1375595},
+ doi = {10.1145/1379022.1375595},
+ acmid = {1375595},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {affine transformations, automatic parallelization, locality optimization, loop transformations, polyhedral model, tiling},
+}
+
+@article{Pradelle:2012:PPB:2086696.2086718,
+ author = {Pradelle, Benoit and Ketterlin, Alain and Clauss, Philippe},
+ title = {Polyhedral parallelization of binary code},
+ journal = {ACM Trans. Archit. Code Optim.},
+ issue_date = {January 2012},
+ volume = {8},
+ number = {4},
+ month = jan,
+ year = {2012},
+ issn = {1544-3566},
+ pages = {39:1--39:21},
+ articleno = {39},
+ numpages = {21},
+ url = {http://doi.acm.org/10.1145/2086696.2086718},
+ doi = {10.1145/2086696.2086718},
+ acmid = {2086718},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+} 
+
+@InProceedings{BPCB10,
+  author =        {M.-W. Benabderrahmane and L.-N. Pouchet and A. Cohen and C. Bastoul},
+  title =         {The Polyhedral Model Is More Widely Applicable Than You Think},
+  booktitle =     {Proceedings of the International Conference on Compiler Construction ({ETAPS CC'10})},
+  year =          2010,
+  series =        {LNCS},
+  address =       {Paphos, Cyprus},
+  pages =         {},
+  month =         mar,
+  note = 	  {Classement CORE~:~A, nombre de papiers accept\'es~:~16, soumis~:~56},
+  publisher =     {Springer-Verlag},
+}
+
+@InProceedings{BCGST03,
+  author =        {Bastoul, C\'{e}dric and Cohen, Albert and Girbal, Sylvain and Sharma, Saurabh and Temam, Olivier},
+  title =         {Putting Polyhedral Loop Transformations to Work},
+  booktitle =     {Workshop on Languages and Compilers for Parallel Computing} # { (LCPC'03)},
+  year =          2003,
+  series =        {LNCS},
+  publisher =     {Springer-Verlag},
+  address =       {College Station, Texas},
+  keywords =      {Iterative Polyhedral Transformations},
+  month =         oct,
+  pages =         {23--30},
+  ps =            {http://www-rocq.inria.fr/~acohen/publications/BCGST03.ps.gz}
+}
+%% hal-00664345, version 1
+%% http://hal.inria.fr/hal-00664345
+@inproceedings{JIMBOREAN-2012-664345,
+    hal_id = {hal-00664345},
+    url = {http://hal.inria.fr/hal-00664345},
+    title = {{VMAD: an Advanced Dynamic Program Analysis \& Instrumentation Framework}},
+    author = {Jimborean, Alexandra and Mastrangelo, Luis and Loechner, Vincent and Clauss, Philippe},
+    abstract = {{VMAD (Virtual Machine for Advanced Dynamic analysis) is a platform for advanced profiling and analysis of programs, consisting in a static component and a runtime system. The runtime system is organized as a set of decoupled modules, dedicated to specific instrumenting or optimizing operations, dynamically loaded when required. The program binary files handled by VMAD are previously processed at compile time to include all necessary data, instrumentation instructions and callbacks to the runtime system. For this purpose, the LLVM compiler has been extended to automatically generate multiple versions of the code, each of them tailored for the targeted instrumentation or optimization strategies. The compiler chooses the most suitable intermediate representation for each version, depending on the information to be acquired and on the optimizations to be applied. The control flow graph is adapted to include the new versions and to transfer the control to and from the runtime system, which is in charge of the execution flow orchestration. The strength of our system resides in its extensibility, as one can add support for various new profiling or optimization strategies, independently of the existing modules. VMAD's potential is illustrated by presenting several analysis and optimization applications dedicated to loop nests: instrumentation by sampling, dynamic dependence analysis, adaptive version selection.}},
+    language = {English},
+    affiliation = {CAMUS - INRIA Lorraine , Laboratoire de Sciences de l'Image, de l'Informatique et de la T{\'e}l{\'e}d{\'e}tection, {\'e}quipe ICPS - LSIIT / ICPS},
+    booktitle = {{CC - 21st International Conference on Compiler Construction}},
+    publisher = {Springer},
+    pages = {220-237},
+    address = {Tallinn, Estonia},
+    volume = {7210},
+    editor = {M. O'Boyle },
+    series = {Lecture Notes in Computer Science },
+    audience = {international },
+    year = {2012},
+    month = Mar,
 }

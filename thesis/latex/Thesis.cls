@@ -120,15 +120,19 @@
 
 \newcommand{\green}{
 \definecolor{shadecolor}{named}{Green}
+\colorlet{shadecolor}{Green!20}
 }
 \newcommand{\yellow}{
 \definecolor{shadecolor}{named}{Yellow}
+\colorlet{shadecolor}{Yellow!30}
 }
 \newcommand{\orange}{
 \definecolor{shadecolor}{named}{Orange}
+\colorlet{shadecolor}{Orange!40}
 }
 \newcommand{\red}{
 \definecolor{shadecolor}{named}{Red}
+\colorlet{shadecolor}{Red!60}
 }
 
 \renewcommand{\@makechapterhead}[1]{%
@@ -227,6 +231,8 @@
 \newcommand*{\DEPARTMENT}[1]{\def\DEPTNAME{#1}}
 \newcommand*{\group}[1]{\def\groupname{#1}}
 \newcommand*{\GROUP}[1]{\def\GROUPNAME{#1}}
+\newcommand*{\faculty}[1]{\def\facname{#1}}
+\newcommand*{\FACULTY}[1]{\def\FACNAME{#1}}
 \newcommand*{\subject}[1]{\def\subjectname{#1}}
 \newcommand*{\keywords}[1]{\def\keywordnames{#1}}
 \supervisor  {Clemens Hammacher und Kevin Streit}
@@ -240,17 +246,23 @@
                 {SAARLAND UNIVERSITY}}
                 {SAARLAND UNIVERSITY}}
 \department  {\texorpdfstring{\href{http://www.cs.uni-saarland.de/}
-                {Department of Computer Science and Mathematics}}
-                {Department of Computer Science and Mathematics}}
+                {Department of Computer Science}}
+                {Department of Computer Science}}
 \DEPARTMENT  {\texorpdfstring{\href{http://www.cs.uni-saarland.de/}
-                {DEPARTMENT OF COMPUTER SCIENCE AND MATHEMATICS}}
-                {DEPARTMENT OF COMPUTER SCIENCE AND MATHEMATICS}}
+                {DEPARTMENT OF COMPUTER SCIENCE}}
+                {DEPARTMENT OF COMPUTER SCIENCE}}
 \group       {\texorpdfstring{\href{http://www.cdl.uni-saarland.de/}
                 {Compiler Design Lab}}
                 {Compiler Design Lab}}
 \GROUP       {\texorpdfstring{\href{http://www.cdl.uni-saarland.de/}
                 {COMPILER DESIGN LAB}}
                 {COMPILER DESIGN LAB}}
+\faculty     {\texorpdfstring{\href{http://www.uni-saarland.de/en/campus/faculties/faculties/faculty-6-natural-sciences-and-technology-i.html}
+                {Faculty of Natural Sciences and Technology I}}
+                {Faculty of Natural Sciences and Technology I}}
+\FACULTY     {\texorpdfstring{\href{http://www.uni-saarland.de/en/campus/faculties/faculties/faculty-6-natural-sciences-and-technology-i.html}
+                {FACULTY OF NATURAL SCIENCES AND TECHNOLOGY I}}
+                {FACULTY OF NATURAL SCIENCES AND TECHNOLOGY I}}
 
 \definecolor{Maroon}{HTML}{990000}
 
@@ -282,20 +294,27 @@
       \bigskip
       \bigskip
       \bigskip
-      {\large Bachelor Thesis \par}
-      \smallskip
+      {\Large Bachelor Thesis \par}
+      \bigskip
+      \bigskip
+      \bigskip
+      \bigskip
       {\large \groupname \par}
+      {\large \facname \par}
       {\large \deptname \par}
       {\large \univname \par}
       \bigskip
       \bigskip
       \bigskip
       {\large Supervisor: Prof. Dr. Sebastian Hack \par}
-      {\large Second reader: ... TODO ... \par}
       \smallskip
       {\large Advisors: Clemens Hammacher and Kevin Streit \par}
       \smallskip
-      {\@date \par}
+      \smallskip
+      {\large Reviewers: ... TODO ... \par}
+      \smallskip
+      \bigskip
+      {\large Submitted: \@date \par}
       \bigskip
       \bigskip
       \bigskip

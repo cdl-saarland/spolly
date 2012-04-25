@@ -1,9 +1,62 @@
-\begin{thebibliography}{10}
+\begin{thebibliography}{18}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Grosser(2011{\natexlab{a}})]{Polly:Online}
+Tobias Grosser.
+\newblock Polly - polyhedral optimization in llvm, 2011{\natexlab{a}}.
+\newblock URL \url{http://polly.llvm.org}.
+
+\bibitem[Grosser(2011{\natexlab{b}})]{grosser:thesis}
+Tobias Grosser.
+\newblock \emph{Enabling Polyhedral Optimizations in LLVM}.
+\newblock Diploma thesis, University of Passau, April 2011{\natexlab{b}}.
+\newblock URL
+  \url{http://polly.llvm.org/publications/grosser-diploma-thesis.pdf}.
+
+\bibitem[Grosser et~al.(2011)Grosser, Zheng, A, Simb{\"u}rger, Gr{\"o}sslinger,
+  and Pouchet]{grosser.11.impact}
+Tobias Grosser, Hongbin Zheng, Raghesh A, Andreas Simb{\"u}rger, Armin
+  Gr{\"o}sslinger, and Louis-No{\"e}l Pouchet.
+\newblock Polly - polyhedral optimization in llvm.
+\newblock In \emph{First International Workshop on Polyhedral Compilation
+  Techniques (IMPACT'11)}, Chamonix, France, April 2011.
+
+\bibitem[Pouchet(2010)]{Polybench:Online}
+Louis-No{\"e}l Pouchet.
+\newblock {Polybench, the Polyhedral Benchmark suite}, 2010.
+\newblock URL \url{http://www.cse.ohio-state.edu/~pouchet/software/polybench/}.
+
+\bibitem[Bondhugula et~al.(2008)Bondhugula, Hartono, Ramanujam, and
+  Sadayappan]{Bondhugula:2008:PAP:1379022.1375595}
+Uday Bondhugula, Albert Hartono, J.~Ramanujam, and P.~Sadayappan.
+\newblock A practical automatic polyhedral parallelizer and locality optimizer.
+\newblock \emph{SIGPLAN Not.}, 43\penalty0 (6):\penalty0 101--113, June 2008.
+\newblock ISSN 0362-1340.
+\newblock \doi{10.1145/1379022.1375595}.
+\newblock URL \url{http://doi.acm.org/10.1145/1379022.1375595}.
+
+\bibitem[Baghdadi et~al.(2010)Baghdadi, Cohen, Bastoul, Pouchet, and
+  Rauchwerger]{BCBPR10}
+Riyadh Baghdadi, Albert Cohen, C\'{e}dric Bastoul, Louis-No\"{e}l Pouchet, and
+  Lawrence Rauchwerger.
+\newblock The potential of synergistic static, dynamic and speculative loop
+  nest optimizations for automatic parallelization.
+\newblock In \emph{Workshop on Parallel Execution of Sequential Programs on
+  Multi-core Architectures ({PESPMA'10})}, Saint-Malo, France, June 2010.
+
+\bibitem[Pradelle et~al.(2012)Pradelle, Ketterlin, and
+  Clauss]{Pradelle:2012:PPB:2086696.2086718}
+Benoit Pradelle, Alain Ketterlin, and Philippe Clauss.
+\newblock Polyhedral parallelization of binary code.
+\newblock \emph{ACM Trans. Archit. Code Optim.}, 8\penalty0 (4):\penalty0
+  39:1--39:21, January 2012.
+\newblock ISSN 1544-3566.
+\newblock \doi{10.1145/2086696.2086718}.
+\newblock URL \url{http://doi.acm.org/10.1145/2086696.2086718}.
 
 \bibitem[Lattner and Adve(2004{\natexlab{a}})]{LLVM:CGO04}
 Chris Lattner and Vikram Adve.
@@ -19,6 +72,15 @@ Chris Lattner and Vikram Adve.
   Transformation}, 2004{\natexlab{b}}.
 \newblock URL \url{http://www.llvm.org}.
 
+\bibitem[Benabderrahmane et~al.(2010)Benabderrahmane, Pouchet, Cohen, and
+  Bastoul]{BPCB10}
+M.-W. Benabderrahmane, L.-N. Pouchet, A.~Cohen, and C.~Bastoul.
+\newblock The polyhedral model is more widely applicable than you think.
+\newblock In \emph{Proceedings of the International Conference on Compiler
+  Construction ({ETAPS CC'10})}, LNCS, Paphos, Cyprus, March 2010.
+  Springer-Verlag.
+\newblock Classement CORE~:~A, nombre de papiers accept\'es~:~16, soumis~:~56.
+
 \bibitem[Lengauer(1993)]{Lengauer93loopparallelization}
 Christian Lengauer.
 \newblock Loop parallelization in the polytope model.
@@ -30,30 +92,34 @@ Louis-No{\"e}l Pouchet.
 \newblock {PoCC - The Polyhedral Compiler Collection}, 2009.
 \newblock URL \url{http://www.cse.ohio-state.edu/~pouchet/software/pocc/}.
 
-\bibitem[Grosser et~al.(2011)Grosser, Zheng, A, Simb{\"u}rger, Gr{\"o}sslinger,
-  and Pouchet]{grosser.11.impact}
-Tobias Grosser, Hongbin Zheng, Raghesh A, Andreas Simb{\"u}rger, Armin
-  Gr{\"o}sslinger, and Louis-No{\"e}l Pouchet.
-\newblock Polly - polyhedral optimization in llvm.
-\newblock In \emph{First International Workshop on Polyhedral Compilation
-  Techniques (IMPACT'11)}, Chamonix, France, April 2011.
-
-\bibitem[Grosser(2011{\natexlab{a}})]{grosser:thesis}
-Tobias Grosser.
-\newblock \emph{Enabling Polyhedral Optimizations in LLVM}.
-\newblock Diploma thesis, University of Passau, April 2011{\natexlab{a}}.
-\newblock URL
-  \url{http://polly.llvm.org/publications/grosser-diploma-thesis.pdf}.
+\bibitem[Bastoul et~al.(2003)Bastoul, Cohen, Girbal, Sharma, and
+  Temam]{BCGST03}
+C\'{e}dric Bastoul, Albert Cohen, Sylvain Girbal, Saurabh Sharma, and Olivier
+  Temam.
+\newblock Putting polyhedral loop transformations to work.
+\newblock In \emph{Workshop on Languages and Compilers for Parallel Computing
+  (LCPC'03)}, LNCS, pages 23--30, College Station, Texas, October 2003.
+  Springer-Verlag.
 
 \bibitem[RAGHESH(2011)]{raghesh2011framework}
 A.~RAGHESH.
 \newblock \emph{A Framework for Automatic OpenMP Code Generation}.
 \newblock PhD thesis, INDIAN INSTITUTE OF TECHNOLOGY, MADRAS, 2011.
 
-\bibitem[Grosser(2011{\natexlab{b}})]{Polly:Online}
-Tobias Grosser.
-\newblock Polly - polyhedral optimization in llvm, 2011{\natexlab{b}}.
-\newblock URL \url{http://polly.llvm.org}.
+\bibitem[Verdoolaege(2004)]{ISL:Online}
+Sven Verdoolaege.
+\newblock {Integer Set Library}, 2004.
+\newblock URL \url{http://www.kotnet.org/~skimo/isl/}.
+
+\bibitem[Jimborean et~al.(2012)Jimborean, Mastrangelo, Loechner, and
+  Clauss]{JIMBOREAN-2012-664345}
+Alexandra Jimborean, Luis Mastrangelo, Vincent Loechner, and Philippe Clauss.
+\newblock {VMAD: an Advanced Dynamic Program Analysis \& Instrumentation
+  Framework}.
+\newblock In M.~O'Boyle, editor, \emph{{CC - 21st International Conference on
+  Compiler Construction}}, volume 7210 of \emph{Lecture Notes in Computer
+  Science}, pages 220--237, Tallinn, Estonia, March 2012. Springer.
+\newblock URL \url{http://hal.inria.fr/hal-00664345}.
 
 \bibitem[Streit et~al.(2012{\natexlab{a}})Streit, Hammacher, Zeller, and
   Hack]{DBLP:conf/cc/StreitHZH12}

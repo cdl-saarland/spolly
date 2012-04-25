@@ -86,6 +86,8 @@ ExtractRegions("spolly-extract-regions",
                cl::init(false)
                );
 
+bool grcs = false;
+
 
 STATISTIC(StatIllFormedRegion       , "Ill formed region");
 STATISTIC(StatViolOutside           , "Violation outside the SCoP");
@@ -1331,7 +1333,7 @@ namespace polly {
         }
       }
       
-
+    
       /// @brief Use Polly to insert parallel code
       void createParallelVersion(bool useOriginal, unsigned forks) {
         assert(    (useOriginal || parallelValueMap)
@@ -1339,7 +1341,14 @@ namespace polly {
                && "ValueToValueMap / useOriginal error");
 
         (dbgs() << "Insert Parallel Code for " << getNameStr() << "\n");
-        
+        if (originalVersion->getName() == "gl_read_color_span") {
+          dbgs() << "FOUND GL_READ_COLOR_SPAN !\n\n";
+          if (grcs)
+            return;
+          else
+            grcs = true;
+        }
+
         // Enable parallelization for CodeGeneration
         EnablePollyVector = EnableVector; 
         // HACK for the evaluation
@@ -1370,14 +1379,14 @@ namespace polly {
         IgnoreOnlyFunction = false;
 
         Function *parallelVersionSubfn = 
-          M->getFunction(parallelVersion->getNameStr() + ".fj_subfn"); 
+          M->getFunction(parallelVersion->getNameStr() + ".omp_subfn"); 
         if (RS->SD && parallelVersionSubfn) 
           RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
         
-        //if (parallelVersionSubfn) {
-          //(dbgs() << "\n\nParallel version Subfunction:");
-          //(parallelVersionSubfn->dump());
-        //}
+        if (parallelVersionSubfn) {
+          (dbgs() << "\n\nParallel version Subfunction:");
+          (parallelVersionSubfn->dump());
+        }
         EnableSpolly = true;
         SpeculativeRegionNameStr = "";
         
@@ -2735,6 +2744,10 @@ void RegionSpeculation::storeTemporaryRegion(CRegionT R, AliasSetTracker &AST) {
       assert(orig == F && "Use original did not work");
       if (SPollyExtractRegions)
         TemporaryRegion->changeCalledVersion(F);
+      if(llvm::verifyModule(*M, PrintMessageAction)) {
+        dbgs() << "\n\n\n\n";
+        TemporaryRegion->print(dbgs());
+      }
       assert(!llvm::verifyModule(*M, PrintMessageAction));
   }
 

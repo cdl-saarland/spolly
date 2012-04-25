@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdflatex 2012.4.4)  21 APR 2012 16:58
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdflatex 2012.4.4)  25 APR 2012 04:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**./Thesis.tex
+**Thesis.tex
 (./Thesis.tex
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, ge
@@ -617,32 +617,35 @@ Package: framed 2007/10/04 v 0.95: framed or shaded text with page breaks
 \fb@frh=\dimen165
 \FrameRule=\dimen166
 \FrameSep=\dimen167
-) (./Thesis.aux)
+) (./Thesis.aux
+
+LaTeX Warning: Label `fig:draftPaperCT' multiply defined.
+
+)
 \openout1 = `Thesis.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 20.
-LaTeX Font Info:    ... okay on input line 20.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 23.
+LaTeX Font Info:    ... okay on input line 23.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: subfig package v1.3 is loaded.
 Package caption Info: hyperref package is loaded.
 Package caption Info: listings package is loaded.
 Package caption Info: longtable package is loaded.
-
-(/usr/share/texmf-dist/tex/latex/caption/ltcaption.sty
+ (/usr/share/texmf-dist/tex/latex/caption/ltcaption.sty
 Package: ltcaption 2011/09/12 v1.3 longtable captions (AR)
 )
 Package caption Info: rotating package is loaded.
@@ -665,7 +668,7 @@ Package caption Info: End \AtBeginDocument code.
 )
 \c@lstlisting=\count153
 \AtBeginShipoutBox=\box38
-Package hyperref Info: Link coloring ON on input line 20.
+Package hyperref Info: Link coloring ON on input line 23.
  (/usr/share/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2010/04/30 v2.40 Cross-referencing by name of section
 
@@ -674,9 +677,9 @@ Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
 \c@section@level=\count154
 )
-LaTeX Info: Redefining \ref on input line 20.
-LaTeX Info: Redefining \pageref on input line 20.
-LaTeX Info: Redefining \nameref on input line 20.
+LaTeX Info: Redefining \ref on input line 23.
+LaTeX Info: Redefining \pageref on input line 23.
+LaTeX Info: Redefining \nameref on input line 23.
  (./Thesis.out) (./Thesis.out)
 \@outlinefile=\write3
 \openout3 = `Thesis.out'.
@@ -685,11 +688,11 @@ LaTeX Info: Redefining \nameref on input line 20.
 ------------------------------------------------------------------------------
  Title Page
 ------------------------------------------------------------------------------
-<Figures/UniSBLogo.pdf, id=245, 521.95pt x 210.7875pt>
+<Figures/UniSBLogo.pdf, id=222, 521.95pt x 210.7875pt>
 File: Figures/UniSBLogo.pdf Graphic file (type pdf)
 
 <use Figures/UniSBLogo.pdf>
-Package pdftex.def Info: Figures/UniSBLogo.pdf used on input line 35.
+Package pdftex.def Info: Figures/UniSBLogo.pdf used on input line 38.
 (pdftex.def)             Requested size: 140.90448pt x 56.9055pt.
  [1
 
@@ -699,16 +702,16 @@ Package pdftex.def Info: Figures/UniSBLogo.pdf used on input line 35.
 ------------------------------------------------------------------------------
  Declaration of Authorship
 ------------------------------------------------------------------------------
-LaTeX Font Info:    Try loading font information for U+msa on input line 76.
+LaTeX Font Info:    Try loading font information for U+msa on input line 79.
 (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 76.
+LaTeX Font Info:    Try loading font information for U+msb on input line 79.
 
 (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 )
-Underfull \hbox (badness 10000) in paragraph at lines 76--76
+Underfull \hbox (badness 10000) in paragraph at lines 79--79
 
  []
 
@@ -734,103 +737,86 @@ Underfull \hbox (badness 10000) in paragraph at lines 76--76
 \tf@toc=\write4
 \openout4 = `Thesis.toc'.
 
- [6] [7] (./Thesis.lof)
-\tf@lof=\write5
-\openout5 = `Thesis.lof'.
-
- (./Thesis.lot)
-\tf@lot=\write6
-\openout6 = `Thesis.lot'.
-
- (./Thesis.lol
-[8
-
-])
-\tf@lol=\write7
-\openout7 = `Thesis.lol'.
-
- [9]
+ [6]
 ------------------------------------------------------------------------------
  Abbreviations
 ------------------------------------------------------------------------------
-[10
+[7
+
 
 
 ]
 ------------------------------------------------------------------------------
  Dedicatory
 ------------------------------------------------------------------------------
-[11
+[8
 
 ] (./Chapters/Chapter1.tex
 Chapter 1.
 ------------------------------------------------------------------------------
  1 Introduction
 ------------------------------------------------------------------------------
-
-Package hyperref Warning: Difference (2) between bookmark levels is greater 
-(hyperref)                than one, level fixed on input line 9.
-
-Package epstopdf Info: Source file: <Figures/Overview.eps>
-(epstopdf)                    date: 2012-04-21 02:41:03
-(epstopdf)                    size: 93428 bytes
-(epstopdf)             Output file: <Figures/Overview-eps-converted-to.pdf>
-(epstopdf)                    date: 2012-04-21 02:41:07
-(epstopdf)                    size: 42905 bytes
-(epstopdf)             Command: <repstopdf --outfile=Figures/Overview-eps-conve
-rted-to.pdf Figures/Overview.eps>
-(epstopdf)             \includegraphics on input line 50.
-Package epstopdf Info: Output file is already uptodate.
-<Figures/Overview-eps-converted-to.pdf, id=442, 739.76375pt x 485.815pt>
-File: Figures/Overview-eps-converted-to.pdf Graphic file (type pdf)
-
-<use Figures/Overview-eps-converted-to.pdf>
-Package pdftex.def Info: Figures/Overview-eps-converted-to.pdf used on input li
-ne 50.
-(pdftex.def)             Requested size: 375.7232pt x 246.7468pt.
-) (./Chapters/Chapter2.tex [1
+[1
 
 
 
-]
-[2 <./Figures/Overview-eps-converted-to.pdf>]
+]) (./Chapters/Chapter2.tex [2]
 Chapter 2.
 ------------------------------------------------------------------------------
- 2 Background Theory
+ 2 Background
 ------------------------------------------------------------------------------
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 44.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 35.
 (/usr/share/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 44.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 35.
  [3
 
 ]
-(./Primitives/Code/ExampleLoopNest.c)
-Package epstopdf Info: Source file: <Figures/ExampleLoopNestPolytope2.eps>
-(epstopdf)                    date: 2012-04-21 05:42:34
-(epstopdf)                    size: 22919 bytes
-(epstopdf)             Output file: <Figures/ExampleLoopNestPolytope2-eps-conve
-rted-to.pdf>
-(epstopdf)                    date: 2012-04-21 05:42:42
-(epstopdf)                    size: 6074 bytes
-(epstopdf)             Command: <repstopdf --outfile=Figures/ExampleLoopNestPol
-ytope2-eps-converted-to.pdf Figures/ExampleLoopNestPolytope2.eps>
-(epstopdf)             \includegraphics on input line 78.
+Package epstopdf Info: Source file: <Figures/Polytope2d.eps>
+(epstopdf)                    date: 2012-04-24 04:39:02
+(epstopdf)                    size: 28800 bytes
+(epstopdf)             Output file: <Figures/Polytope2d-eps-converted-to.pdf>
+(epstopdf)                    date: 2012-04-24 04:39:07
+(epstopdf)                    size: 6713 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/Polytope2d-eps-con
+verted-to.pdf Figures/Polytope2d.eps>
+(epstopdf)             \includegraphics on input line 56.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/ExampleLoopNestPolytope2-eps-converted-to.pdf, id=463, 179.67125pt x 1
-78.6675pt>
+<Figures/Polytope2d-eps-converted-to.pdf, id=366, 172.645pt x 159.59625pt>
+File: Figures/Polytope2d-eps-converted-to.pdf Graphic file (type pdf)
+
+<use Figures/Polytope2d-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/Polytope2d-eps-converted-to.pdf used on input 
+line 56.
+(pdftex.def)             Requested size: 146.11812pt x 135.07541pt.
+
+(./Primitives/Code/ExampleLoopNest.c)
+Package epstopdf Info: Source file: <Figures/ExampleLoopNestPolytope2.eps>
+(epstopdf)                    date: 2012-04-24 04:47:37
+(epstopdf)                    size: 21275 bytes
+(epstopdf)             Output file: <Figures/ExampleLoopNestPolytope2-eps-conve
+rted-to.pdf>
+(epstopdf)                    date: 2012-04-24 04:47:42
+(epstopdf)                    size: 5316 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/ExampleLoopNestPol
+ytope2-eps-converted-to.pdf Figures/ExampleLoopNestPolytope2.eps>
+(epstopdf)             \includegraphics on input line 109.
+Package epstopdf Info: Output file is already uptodate.
+
+<Figures/ExampleLoopNestPolytope2-eps-converted-to.pdf, id=373, 178.6675pt x 17
+6.66pt>
 File: Figures/ExampleLoopNestPolytope2-eps-converted-to.pdf Graphic file (type 
 pdf)
  <use Figures/ExampleLoopNestPolytope2-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/ExampleLoopNestPolytope2-eps-converted-to.pdf 
-used on input line 78.
-(pdftex.def)             Requested size: 125.24318pt x 124.54567pt.
+used on input line 109.
+(pdftex.def)             Requested size: 103.32445pt x 102.16365pt.
 
-(./Primitives/Code/ExampleLoopNestTransformed.c) [4 <./Figures/ExampleLoopNestP
-olytope2-eps-converted-to.pdf>]
+(./Primitives/Code/ExampleLoopNestTransformed.c) [4 <./Figures/Polytope2d-eps-c
+onverted-to.pdf>] [5 <./Figures/ExampleLoopNestPolytope2-eps-converted-to.pdf>]
 Package epstopdf Info: Source file: <Figures/SimpleRegionCFG.eps>
 (epstopdf)                    date: 2012-04-21 06:26:34
 (epstopdf)                    size: 9115 bytes
@@ -840,121 +826,239 @@ df>
 (epstopdf)                    size: 3401 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/SimpleRegionCFG-ep
 s-converted-to.pdf Figures/SimpleRegionCFG.eps>
-(epstopdf)             \includegraphics on input line 148.
+(epstopdf)             \includegraphics on input line 162.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/SimpleRegionCFG-eps-converted-to.pdf, id=499, 363.3575pt x 744.7825pt>
+<Figures/SimpleRegionCFG-eps-converted-to.pdf, id=432, 363.3575pt x 744.7825pt>
 File: Figures/SimpleRegionCFG-eps-converted-to.pdf Graphic file (type pdf)
 <use Figures/SimpleRegionCFG-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/SimpleRegionCFG-eps-converted-to.pdf used on i
-nput line 148.
+nput line 162.
 (pdftex.def)             Requested size: 62.61841pt x 128.35011pt.
 
-Underfull \hbox (badness 6675) in paragraph at lines 149--149
+Underfull \hbox (badness 6675) in paragraph at lines 163--163
  []\OT1/cmr/m/sc/10 Figure 2.3: 
  []
 
-[5 <./Figures/SimpleRegionCFG-eps-converted-to.pdf>]
-<Figures/architecture.png, id=508, 667.49374pt x 486.81876pt>
-File: Figures/architecture.png Graphic file (type png)
+[6
 
-<use Figures/architecture.png>
-Package pdftex.def Info: Figures/architecture.png used on input line 190.
-(pdftex.def)             Requested size: 375.7232pt x 274.02802pt.
+ <./Figures/SimpleRegionCFG-eps-converted-to.pdf>]
+Package epstopdf Info: Source file: <Figures/SambambaConcept.eps>
+(epstopdf)                    date: 2012-04-24 20:56:50
+(epstopdf)                    size: 42870 bytes
+(epstopdf)             Output file: <Figures/SambambaConcept-eps-converted-to.p
+df>
+(epstopdf)                    date: 2012-04-24 20:57:12
+(epstopdf)                    size: 20248 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/SambambaConcept-ep
+s-converted-to.pdf Figures/SambambaConcept.eps>
+(epstopdf)             \includegraphics on input line 288.
+Package epstopdf Info: Output file is already uptodate.
 
-Underfull \vbox (badness 2762) detected at line 208
+<Figures/SambambaConcept-eps-converted-to.pdf, id=448, 501.875pt x 482.80376pt>
+File: Figures/SambambaConcept-eps-converted-to.pdf Graphic file (type pdf)
+<use Figures/SambambaConcept-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/SambambaConcept-eps-converted-to.pdf used on i
+nput line 288.
+(pdftex.def)             Requested size: 125.24318pt x 120.47963pt.
+ [7] [8 <./Figures/SambambaConcept-eps-converted-to.pdf>]
+Package epstopdf Info: Source file: <Figures/TransactionQueue.eps>
+(epstopdf)                    date: 2012-04-24 20:46:33
+(epstopdf)                    size: 83912 bytes
+(epstopdf)             Output file: <Figures/TransactionQueue-eps-converted-to.
+pdf>
+(epstopdf)                    date: 2012-04-24 20:47:17
+(epstopdf)                    size: 37263 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/TransactionQueue-e
+ps-converted-to.pdf Figures/TransactionQueue.eps>
+(epstopdf)             \includegraphics on input line 318.
+Package epstopdf Info: Output file is already uptodate.
+
+<Figures/TransactionQueue-eps-converted-to.pdf, id=465, 661.47125pt x 575.14874
+pt>
+File: Figures/TransactionQueue-eps-converted-to.pdf Graphic file (type pdf)
+ <use Figures/TransactionQueue-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/TransactionQueue-eps-converted-to.pdf used on 
+input line 318.
+(pdftex.def)             Requested size: 179.51036pt x 156.08208pt.
+
+Underfull \hbox (badness 6157) in paragraph at lines 322--328
+[]\OT1/cmr/m/n/10.95 The Sam-bamba par-al-lelizer will be-come
  []
 
-[6 <./Figures/architecture.png>]) (./Chapters/Chapter3.tex [7]
+
+Underfull \hbox (badness 2035) in paragraph at lines 322--328
+\OT1/cmr/m/n/10.95 the main in-ter-face for any kind of par-
+ []
+
+
+Underfull \hbox (badness 3919) in paragraph at lines 322--328
+\OT1/cmr/m/n/10.95 al-leliza-tion in the frame-work. At the
+ []
+
+
+Underfull \hbox (badness 4518) in paragraph at lines 322--328
+\OT1/cmr/m/n/10.95 mo-ment it is in need of par-al-lel con-
+ []
+
+
+Underfull \hbox (badness 3354) in paragraph at lines 322--328
+\OT1/cmr/m/n/10.95 trol flow graphs to ex-plic-itly state sec-
+ []
+
+
+Underfull \hbox (badness 4353) in paragraph at lines 322--328
+\OT1/cmr/m/n/10.95 tion which should be ex-e-cuted in par-
+ []
+
+
+Underfull \hbox (badness 2573) in paragraph at lines 322--328
+\OT1/cmr/m/n/10.95 al-lel, but in the fu-ture more au-to-matic
+ []
+
+
+Underfull \hbox (badness 5431) in paragraph at lines 322--328
+\OT1/cmr/m/n/10.95 loop par-al-leliza-tion will be im-ple-mented
+ []
+
+
+Underfull \hbox (badness 3884) in paragraph at lines 322--328
+\OT1/cmr/m/n/10.95 too. The run-time part of the par-al-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 322--328
+
+ []
+
+Package epstopdf Info: Source file: <Figures/ParallelSectionEx.eps>
+(epstopdf)                    date: 2012-04-24 20:51:14
+(epstopdf)                    size: 24176 bytes
+(epstopdf)             Output file: <Figures/ParallelSectionEx-eps-converted-to
+.pdf>
+(epstopdf)                    date: 2012-04-24 20:51:20
+(epstopdf)                    size: 9622 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/ParallelSectionEx-
+eps-converted-to.pdf Figures/ParallelSectionEx.eps>
+(epstopdf)             \includegraphics on input line 335.
+Package epstopdf Info: Output file is already uptodate.
+
+<Figures/ParallelSectionEx-eps-converted-to.pdf, id=466, 601.24625pt x 728.7225
+pt>
+File: Figures/ParallelSectionEx-eps-converted-to.pdf Graphic file (type pdf)
+ <use Figures/ParallelSectionEx-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/ParallelSectionEx-eps-converted-to.pdf used on
+ input line 335.
+(pdftex.def)             Requested size: 137.76688pt x 166.96884pt.
+
+Overfull \hbox (271.35495pt too wide) in paragraph at lines 334--337
+ []$[]$ 
+ []
+
+) (./Chapters/Chapter3.tex [9
+
+ <./Figures/TransactionQueue-eps-converted-to.pdf> <./Figures/ParallelSectionEx
+-eps-converted-to.pdf>]
 Chapter 3.
 ------------------------------------------------------------------------------
- 3 Implementation
+ 3 Concept
+------------------------------------------------------------------------------
+(./Primitives/Code/sSCoPstatic.c) (./Primitives/Code/sSCoPbranch.c)
+(./Primitives/Code/sSCoPprintf.c) [10
+
+] [11]
+Package epstopdf Info: Source file: <Figures/draftPaperCT.eps>
+(epstopdf)                    date: 2012-04-24 23:53:15
+(epstopdf)                    size: 82862 bytes
+(epstopdf)             Output file: <Figures/draftPaperCT-eps-converted-to.pdf>
+
+(epstopdf)                    date: 2012-04-24 23:53:20
+(epstopdf)                    size: 38057 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/draftPaperCT-eps-c
+onverted-to.pdf Figures/draftPaperCT.eps>
+(epstopdf)             \includegraphics on input line 90.
+Package epstopdf Info: Output file is already uptodate.
+
+<Figures/draftPaperCT-eps-converted-to.pdf, id=520, 617.30624pt x 557.08125pt>
+File: Figures/draftPaperCT-eps-converted-to.pdf Graphic file (type pdf)
+
+<use Figures/draftPaperCT-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/draftPaperCT-eps-converted-to.pdf used on inpu
+t line 90.
+(pdftex.def)             Requested size: 250.48637pt x 226.05019pt.
+Package epstopdf Info: Source file: <Figures/draftPaperRT.eps>
+(epstopdf)                    date: 2012-04-24 23:46:44
+(epstopdf)                    size: 122078 bytes
+(epstopdf)             Output file: <Figures/draftPaperRT-eps-converted-to.pdf>
+
+(epstopdf)                    date: 2012-04-24 23:53:20
+(epstopdf)                    size: 54861 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/draftPaperRT-eps-c
+onverted-to.pdf Figures/draftPaperRT.eps>
+(epstopdf)             \includegraphics on input line 96.
+Package epstopdf Info: Output file is already uptodate.
+
+<Figures/draftPaperRT-eps-converted-to.pdf, id=521, 617.30624pt x 643.40375pt>
+File: Figures/draftPaperRT-eps-converted-to.pdf Graphic file (type pdf)
+
+<use Figures/draftPaperRT-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/draftPaperRT-eps-converted-to.pdf used on inpu
+t line 96.
+(pdftex.def)             Requested size: 250.48637pt x 261.07779pt.
+ [12
+
+ <./Figures/draftPaperCT-eps-converted-to.pdf> <./Figures/draftPaperRT-eps-conv
+erted-to.pdf>])
+(./Chapters/Chapter4.tex
+Chapter 4.
+------------------------------------------------------------------------------
+ 4 Implementation
 ------------------------------------------------------------------------------
 
-LaTeX Warning: Reference `tab:Bugreports' on page 8 undefined on input line 44.
+LaTeX Warning: Reference `tab:Bugreports' on page 13 undefined on input line 44
+.
 
 
-[8
+LaTeX Warning: Reference `fig:PollyArchitecture' on page 13 undefined on input 
+line 73.
 
-] <Primitives/SPollyArchitecture.png, id=540, 1029.8475pt x 761.84625pt>
-File: Primitives/SPollyArchitecture.png Graphic file (type png)
-
-<use Primitives/SPollyArchitecture.png>
-Package pdftex.def Info: Primitives/SPollyArchitecture.png used on input line 8
-1.
-(pdftex.def)             Requested size: 375.7232pt x 277.93788pt.
+[13
 
 
-LaTeX Warning: Reference `tab:ValidationsSpeculatedOn' on page 9 undefined on i
-nput line 94.
-
-(./Primitives/Code/sSCoPstatic.c) (./Primitives/Code/sSCoPbranch.c)
-(./Primitives/Code/sSCoPprintf.c)
-Underfull \vbox (badness 3536) detected at line 147
- []
-
-[9 <./Primitives/SPollyArchitecture.png>] [10]
-
-LaTeX Warning: Reference `SambambaSTM' on page 11 undefined on input line 195.
-
-
-LaTeX Warning: Reference `SambambaParCFG' on page 11 undefined on input line 20
-1.
-
-
-Underfull \vbox (badness 1142) detected at line 204
- []
-
-[11] (./Primitives/Code/ForkJoinCodeGenerationSRC.c)
-(./Primitives/Code/ForkJoinCodeGenerationOUT.c)
-Package epstopdf Info: Source file: <Figures/ForkJoinCFG.eps>
-(epstopdf)                    date: 2012-04-17 19:37:43
-(epstopdf)                    size: 32813 bytes
-(epstopdf)             Output file: <Figures/ForkJoinCFG-eps-converted-to.pdf>
-(epstopdf)                    date: 2012-04-17 19:37:50
-(epstopdf)                    size: 14560 bytes
-(epstopdf)             Command: <repstopdf --outfile=Figures/ForkJoinCFG-eps-co
-nverted-to.pdf Figures/ForkJoinCFG.eps>
-(epstopdf)             \includegraphics on input line 222.
+]
+Package epstopdf Info: Source file: <Figures/SPollyArchitecture.eps>
+(epstopdf)                    date: 2012-04-22 21:42:21
+(epstopdf)                    size: 1957853 bytes
+(epstopdf)             Output file: <Figures/SPollyArchitecture-eps-converted-t
+o.pdf>
+(epstopdf)                    date: 2012-04-22 21:42:57
+(epstopdf)                    size: 41198 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/SPollyArchitecture
+-eps-converted-to.pdf Figures/SPollyArchitecture.eps>
+(epstopdf)             \includegraphics on input line 81.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/ForkJoinCFG-eps-converted-to.pdf, id=585, 355.3275pt x 574.145pt>
-File: Figures/ForkJoinCFG-eps-converted-to.pdf Graphic file (type pdf)
+<Figures/SPollyArchitecture-eps-converted-to.pdf, id=541, 949.5475pt x 693.5912
+5pt>
+File: Figures/SPollyArchitecture-eps-converted-to.pdf Graphic file (type pdf)
+ <use Figures/SPollyArchitecture-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/SPollyArchitecture-eps-converted-to.pdf used o
+n input line 81.
+(pdftex.def)             Requested size: 375.7232pt x 274.44708pt.
 
-<use Figures/ForkJoinCFG-eps-converted-to.pdf>
-Package pdftex.def Info: Figures/ForkJoinCFG-eps-converted-to.pdf used on input
- line 222.
-(pdftex.def)             Requested size: 112.7195pt x 182.1357pt.
 
-Underfull \hbox (badness 2913) in paragraph at lines 222--222
- []\OT1/cmr/m/sc/9 (c) |\OT1/cmr/m/n/9 SPolly forked 
+LaTeX Warning: Reference `fig:SCoPconstraints' on page 14 undefined on input li
+ne 91.
+
+
+Underfull \vbox (badness 4505) detected at line 110
  []
 
-Package epstopdf Info: Source file: <Figures/ForkJoinParCFG.eps>
-(epstopdf)                    date: 2012-04-17 19:44:31
-(epstopdf)                    size: 35316 bytes
-(epstopdf)             Output file: <Figures/ForkJoinParCFG-eps-converted-to.pd
-f>
-(epstopdf)                    date: 2012-04-17 19:44:35
-(epstopdf)                    size: 14962 bytes
-(epstopdf)             Command: <repstopdf --outfile=Figures/ForkJoinParCFG-eps
--converted-to.pdf Figures/ForkJoinParCFG.eps>
-(epstopdf)             \includegraphics on input line 227.
-Package epstopdf Info: Output file is already uptodate.
-
-<Figures/ForkJoinParCFG-eps-converted-to.pdf, id=586, 773.89125pt x 516.93124pt
->
-File: Figures/ForkJoinParCFG-eps-converted-to.pdf Graphic file (type pdf)
- <use Figures/ForkJoinParCFG-eps-converted-to.pdf>
-Package pdftex.def Info: Figures/ForkJoinParCFG-eps-converted-to.pdf used on in
-put line 227.
-(pdftex.def)             Requested size: 263.01007pt x 175.6833pt.
-
-Underfull \vbox (badness 10000) detected at line 249
+[14 <./Figures/SPollyArchitecture-eps-converted-to.pdf>]
+Underfull \vbox (badness 1917) detected at line 144
  []
 
-[12 <./Figures/ForkJoinCFG-eps-converted-to.pdf> <./Figures/ForkJoinParCFG-eps-
-converted-to.pdf>]
+[15] [16]
 Package epstopdf Info: Source file: <Figures/PollySCoPCFG.eps>
 (epstopdf)                    date: 2012-04-16 14:59:10
 (epstopdf)                    size: 44114 bytes
@@ -964,15 +1068,15 @@ Package epstopdf Info: Source file: <Figures/PollySCoPCFG.eps>
 (epstopdf)                    size: 19023 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/PollySCoPCFG-eps-c
 onverted-to.pdf Figures/PollySCoPCFG.eps>
-(epstopdf)             \includegraphics on input line 255.
+(epstopdf)             \includegraphics on input line 207.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/PollySCoPCFG-eps-converted-to.pdf, id=618, 487.8225pt x 496.85625pt>
+<Figures/PollySCoPCFG-eps-converted-to.pdf, id=571, 487.8225pt x 496.85625pt>
 File: Figures/PollySCoPCFG-eps-converted-to.pdf Graphic file (type pdf)
 
 <use Figures/PollySCoPCFG-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/PollySCoPCFG-eps-converted-to.pdf used on inpu
-t line 255.
+t line 207.
 (pdftex.def)             Requested size: 187.8616pt x 191.33952pt.
 Package epstopdf Info: Source file: <Figures/SPollySCoPCFG.eps>
 (epstopdf)                    date: 2012-04-21 00:48:40
@@ -983,18 +1087,23 @@ Package epstopdf Info: Source file: <Figures/SPollySCoPCFG.eps>
 (epstopdf)                    size: 21014 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/SPollySCoPCFG-eps-
 converted-to.pdf Figures/SPollySCoPCFG.eps>
-(epstopdf)             \includegraphics on input line 258.
+(epstopdf)             \includegraphics on input line 213.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/SPollySCoPCFG-eps-converted-to.pdf, id=619, 491.8375pt x 496.85625pt>
+<Figures/SPollySCoPCFG-eps-converted-to.pdf, id=572, 491.8375pt x 496.85625pt>
 File: Figures/SPollySCoPCFG-eps-converted-to.pdf Graphic file (type pdf)
 
 <use Figures/SPollySCoPCFG-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/SPollySCoPCFG-eps-converted-to.pdf used on inp
-ut line 258.
+ut line 213.
 (pdftex.def)             Requested size: 187.8616pt x 189.77776pt.
- [13 <./Figures/PollySCoPCFG-eps-converted-to.pdf> <./Figures/SPollySCoPCFG-eps
--converted-to.pdf>]
+
+Underfull \hbox (badness 10000) in paragraph at lines 221--222
+
+ []
+
+[17 <./Figures/PollySCoPCFG-eps-converted-to.pdf> <./Figures/SPollySCoPCFG-eps-
+converted-to.pdf>]
 Package epstopdf Info: Source file: <Primitives/aliastest.eps>
 (epstopdf)                    date: 2012-04-16 14:19:56
 (epstopdf)                    size: 54798 bytes
@@ -1004,49 +1113,84 @@ Package epstopdf Info: Source file: <Primitives/aliastest.eps>
 (epstopdf)                    size: 23861 bytes
 (epstopdf)             Command: <repstopdf --outfile=Primitives/aliastest-eps-c
 onverted-to.pdf Primitives/aliastest.eps>
-(epstopdf)             \includegraphics on input line 291.
+(epstopdf)             \includegraphics on input line 252.
 Package epstopdf Info: Output file is already uptodate.
 
-<Primitives/aliastest-eps-converted-to.pdf, id=634, 1315.91624pt x 293.095pt>
+<Primitives/aliastest-eps-converted-to.pdf, id=589, 1315.91624pt x 293.095pt>
 File: Primitives/aliastest-eps-converted-to.pdf Graphic file (type pdf)
 
 <use Primitives/aliastest-eps-converted-to.pdf>
 Package pdftex.def Info: Primitives/aliastest-eps-converted-to.pdf used on inpu
-t line 291.
+t line 252.
 (pdftex.def)             Requested size: 375.7232pt x 83.68498pt.
 
-(./Primitives/Code/aliastestbsp.c)
+(./Primitives/Code/aliastestbsp.c) (./Primitives/Code/aliastestout.c) [18 <./Pr
+imitives/aliastest-eps-converted-to.pdf>] (./Primitives/Code/InvariantTestSRC.c
+) (./Primitives/Code/InvariantTest.c)
 
-LaTeX Warning: Reference `fig:AliastestBsp' on page 14 undefined on input line 
-323.
+LaTeX Warning: Reference `SambambaSTM' on page 19 undefined on input line 362.
 
 
-LaTeX Warning: Reference `Appendix1' on page 14 undefined on input line 328.
+LaTeX Warning: Reference `SambambaParCFG' on page 19 undefined on input line 36
+8.
 
-[14 <./Primitives/aliastest-eps-converted-to.pdf>]
-(./Primitives/Code/InvariantTestSRC.c) (./Primitives/Code/InvariantTest.c)
-Underfull \hbox (badness 3354) in paragraph at lines 349--349
- []\OT1/cmr/m/sc/9 (b) |\OT1/cmr/m/n/9 source with in-vari-ant 
+
+Underfull \vbox (badness 10000) detected at line 371
  []
 
-[15]
-
-LaTeX Warning: Reference `' on page 16 undefined on input line 393.
-
-[16]
-Underfull \hbox (badness 1052) in paragraph at lines 486--486
-[]|\OT1/cmr/m/n/10.95 The max-i-mal con-stant term al-lowed (in the
+[19] (./Primitives/Code/ForkJoinCodeGenerationSRC.c)
+(./Primitives/Code/ForkJoinCodeGenerationOUT.c
+Overfull \hbox (26.34314pt too wide) in paragraph at lines 3--4
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][] 
  []
 
+)
+Package epstopdf Info: Source file: <Figures/ForkJoinCFG.eps>
+(epstopdf)                    date: 2012-04-17 19:37:43
+(epstopdf)                    size: 32813 bytes
+(epstopdf)             Output file: <Figures/ForkJoinCFG-eps-converted-to.pdf>
+(epstopdf)                    date: 2012-04-17 19:37:50
+(epstopdf)                    size: 14560 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/ForkJoinCFG-eps-co
+nverted-to.pdf Figures/ForkJoinCFG.eps>
+(epstopdf)             \includegraphics on input line 394.
+Package epstopdf Info: Output file is already uptodate.
+ <Figures/ForkJoinCFG-eps-converted-to.pdf, id=659, 355.3275pt x 574.145pt>
+File: Figures/ForkJoinCFG-eps-converted-to.pdf Graphic file (type pdf)
 
-Underfull \hbox (badness 10000) in paragraph at lines 486--489
+<use Figures/ForkJoinCFG-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/ForkJoinCFG-eps-converted-to.pdf used on input
+ line 394.
+(pdftex.def)             Requested size: 116.89015pt x 188.8727pt.
+Package epstopdf Info: Source file: <Figures/ForkJoinParCFG.eps>
+(epstopdf)                    date: 2012-04-17 19:44:31
+(epstopdf)                    size: 35316 bytes
+(epstopdf)             Output file: <Figures/ForkJoinParCFG-eps-converted-to.pd
+f>
+(epstopdf)                    date: 2012-04-17 19:44:35
+(epstopdf)                    size: 14962 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/ForkJoinParCFG-eps
+-converted-to.pdf Figures/ForkJoinParCFG.eps>
+(epstopdf)             \includegraphics on input line 400.
+Package epstopdf Info: Output file is already uptodate.
 
- []
+<Figures/ForkJoinParCFG-eps-converted-to.pdf, id=660, 773.89125pt x 516.93124pt
+>
+File: Figures/ForkJoinParCFG-eps-converted-to.pdf Graphic file (type pdf)
+ <use Figures/ForkJoinParCFG-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/ForkJoinParCFG-eps-converted-to.pdf used on in
+put line 400.
+(pdftex.def)             Requested size: 208.73653pt x 139.42343pt.
+ [20] [21 <./Figures/ForkJoinCFG-eps-converted-to.pdf> <./Figures/ForkJoinParCF
+G-eps-converted-to.pdf>]
 
-) (./Chapters/Chapter4.tex [17]
-Chapter 4.
+LaTeX Warning: Reference `' on page 22 undefined on input line 446.
+
+) (./Chapters/Chapter5.tex [22]
+Chapter 5.
 ------------------------------------------------------------------------------
- 4 Evaluation
+ 5 Evaluation
 ------------------------------------------------------------------------------
 
 Overfull \hbox (16.20244pt too wide) in paragraph at lines 28--40
@@ -1055,25 +1199,25 @@ Overfull \hbox (16.20244pt too wide) in paragraph at lines 28--40
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 24--42
-\OT1/cmr/m/n/10.95 (more de-tails in ta-ble [][]4.1[][]).
+\OT1/cmr/m/n/10.95 (more de-tails in ta-ble [][]5.1[][]).
  []
 
-[18
+[23
 
-] <Figures/SPEC2000CT.pdf, id=705, 921.01591pt x 524.00124pt>
+] <Figures/SPEC2000CT.pdf, id=715, 921.01591pt x 524.00124pt>
 File: Figures/SPEC2000CT.pdf Graphic file (type pdf)
 
 <use Figures/SPEC2000CT.pdf>
 Package pdftex.def Info: Figures/SPEC2000CT.pdf used on input line 86.
 (pdftex.def)             Requested size: 375.7232pt x 213.76248pt.
 
-<Figures/polybenchCT.pdf, id=706, 928.92836pt x 556.45317pt>
+<Figures/polybenchCT.pdf, id=716, 928.92836pt x 556.45317pt>
 File: Figures/polybenchCT.pdf Graphic file (type pdf)
 
 <use Figures/polybenchCT.pdf>
 Package pdftex.def Info: Figures/polybenchCT.pdf used on input line 95.
 (pdftex.def)             Requested size: 375.7232pt x 225.06511pt.
- [19 <./Figures/SPEC2000CT.pdf>]
+ [24 <./Figures/SPEC2000CT.pdf>]
 Overfull \hbox (2.39345pt too wide) in paragraph at lines 103--124
 [][] 
  []
@@ -1084,7 +1228,7 @@ Overfull \hbox (83.51929pt too wide) in paragraph at lines 125--126
 am-bam-ba/test-data/spec2000/timeAnalysis.py 
  []
 
-[20 <./Figures/polybenchCT.pdf>]
+[25 <./Figures/polybenchCT.pdf>]
 Underfull \hbox (badness 10000) in paragraph at lines 179--179
 []|\OT1/cmr/m/n/10.95 Wrong ar-gu-
  []
@@ -1129,89 +1273,237 @@ Underfull \hbox (badness 10000) in paragraph at lines 179--179
 []|\OT1/cmr/m/n/10.95 PollybenchC2
  []
 
-) (./Chapters/Chapter5.tex [21]
-Chapter 5.
-------------------------------------------------------------------------------
- 5 Discussion
-------------------------------------------------------------------------------
-) (./Chapters/Chapter6.tex [22
-
-]
+) (./Chapters/Chapter6.tex [26]
 Chapter 6.
 ------------------------------------------------------------------------------
  6 Case Study
 ------------------------------------------------------------------------------
-) (./Chapters/Chapter7.tex [23
+
+LaTeX Warning: Reference `todo' on page 27 undefined on input line 23.
+
+(./Primitives/Code/matmul1prep.c)
+Underfull \hbox (badness 3396) in paragraph at lines 39--45
+[]\OT1/cmr/m/n/10.95 Listing [][]6.1[][] shows the ma-trix mul-ti-
+ []
+
+
+Underfull \hbox (badness 3240) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 pli-ca-tion as used in many pre-sen-ta-
+ []
+
+
+Underfull \hbox (badness 1320) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 tions and bench-marks. This case is
+ []
+
+
+Underfull \hbox (badness 2189) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 quite grate-ful be-cause the global ar-
+ []
+
+
+Underfull \hbox (badness 4193) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 can be com-puted stat-i-cally. With
+ []
+
+
+Underfull \hbox (badness 3078) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 this in mind the pop-u-lar-ity of this
+ []
+
+
+Underfull \hbox (badness 1199) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 case is hardly sur-pris-ing, just as the
+ []
+
+
+Underfull \hbox (badness 7963) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 good re-sults of all tested ver-sions
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 39--45
+
+ []
+
+(./Primitives/Code/matmul2prep.c) [27
 
 ]
+Underfull \hbox (badness 3396) in paragraph at lines 59--65
+[]\OT1/cmr/m/n/10.95 Listing [][]6.1[][] shows the ma-trix mul-ti-
+ []
+
+
+Underfull \hbox (badness 3240) in paragraph at lines 59--65
+\OT1/cmr/m/n/10.95 pli-ca-tion as used in many pre-sen-ta-
+ []
+
+
+Underfull \hbox (badness 1320) in paragraph at lines 59--65
+\OT1/cmr/m/n/10.95 tions and bench-marks. This case is
+ []
+
+
+Underfull \hbox (badness 2189) in paragraph at lines 59--65
+\OT1/cmr/m/n/10.95 quite grate-ful be-cause the global ar-
+ []
+
+
+Underfull \hbox (badness 4193) in paragraph at lines 59--65
+\OT1/cmr/m/n/10.95 can be com-puted stat-i-cally. With
+ []
+
+
+Underfull \hbox (badness 3078) in paragraph at lines 59--65
+\OT1/cmr/m/n/10.95 this in mind the pop-u-lar-ity of this
+ []
+
+
+Underfull \hbox (badness 1199) in paragraph at lines 59--65
+\OT1/cmr/m/n/10.95 case is hardly sur-pris-ing, just as the
+ []
+
+
+Underfull \hbox (badness 7963) in paragraph at lines 59--65
+\OT1/cmr/m/n/10.95 good re-sults of all tested ver-sions
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 59--65
+
+ []
+
+(./Primitives/Code/matmul3prep.c
+Overfull \hbox (1.31705pt too wide) in paragraph at lines 2--3
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+)) (./Chapters/Chapter7.tex [28]
 Chapter 7.
 ------------------------------------------------------------------------------
  7 Conclusion
 ------------------------------------------------------------------------------
-) (./Appendices/AppendixA.tex [24
+) [29
 
-]
+] (./Thesis.lof)
+\tf@lof=\write5
+\openout5 = `Thesis.lof'.
+
+ (./Thesis.lot [30
+
+])
+\tf@lot=\write6
+\openout6 = `Thesis.lot'.
+
+ [31] (./Appendices/AppendixA.tex
 Appendix A.
 ------------------------------------------------------------------------------
- A Matrix Multiplication Example
+ A Case Study Source Code
 ------------------------------------------------------------------------------
-) [25
+(./Primitives/Code/matmul1.c
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <6> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 5.
+LaTeX Font Info:    Try loading font information for OML+cmr on input line 8.
+ (/usr/share/texmf-dist/tex/latex/base/omlcmr.fd
+File: omlcmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OML/cmr/m/n' in size <6> not available
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 8.
+)) (./Appendices/AppendixB.tex [32
+
 
 ]
+Appendix B.
+------------------------------------------------------------------------------
+ B SPolly As Static Optimizer Pass
+------------------------------------------------------------------------------
+
+Underfull \hbox (badness 1052) in paragraph at lines 51--51
+[]|\OT1/cmr/m/n/10.95 The max-i-mal con-stant term al-lowed (in the
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 51--54
+
+ []
+
+) [33
+
+] [34]
 ------------------------------------------------------------------------------
  Bibliography
 ------------------------------------------------------------------------------
 (./Thesis.bbl
-Underfull \hbox (badness 2837) in paragraph at lines 35--40
+Underfull \hbox (badness 2837) in paragraph at lines 22--27
 []\OT1/cmr/m/n/10.95 Tobias Grosser, Hong-bin Zheng, Raghesh A, An-dreas Simb^^
 ?urger, Armin
  []
 
-)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 261.
- [26
+
+Underfull \hbox (badness 1221) in paragraph at lines 44--50
+[]\OT1/cmr/m/n/10.95 Riyadh Bagh-dadi, Al-bert Co-hen, C^^Sedric Bas-toul, Loui
+s-No^^?el Pouchet, and
+ []
+
+[35
 
 
-]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 261.
+])
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 269.
+ [36]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 269.
  (./Thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 261.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 261.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 269.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 269.
 Package rerunfilecheck Info: File `Thesis.out' has not changed.
-(rerunfilecheck)             Checksum: C5A29ABDEF1A5D663749266766571B27;9955.
+(rerunfilecheck)             Checksum: 5C7BB7AF284A366ED52B2AE10F69F831;9006.
 
 
 LaTeX Warning: There were undefined references.
 
+
+LaTeX Warning: There were multiply-defined labels.
+
  ) 
 Here is how much of TeX's memory you used:
- 12354 strings out of 493629
- 173952 string characters out of 3148779
- 289104 words of memory out of 3000000
- 15129 multiletter control sequences out of 15000+200000
- 15961 words of font info for 60 fonts, out of 3000000 for 9000
+ 12571 strings out of 493629
+ 178162 string characters out of 3148779
+ 322004 words of memory out of 3000000
+ 15202 multiletter control sequences out of 15000+200000
+ 16308 words of font info for 61 fonts, out of 3000000 for 9000
  831 hyphenation exceptions out of 8191
- 49i,13n,46p,423b,1188s stack positions out of 5000i,500n,10000p,200000b,50000s
-pdfTeX warning (dest): name{Hfootnote.164} has been referenced but does not e
-xist, replaced by a fixed one
+ 49i,13n,46p,439b,1322s stack positions out of 5000i,500n,10000p,200000b,50000s
+pdfTeX warning (dest): name{Hfootnote.87} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{Hfootnote.86} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{lstnumber.36} has been referenced but does not exis
+t, replaced by a fixed one
 
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts
 /type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/texmf-dist/fonts/type1/public
 /amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/c
-mr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/
-share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texmf-dist
-/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmsl12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb><
-/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/share/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmtt8.pfb></usr/share/texmf-dist/fonts/type1/public/am
-sfonts/symbols/msam7.pfb>
-Output written on Thesis.pdf (38 pages, 519111 bytes).
+mmi6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/
+share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmr8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr
+/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsl12.pfb></usr/share/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmsy8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pf
+b></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/share/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmtt8.pfb></usr/share/texmf-dist/fonts/type1/public
+/amsfonts/symbols/msam7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/
+symbols/msbm10.pfb>
+Output written on Thesis.pdf (45 pages, 659972 bytes).
 PDF statistics:
- 932 PDF objects out of 1000 (max. 8388607)
- 789 compressed objects within 8 object streams
- 241 named destinations out of 1000 (max. 500000)
- 538 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1155 PDF objects out of 1200 (max. 8388607)
+ 994 compressed objects within 10 object streams
+ 364 named destinations out of 1000 (max. 500000)
+ 510 words of extra memory for PDF output out of 10000 (max. 10000000)
 

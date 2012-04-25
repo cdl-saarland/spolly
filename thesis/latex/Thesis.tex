@@ -15,6 +15,9 @@
 \usepackage{multirow}
 \usepackage{wrapfig}
 \usepackage{framed}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
 
 %% ----------------------------------------------------------------
 \begin{document}
@@ -137,18 +140,6 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \tableofcontents  % Write out the Table of Contents
 \clearpage
 
-%% ----------------------------------------------------------------
-\lhead{\emph{List of Figures}}  % Set the left side page header to "List if Figures"
-\listoffigures  % Write out the List of Figures
-
-%% ----------------------------------------------------------------
-\lhead{\emph{List of Tables}}  % Set the left side page header to "List of Tables"
-\listoftables  % Write out the List of Tables
-
-%% ----------------------------------------------------------------
-\lhead{\emph{List of Listings}}  % Set the left side page header to "List of Listings"
-\renewcommand*{\lstlistingname}{List of Listings}
-\lstlistoflistings % Write out the List of Listings 
 
 
 %% ----------------------------------------------------------------
@@ -238,13 +229,30 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 %% ----------------------------------------------------------------
 % Now begin the Appendices, including them as separate files
 
+%% ----------------------------------------------------------------
+\clearpage
+\lhead{\emph{List of Figures}}  % Set the left side page header to "List if Figures"
+\listoffigures  % Write out the List of Figures
+
+%% ----------------------------------------------------------------
+\lhead{\emph{List of Tables}}  % Set the left side page header to "List of Tables"
+\listoftables  % Write out the List of Tables
+\clearpage
+
+%% ----------------------------------------------------------------
+%\lhead{\emph{List of Listings}}  % Set the left side page header to "List of Listings"
+%\renewcommand*{\lstlistingname}{List of Listings}
+%\lstlistoflistings % Write out the List of Listings 
+%\clearpage
+
+
 \addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
 
 \appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
 
 \input{./Appendices/AppendixA}	% Appendix Title
 
-%\input{./Appendices/AppendixB} % Appendix Title
+\input{./Appendices/AppendixB} % Appendix Title
 
 %\input{./Appendices/AppendixC} % Appendix Title
 

@@ -4,13 +4,116 @@
 \label{Chapter6}
 \lhead{Chapter 6. \emph{Case Study}} % Write in your own chapter title to set the page header
 
+
 \section{Matrix Multiplication}
+\label{MatrixMultiplication}
+Matrix multiplication is a well known computational problem and part of many 
+algorithms. If the data size grows, the runtime may have crucial impact on th
+e overall performance. Tiling, vectorization and parallel execution yield an
+enormous speedups as different approaches already
+showed\cite{grosser:thesis, JIMBOREAN-2012-664345},
+still the question about applicability remains. A slightly modified source code 
+would not be optimized at all, even if the computation has not been changed. 
 
-As matrix multiplication is a well known example for loop transformation,
-especially polyhedral based ones, I took a closer look at several possible 
-implementations. These results 
+This section will compare different implementations of a simple 2d
+matrix multiplication. As sample size  $1024*1024$ floats are used 
+(\texttt{N} is defined as 1024).
+Each example is executed 10 times and the geometric mean of the results 
+(without the best and worst one) is computed. All numbers are generated on 
+the server described in table \ref{todo}. The base algorithm stays the same 
+for each case, so there is no hand made optimization involved. The computed 
+result is checked each time in order to prevent false optimizations.
 
-\subsection{Case 1}
-\subsection{Case 2}
-\subsection{Case 3}
 
+\subsection{Case A}
+\begin{wrapfigure}[]{r}{0.5\textwidth}
+  \centering
+    \begin{minipage}[c]{0.4\textwidth}
+    \vspace*{-3mm}
+    \lstinputlisting{Primitives/Code/matmul1prep.c}
+    \end{minipage}
+  \caption{Matmul case A}
+   \label{lst:MatmulVersionA}
+\end{wrapfigure}
+
+Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
+many presentations and benchmarks. This case is quite grateful because the
+global arrays are distinct, the loop nest is perfectly nested and all 
+memory accesses can be computed statically. With this in mind the popularity of
+this case is hardly surprising, just as the good results of all tested versions 
+are.  \\ 
+
+
+
+
+\subsection{Case B}
+\begin{wrapfigure}[]{l}{0.5\textwidth}
+    \begin{minipage}[c]{0.4\textwidth}
+    \vspace*{-3mm}
+    \lstinputlisting{Primitives/Code/matmul2prep.c}
+    \caption{Matmul case B}
+    \end{minipage}
+    \label{lst:MatmulVersionB}
+\end{wrapfigure}
+
+Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
+many presentations and benchmarks. This case is quite grateful because the
+global arrays are distinct, the loop nest is perfectly nested and all 
+memory accesses can be computed statically. With this in mind the popularity of
+this case is hardly surprising, just as the good results of all tested versions 
+are.  \\ 
+
+
+
+\subsection{Case C}
+\begin{wrapfigure}[]{r}{0.5\textwidth}
+  \centering
+    \begin{minipage}[c]{0.4\textwidth}
+    \vspace*{-3mm}
+    \lstinputlisting{Primitives/Code/matmul3prep.c}
+    \end{minipage}
+  \caption{Matmul case C}
+   \label{lst:MatmulVersionC}
+\end{wrapfigure}
+Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
+many presentations and benchmarks. This case is quite grateful because the
+global arrays are distinct, the loop nest is perfectly nested and all 
+memory accesses can be computed statically. With this in mind the popularity of
+this case is hardly surprising, just as the good results of all tested versions 
+are. 
+
+
+\begin{table}[htpb]
+
+  \caption{Case study results}
+  \label{tab:CaseStudyResults}
+\end{table}
+
+
+%\begin{figure}[htpb]
+  %\centering
+  %\subfloat[Matmul version 1]{
+
+  %} \hfill
+  %\subfloat[Matmul version 2]{
+    %\begin{minipage}[c]{0.45\textwidth}
+    %\lstinputlisting{Primitives/Code/matmul2prep.c}
+    %\label{lst:MatmulVersion2}
+    %\end{minipage}
+  %}
+
+  %\subfloat[Matmul version 3]{
+    %\begin{minipage}[c]{0.45\textwidth}
+    %\lstinputlisting{Primitives/Code/matmul3prep.c}
+    %\label{lst:MatmulVersion3}
+    %\end{minipage}
+  %}
+  %\hfill
+  %\subfloat[Matmul version 4]{
+    %\begin{minipage}[c]{0.45\textwidth}
+    %\lstinputlisting{Primitives/Code/matmul4prep.c}
+    %\label{lst:MatmulVersion4}
+    %\end{minipage}
+  %}
+  %\caption{Matrix multiplication in different versions }
+%\end{figure}

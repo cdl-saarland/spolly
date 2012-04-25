@@ -353,7 +353,7 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     // we allow non affine memory accesses, but we have to stop here
     //return false;
     //assert(0 && "Afffunc 6");
-    if (RS) {
+    if (RS && false) {
       DEBUG(dbgs() << "-=-| AffFunc 6 disabled |-=-\n");
       spolly_hit = true;
       
@@ -600,6 +600,7 @@ bool ScopDetection::isValidLoop(Loop *L, DetectionContext &Context) const {
 
   // Is the loop count affine?
   const SCEV *LoopCount = SE->getBackedgeTakenCount(L);
+  DEBUG(dbgs() << "\n --------------- LoopCount " << *LoopCount << "\n\n");
 
   if (!isAffineExpr(&Context.CurRegion, LoopCount, *SE)) {
     DEBUG(dbgs() << "-=-| STATSCOP LoopBound 1 |-=-\n");
