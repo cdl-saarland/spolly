@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  25 APR 2012 04:00
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  25 APR 2012 12:19
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -41,8 +41,8 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.18 \begin
-           {shaded}
+l.18 \section
+             {SPolly In A Nutshell}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
@@ -50,7 +50,52 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.19 \section
+l.23 \subsection
+                {Speculative SCoPs}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+! Undefined control sequence.
+l.26 \ref
+         {fig:SCoPconstraints}, while sSCoPs renounce the restrictions on al...
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+! Undefined control sequence.
+l.30 \subsection
+                {sSCoP extraction}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+! Undefined control sequence.
+l.43 \subsection
+                {sSCoP Versions}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+! Undefined control sequence.
+l.46 \subsection
+                {Introduced tests}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+! Undefined control sequence.
+l.50 \section
              {Region Scores}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -59,7 +104,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.21 \lstset
+l.52 \lstset
             {frame=none}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -68,7 +113,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.22 \begin
+l.53 \begin
            {wrapfigure}[]{r}{0.4\textwidth}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -77,7 +122,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.22 \begin{wrapfigure}[]{r}{0.4\textwidth
+l.53 \begin{wrapfigure}[]{r}{0.4\textwidth
                                           }
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -86,7 +131,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.24   \subfloat
+l.55   \subfloat
                 [complete static sSCoP]{
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -97,7 +142,7 @@ and I'll forget about whatever was undefined.
 ! Missing number, treated as zero.
 <to be read again> 
                    [
-l.24   \subfloat[
+l.55   \subfloat[
                  complete static sSCoP]{
 A number should have been here; I inserted `0'.
 (If you can't figure out why I needed to see a number,
@@ -106,7 +151,7 @@ look up `weird error' in the index to The TeXbook.)
 ! Illegal unit of measure (pt inserted).
 <to be read again> 
                    [
-l.24   \subfloat[
+l.55   \subfloat[
                  complete static sSCoP]{
 Dimensions can be in units of em, ex, in, pt, pc,
 cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
@@ -116,7 +161,7 @@ delete the erroneous units; e.g., type `2' to delete
 two letters. (See Chapter 27 of The TeXbook.)
 
 ! Undefined control sequence.
-l.25     \lstinputlisting
+l.56     \lstinputlisting
                          {Primitives/Code/sSCoPstatic.c}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -125,7 +170,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.26     \label
+l.57     \label
                {lst:sSCoPstatic}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -134,7 +179,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.29   \subfloat
+l.60   \subfloat
                 [Branch within a sSCoP]{
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -143,7 +188,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.30     \lstinputlisting
+l.61     \lstinputlisting
                          {Primitives/Code/sSCoPbranch.c}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -152,7 +197,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.31     \label
+l.62     \label
                {lst:sSCoPbranch}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -161,7 +206,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.34   \subfloat
+l.65   \subfloat
                 [irreversible call within a sSCoP]{
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -170,7 +215,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.35     \lstinputlisting
+l.66     \lstinputlisting
                          {Primitives/Code/sSCoPprintf.c}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -179,7 +224,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.36     \label
+l.67     \label
                {lst:sSCoPprintf}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -188,7 +233,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.38   \caption
+l.69   \caption
                {example sSCoPs}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -197,7 +242,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.39   \label
+l.70   \label
              {fig:ScoredSCoPs}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -206,7 +251,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] )</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
-Output written on /home/johannes/git/speculative-polly/thesis/latex/Chapters/.tmp/ilu86i/Chapter3.pdf (1 page, 20505 bytes).
+Output written on /home/johannes/git/speculative-polly/thesis/latex/Chapters/.tmp/fNI1sR/Chapter3.pdf (1 page, 23166 bytes).
 PDF statistics:
  12 PDF objects out of 1000 (max. 8388607)
  7 compressed objects within 1 object stream

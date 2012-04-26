@@ -37,30 +37,39 @@ PollyEnabled("polly", cl::desc("Enable the default passes of Polly in -O3"),
              cl::init(false), cl::ZeroOrMore);
 
 static cl::opt<bool>
-DisableScheduler("polly-no-optimizer",
-                 cl::desc("Disable Polly Scheduling Optimizer"), cl::Hidden,
-                 cl::init(false), cl::ZeroOrMore);
-static cl::opt<bool>
 DisableCodegen("polly-no-codegen",
        cl::desc("Disable Polly Code Generation"), cl::Hidden,
        cl::init(false), cl::ZeroOrMore);
-static cl::opt<std::string>
+
+enum OptimizerChoice {
+  OPTIMIZER_NONE,
+#ifdef SCOPLIB_FOUND
+  OPTIMIZER_POCC,
+#endif
+  OPTIMIZER_ISL
+};
+
+static cl::opt<OptimizerChoice>
 Optimizer("polly-optimizer",
-          cl::desc("Select the scheduling optimizer. "
-                   "Either isl (default) or pocc."),
-          cl::Hidden, cl::init("isl"));
+          cl::desc("Select the scheduling optimizer"),
+          cl::values(
+            clEnumValN(OPTIMIZER_NONE, "none", "No optimizer"),
+#ifdef SCOPLIB_FOUND
+            clEnumValN(OPTIMIZER_POCC, "pocc", "The PoCC scheduling optimizer"),
+#endif
+            clEnumValN(OPTIMIZER_ISL, "isl", "The isl scheduling optimizer"),
+            clEnumValEnd),
+          cl::Hidden, cl::init(OPTIMIZER_ISL), cl::ZeroOrMore);
+
 static cl::opt<bool>
-ImportJScop("polly-run-import-jscop",
-            cl::desc("Export the JScop description of the detected Scops"),
+ImportJScop("polly-import",
+            cl::desc("Export the polyhedral description of the detected Scops"),
             cl::Hidden, cl::init(false), cl::ZeroOrMore);
 static cl::opt<bool>
-ExportJScop("polly-run-export-jscop",
-            cl::desc("Export the JScop description of the detected Scops"),
+ExportJScop("polly-export",
+            cl::desc("Export the polyhedral description of the detected Scops"),
             cl::Hidden, cl::init(false), cl::ZeroOrMore);
-static cl::opt<bool>
-ExportCLooG("polly-run-export-cloog",
-            cl::desc("Export the CLooG input files for the detected Scops"),
-            cl::Hidden, cl::init(false), cl::ZeroOrMore);
+
 static cl::opt<bool>
 PollyViewer("polly-show",
        cl::desc("Enable the Polly DOT viewer in -O3"), cl::Hidden,
@@ -161,9 +170,7 @@ void registerPollyPreoptPasses(llvm::PassManagerBase &PM) {
   PM.add(polly::createRegionSimplifyPass());
 }
 
-void registerPollyPasses(llvm::PassManagerBase &PM, bool DisableScheduler,
-                         bool DisableCodegen) {
-  bool RunScheduler = !DisableScheduler;
+void registerPollyPasses(llvm::PassManagerBase &PM, bool DisableCodegen) {
   bool RunCodegen = !DisableCodegen;
 
   registerPollyPreoptPasses(PM);
@@ -185,30 +192,23 @@ void registerPollyPasses(llvm::PassManagerBase &PM, bool DisableScheduler,
   if (DeadCodeElim)
     PM.add(polly::createDeadCodeElimPass());
 
-  if (RunScheduler) {
-    if (Optimizer == "pocc") {
+  switch (Optimizer) {
+  case OPTIMIZER_NONE:
+    break; /* Do nothing */
+
 #ifdef SCOPLIB_FOUND
-      PM.add(polly::createPoccPass());
-#else
-      errs() << "Polly is compiled without scoplib support. As scoplib is "
-                "required to run PoCC, PoCC is also not available. Falling "
-                "back to the isl optimizer.\n";
-      PM.add(polly::createIslScheduleOptimizerPass());
+  case OPTIMIZER_POCC
+    PM.add(polly::createPoccPass());
+    break;
 #endif
-    } else if (Optimizer == "isl") {
-      PM.add(polly::createIslScheduleOptimizerPass());
-    } else {
-      errs() << "Invalid optimizer. Only 'isl' and 'pocc' allowed. "
-                "Falling back to 'isl'.\n";
-      PM.add(polly::createIslScheduleOptimizerPass());
-    }
+
+  case OPTIMIZER_ISL:
+    PM.add(polly::createIslScheduleOptimizerPass());
+    break;
   }
 
   if (ExportJScop)
     PM.add(polly::createJSONExporterPass());
-
-  if (ExportCLooG)
-    PM.add(polly::createCloogExporterPass());
 
   if (RunCodegen)
     PM.add(polly::createCodeGenerationPass());
@@ -219,7 +219,7 @@ void registerPollyPasses(llvm::PassManagerBase &PM, bool DisableScheduler,
 
 static
 void registerPollyEarlyAsPossiblePasses(const llvm::PassManagerBuilder &Builder,
-                                               llvm::PassManagerBase &PM) {
+                                        llvm::PassManagerBase &PM) {
 
   if (Builder.OptLevel == 0)
     return;
@@ -233,10 +233,6 @@ void registerPollyEarlyAsPossiblePasses(const llvm::PassManagerBuilder &Builder,
       errs() << "The option -polly-no-codegen has no effect. "
                 "Polly was not enabled\n";
 
-    if (DisableScheduler)
-      errs() << "The option -polly-no-optimizer has no effect. "
-                "Polly was not enabled\n";
-
     return;
   }
 
@@ -246,7 +242,7 @@ void registerPollyEarlyAsPossiblePasses(const llvm::PassManagerBuilder &Builder,
     return;
   }
 
-  registerPollyPasses(PM, DisableScheduler, DisableCodegen);
+  registerPollyPasses(PM, DisableCodegen);
 }
 
 static void registerPollyOptLevel0Passes(const llvm::PassManagerBuilder &,
@@ -265,5 +261,5 @@ static llvm::RegisterStandardPasses
 PassRegister(llvm::PassManagerBuilder::EP_EarlyAsPossible,
              registerPollyEarlyAsPossiblePasses);
 //static llvm::RegisterStandardPasses
-//PassRegisterPreopt(llvm::PassManagerBuilder::OptLevel,
+//PassRegisterPreopt(llvm::PassManagerBuilder::EP_EnabledOnOptLevel0,
                   //registerPollyOptLevel0Passes);

@@ -908,6 +908,7 @@ void polly::ScopDetection::verifyRegion(const Region &R) const {
 }
 
 void polly::ScopDetection::verifyAnalysis() const {
+  return ;
   for (RegionSet::const_iterator I = ValidRegions.begin(),
       E = ValidRegions.end(); I != E; ++I)
     verifyRegion(**I);

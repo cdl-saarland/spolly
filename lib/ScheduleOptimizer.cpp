@@ -41,7 +41,7 @@ using namespace polly;
 
 namespace polly {
   bool DisablePollyTiling;
-  int TileSize = 32;
+  int TileSize = 256;
 }
 static cl::opt<bool, true>
 DisableTiling("polly-no-tiling",

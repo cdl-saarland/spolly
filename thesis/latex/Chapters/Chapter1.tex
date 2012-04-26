@@ -6,7 +6,7 @@
 
 %\section{Motivation}
 
-Multiprocessors became the normal state in everyday computing. Automatic
+Multiprocessors became the normal state in everyday computing, automatic
 parallelization did not. Programmers still write sequential code which will be
 translated to sequential binaries and executed by a single thread using only
 one of many cores. % This kind of execution is still normality. 
@@ -15,18 +15,22 @@ nor compilers may utilize their potential to the full. Even if parallelism could
 employ all threads and cores, it is unclear how to expose a reasonable  
 amount out of sequential code.
 Apart from the retrieval, parallelism faces the same problems as sequential
-code does. Slow I/O accesses caused by bad cache locality is a well known one. 
+code does. Slow I/O accesses caused by poor cache locality is a well known one. 
 Heavy research is going on in both fields with various results. 
 As there are promising approaches suffering from poor applicability on general 
-purpose code, the real problem has changed. 
+purpose code, the real problem becomes more and more applying optimizations, not
+developing them. 
 
-One of this techniques is called polyhedral optimization.
-The underlying polytope model is a mathematical description of loop nests with 
+
+Techniques using the so called polyhedral model become increasingly popular.
+The underlying model is a mathematical description of loop nests with 
 their data dependencies. Optimal solutions in terms of e.g., locality or 
 parallelism can be derived using this model while it implicitly applies 
 traditional optimizations as loop blocking and unrolling. 
 Various preliminary results reveal the potential but also the
-limits of this technique.
+limits of this technique. Enormous speedups are possible, 
+but only for very few locations.
+
 
 
 \section{Related Work}
@@ -36,8 +40,8 @@ promising attempts all using the polytope model, but the wide range
 impact on general purpose code is still missing.
 
 Tobias Grosser describes in his thesis\cite{grosser:thesis} a speedup of up to
-$8$ times for matrix multiplication, archived by his polyhedral optimizer 
-Polly\cite{grosser.11.impact}. He could also produce similar results for other
+$8$ for the matrix multiplication benchmark, archived by his polyhedral optimizer 
+Polly\cite{grosser.11.impact}. He also produced similar results for other
 benchmarks of the Polybench\cite{Polybench:Online} benchmark suite. 
 Other publications on this 
 topic\cite{Bondhugula:2008:PAP:1379022.1375595,BCBPR10,Pradelle:2012:PPB:2086696.2086718} 
@@ -49,9 +53,10 @@ optimizations. They state that aggressive loop nest optimizations (including
 parallel execution) are profitable and possible, even though data and flow 
 dependencies would statically prevent them. 
 Theirs hand made tests also showed 
-the impact when different kinds of conflict management are used.
-[TODO use this sentence or loose it]
-
+the impact when different kinds of conflict management are used. 
+The results differ from loop to loop as the availability of such conflict 
+management systems does. But even if the choice is restricted to one or two, 
+their results indicate a general speedup. 
 
 
 
@@ -69,8 +74,10 @@ SPolly can perform state-of-the-art loop optimizations on a wide range of loops,
 even in general purpose benchmarks as the SPEC 2000 benchmark suite. 
 
 The key idea is to enable more loop optimizations due to speculation.
-To demarcate this from guessing, static and dynamic information 
-is combined and used by an heuristic to choose promising candidates. 
+To demarcate this from guessing, profiling is used and combined with 
+static information. The heuristic to choose promising candidates is presented 
+as well as the restrictions  which are weakened or even removed. 
+
 
 The rest of the thesis will be organised as follows. 
 First Chapter \ref{Chapter2} will provide information on the used tools and techniques,
@@ -83,7 +90,7 @@ While Chapter \ref{Chapter7} concludes the thesis and provides ideas for
 future work, a detailed case study on different versions of the matrix 
 multiplication example is presented in Chapter \ref{Chapter6}. 
 
-\vspace*{4cm}
+\vspace*{2cm}
 {\Large \it Notes:\\}
 {
   \it

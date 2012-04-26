@@ -21,6 +21,7 @@
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 
 using namespace llvm;
+using namespace polly;
 
 Value *createLoop(Value *LB, Value *UB, Value *Stride,
                   IRBuilder<> *Builder, Pass *P, BasicBlock **AfterBlock) {
@@ -284,7 +285,7 @@ Value *OMPGenerator::createSubfunction(Value *Stride, Value *StructData,
 
   Builder.CreateBr(CheckNextBB);
   Builder.SetInsertPoint(--Builder.GetInsertPoint());
-  IV = createLoop(LowerBound, UpperBound, Stride, &Builder, P, &AfterBB);
+  IV = createLoop(LowerBound, UpperBound, Stride, Builder, P, AfterBB);
 
   BasicBlock::iterator LoopBody = Builder.GetInsertPoint();
   Builder.SetInsertPoint(AfterBB->begin());

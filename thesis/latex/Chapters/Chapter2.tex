@@ -6,7 +6,7 @@
 
 This work takes heavy use of different techniques, theories and tools mostly 
 in the context of compiler construction. To simplify the rest of the thesis 
-this chapter explains them as far as necessary, thus I may take
+this chapter explains them as far as necessary, thus we may take
 them for granted afterwards. As most of the key ideas will suffice, 
 some details will be omitted. 
 Interested readers have to fall back on the further readings instead. 
@@ -38,55 +38,91 @@ extensions, e.g., Polly, can be added by hand.
 \end{itemize}
 
 
-
+\clearpage
 \section{The Polyhedral Model}
-The polyhedral model is a mathematical way to describe the iteration space of a
-subset of all loop nests. Its became popular because it can be used to abstract
-from the given source and apply loop optimizations in a pure mathematical way. 
+The polyhedral model is a mathematical way to describe the iteration space of 
+loop nests, or more likely a very restricted subset of them.
+Its became popular as it abstracts from the given source and applies loop
+optimizations in a pure mathematical way. Formulating optimization problems 
+in terms of linear equations yields an optimal solution with regards to a given
+property, e.g., data-locality or parallelism.
 
-\begin{definition}[Polytope]
-  A polytope P in an $n$-dimensional space restricted by $m$ inequalities is defined as:
-  \[ \text{P}:= \{ x \in \mathbb{Z}^n \, |\, Ax\leq b \text{ where $A\in\mathbb{Z}^{m*n} $ and $ b\in\mathbb{Z}^{m}$ are constant } \} \]
-  \label{def:polytope}
-\end{definition}
+%\begin{definition}[Polyhedron] ~\\
+  %A polyhedron P in an $n$-dimensional space restricted by $m$ inequalities is defined as:
+  %\[ \text{P}:= \{ x \in \mathbb{Z}^n \, |\, Ax\leq b \text{ where $A\in\mathbb{Z}^{m*n} $ and $ b\in\mathbb{Z}^{m}$ are constant } \} \]
+  %\label{def:polyhedron}
+%\end{definition}
 
 
-\begin{wrapfigure}[]{l}{0.4\textwidth}
+
+%\lstset{frame=none}
+%\begin{wrapfigure}[]{l}{0.4\textwidth}
   %\vspace*{-5mm}
-  \includegraphics[width=0.35\textwidth]{Figures/Polytope2d.eps}
-  \caption{2-dimensional polytope}
-  \label{fig:Polytope2d}
-\end{wrapfigure}
-Within the polyhedral model the iteration space is modelt as a $\mathbb{Z}$-polytope,
+  %\subfloat[Example loop nest]{%
+    %\begin{minipage}[c][0.6\width]{%
+           %0.35\textwidth}
+           %\centering%
+      %\lstinputlisting{Primitives/Code/Polytope2d.c}
+      %\label{lst:Polytope2dC}
+    %\end{minipage}
+  %} 
+  
+  %\subfloat[Iteration space for listing \ref{lst:Polytope2dC}]{%
+    %\begin{minipage}[c][1.2\width]{%
+           %0.35\textwidth}
+           %\centering%
+      %\includegraphics[width=0.9\textwidth]{Figures/Polytope2d.eps}
+      %\label{lst:Polytope2dPolyhedral}
+    %\end{minipage}
+  %}
+
+
+  %\caption{The polytope model in action }
+  %\label{fig:Polyhedron2d}
+%\end{wrapfigure}
+%\resetlst
+Within the polyhedral model the iteration space is represented as a $\mathbb{Z}$-polyhedron,
 simply spoken a geometric object with flat surfaces existing in a space of 
-any general dimension.  
-Definition \ref{def:polytope} restrict all (integer) points within the polytope
-to be solutions of an affine system of inequalities and figure \ref{fig:Polytope2d} 
-shows an example for dimension $n = 2$ and $m = 4$. If the polytope is bounded 
-we may speak of convex polytopes instead. For clarification it is worth to say
-that some authors e.g., Benabderrahmane et al. \cite{BPCB10} use the term 
-polyhedron instead. 
+any general dimension. To do so, it is necessary that the iteration space 
+can be described as solution set of affine inequalities
+(equation \ref{eq:IterationSpace}), where the loop bounds are encoded in a translation
+($b$) and the steppings in a matrix ($A$). 
+\begin{equation}
+  \text{Iteration Space IS } := \{ x \in \mathbb{Z}^n \, |\, Ax\leq b \text{ with $A\in\mathbb{Z}^{m*n} $, $ b\in\mathbb{Z}^{m}$  } \} \label{eq:IterationSpace}
+\end{equation}
+%Definition \ref{def:polyhedron} restrict all (integer) points within the polyhedron
+%to be solutions of an affine system of inequalities which can be derived from
+%the source code. The example in figure \ref{fig:Polytope2d} shows how these 
+%inequalities (figure \ref{lst:Polytope2dInequalities}) 
+%are derived from the source presented in listing \ref{lst:Polytope2dC} and how 
+%the resulting polyhedral (figure \ref{lst:Polytope2dPolyhedral}) looks like.
+%[TODO unify the two examples]
 
-
-From the compiler writer perspective, the polytope corresponds to the iteration
-space of a loop nest, where all loops have affine bounds and steppings.
-Each one corresponds to a dimension of the vector space, thus the 
-dimension of the polytope is determined by the depth of the loop nest. 
+%For clarification it is worth to say
+%that some authors e.g., Benabderrahmane et al. \cite{BPCB10} use the term 
+%polyhedron instead of polytope. 
+%As each loop corresponds to a dimension of the vector space the
+%dimension of the polyhedron is determined by the depth of the loop nest. 
 In addition to the points of the iteration space, the polyhedral model is also
 capable of representing loop carried dependencies between two iterations. 
 Figure \ref{fig:ExampleLoopNest} illustrates this by relating a simple loop 
 nest({\footnotesize A}) to its representation within the polyhedral 
-model({\footnotesize B}). The main benefit of 
-this representation is that transformations can be done in an optimal manner
-using an integer linear programming solver which maximizes the loop nest for 
-e.g., parallelism. Such transformations within the model are in fact (composed)
-affine transformations with the additional advantage that they implicitly apply 
-traditional loop optimizations including tiling, skewing, loop interchange and
-unrolling. Using the example in listing \ref{lst:ExampleLoopNest} again we may
-end up with a loop nest as in listing \ref{lst:ExampleLoopNestTransformed}. 
-Data-locality is increased by introducing the two inner most loops which also 
-remove the data dependency from the outer most one, thus the whole loope nest
-may be executed in parallel now.
+model({\footnotesize B}). 
+%The main benefit of 
+%this representation is that transformations can be done in an optimal manner
+%using an integer linear programming solver which maximizes the loop nest for 
+%e.g., parallelism.
+An optmization within the model (which is in fact a composed
+affine transformation) could yield 
+%with the additional advantage that they implicitly apply 
+%traditional loop optimizations including tiling, skewing, loop interchange and
+%unrolling. 
+%Using the example in listing \ref{lst:ExampleLoopNest} again we may end up with
+a loop nest as presented in listing \ref{lst:ExampleLoopNestTransformed}. 
+
+Data-locality has been increased by introducing the two inner most loops which
+also remove the data dependency from the outer most one, 
+thus the whole loope nest may be executed in parallel now.
 
 \lstset{frame=none}
 \begin{figure}[htbp]
@@ -135,57 +171,67 @@ may be executed in parallel now.
   \item Putting Polyhedral Loop Transformations to Work \cite{BCGST03} 
 \end{itemize}
 
-\clearpage
+%\clearpage
 
 \section{Polly - A Polyhedral Optimizer For LLVM}
 \label{Polly}
 Exploiting parallelism and data-locality in order to balance the work load
 and to improve cache utilization are the main goals of the Polly research project.
-The polytope model is used as abstract mathematical representation to get optimal
+The polyhedral model is used as abstract mathematical representation to get optimal
 results for a particular objective. The three-step approach of Polly first detects
 maximal loop nests suitable for polyhedral representation. These representations
-are analyzed and transformed before they are converted to LLVM-IR again. This 
-last step of code generation is capable of generating thread level parallelism 
-and vector instructions. The maximal loop nests Polly detects
-are called static control parts, or short (valid) SCoPs, are the most central 
-entity within Polly and crucial for any kind of argumentation.
+are analyzed and transformed before they are converted to code (here LLVM-IR)
+again. In the case of Polly the code generation is capable of generating thread 
+level parallelism and vector instructions. The code regions Polly is interested 
+in, are called static control parts, or short SCoPs. Such a SCoP is 
+the most central entity within Polly and crucial for any kind of argumentation.
 %Apart from the
 %following descriptions figure \ref{fig:PollyArchitecture} provides an overview
 %of the architecture of Polly.
 
+\begin{definition}[Affine Transformation] ~\\
+  Affine transformations are linear transformations followed by a translations,
+  thus they can be written as:
+  \[ f(x_1,\dots,x_n) := A_1\, x_1 + \dots + A_n\, x_n + b\]
 
+  \label{def:AffineTransformation}
+\end{definition}
+
+\begin{definition}[Canonical Induction Variable] ~\\
+  An induction variable is canonical if it start at zero and steps by one.
+  \label{def:CanonicalInductionVariable}
+\end{definition}
 
 \subsection{Static Control Parts}
-\begin{wrapfigure}[]{r}{0.15\textwidth}
-  \centering
-  %\vspace*{-5mm}
-  \includegraphics[width=0.15\textwidth]{SimpleRegionCFG.eps}
-  \caption{SCoP CFG}
-  \label{fig:PossibleSCoPCFG}  
-\end{wrapfigure}
-A Static Control Part is a subgraph of the control flow graph with one entry
-edge and one exit edge. Inside this subgraph only nested conditionals and loops
-are allowed (see figure \ref{fig:PossibleSCoPCFG}).
-All contained loops need affine bounds and a canonical 
-induction variable, thus the lower bound has to be $0$ and the stepping $1$. 
-While non affine memory accesses are allowed, all branch conditions have to be
-affine functions, only depending on loop invariant parameters and surrounding
-induction variables. Aliasing instructions within such a region are not permitted
-either. 
+%\begin{wrapfigure}[]{r}{0.15\textwidth}
+  %\centering
+  %%\vspace*{-5mm}
+  %\includegraphics[width=0.15\textwidth]{SimpleRegionCFG.eps}
+  %\caption{SCoP CFG}
+  %\label{fig:PossibleSCoPCFG}  
+%\end{wrapfigure}
+A static control part is a region with statically known control flow and memory
+accesses. As part of the control flow graph it is restricted to have one entry
+edge and one exit edge while within loops and conditionals are allowed inside.
+To predict all accesses, it is necessary to restrict loop bounds and branch 
+conditions to be affine with respect to invariant parameters 
+and surrounding iteration variables, but only if they are canonical. 
+Because memory accesses are a crucial for data flow information,
+SCoPs are not allowed to contain aliasing instructions at all. 
+Furthermore only affine access functions will yield an precise result as 
+non affine ones are overestimated (but not forbidden per se).
+The last point concerns called function as only pure functional ones are allowed
+here.
+%Figure \ref{fig:PossibleSCoPCFG} shows the CFG of SCoP 
 
 While some of these conditions (e.g., the canonical induction variables) 
-can be achieved through preprocessing, the rest is still quite restrictive.
-Even so, these requirements ensure some very interesting attributes as statically
-known control flow and computable memory accesses. The later ones are 
-overestimated if a memory access is not affine. If a loop nest fulfills 
-these requirements it implicitly has a polyhedral representation which 
-can be used for further analyses and transformations. Such regions
-are called valid static control parts, or short SCoP. 
+can be achieved through preprocessing, the remaining ones are still 
+quite restrictive. The desired result, namely the SCoPs, are valuable because
+they can be represented within the polyhedral model, thus further analyses and
+transformations are not restricted to the particular source code anymore.
 
-SCoPs which do not contain
-a loop are not interesting, thus we may consider only SCoPs containing at least
-one loop.
-
+Although all regions fulfilling these requirements are
+technically SCoPs, we will restrict ourself to those containing at least one loop.
 
 %\begin{table}[htbp] 
   %\centering
@@ -216,26 +262,23 @@ Pollys SCoP detection is the gateway to all further analyzses and
 transformations. All regions fulfilling the properties described in the 
 last section, or in short, all (valid) SCoPs are detected here. 
 The special interest of this part arises from the fact that all 
-regions regions declared as valid SCoPs will be considered for pollyhedral 
-optimizations. Almost regardless of its content, any region could be given to
-Polly if the SCoP detection is instrumented to to so. Two important consequences
+regions declared as valid SCoPs will be considered for pollyhedral 
+optimizations. Almost regardless of theirs content, any region could be given to
+Polly if the SCoP detection is properly instrumented. Two important consequences
 can be derived and summarized as:
-Utilizing the strenght of Polly is possible in much more situations as 
-intentionally implemented but coupled with responsibility of the outcome. 
-[TODO ziemlich melodramatisch oder ?]
-
+Utilizing the strength of Polly is possible in much more situations as 
+intentionally implemented but coupled with responsibility of the outcome.
 
 \subsection{Loop Optimizations}
 Polly uses the integer set library (isl) to compute the scheduling and
-tiling for a SCoP but it is also possible to use the more matured PoCC optimizer.
-Once the polyhedral description is computed, an optimized version of the 
-algorithm proposed by Bondhugula et al.\cite{Bondhugula:2008:PAP:1379022.1375595}
-will compute a new scheduling and tiling scheme.
-Traditional loop
-optimizations such as blocking, interchange, splitting, unrolling or unswitching 
-are implicitly applied during this step. 
-Not only the new scheduling but also the new data dependencies are computed, 
-crucial to exploit parallelism.
+tiling for a SCoP. Once the polyhedral representation is computed,
+an optimized version of the  algorithm proposed by Bondhugula et 
+al.\cite{Bondhugula:2008:PAP:1379022.1375595}
+will compute a new scheduling and tiling scheme. 
+Traditional loop optimizations such as blocking, interchange, splitting,
+unrolling or unswitching are implicitly applied during this step. 
+%Not only the new scheduling but also the new data dependencies are computed, 
+%crucial to exploit parallelism.
 %Based on these dependencies parallelism is exploited as explained in the next section. 
 
 %\textit{The loop optimizations offers many possibilities in the context 
@@ -244,12 +287,17 @@ crucial to exploit parallelism.
 
 \subsubsection{Parallel Code Generation}
 While cache locality is implicitly improved by rescheduling and tiling 
-of the loop nest,  parallel code needs to be generated explicitly.
+of the loop nest,  parallel code needs to be generated explicitly afterwards.
 Polly is capable of generating
 thread level parallelism using OpenMP annotations and data level parallelism 
-using SIMD instructions. The former one depends on the OpenMP shared library 
-being present while the later one uses the LLVM built-in vector instruction.
-
+using SIMD instructions. 
+%The former one depends on the OpenMP shared library 
+%being present while the later one uses the LLVM built-in vector instruction.
+If the former one is desired, the first loop without any loop carried 
+dependencies will be rewritten as if there were OpenMP annotations in the first
+place. Enabling the later one, namely vector code generation 
+will not only try to vectorize the innermost loop but also the 
+scheduling is changed to allow this more often.
 
 %\begin{figure}[htbp]
   %\centering

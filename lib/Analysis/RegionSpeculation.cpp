@@ -761,11 +761,11 @@ namespace polly {
       unsigned offset;
       bool isCrucial, del, map;
       unsigned type;
-      ProfiledValue(BasicBlock *guard, unsigned offset, bool map) :
-        key(0), guard(guard), value(0), loop(0), offset(offset), isCrucial(false), 
+      ProfiledValue(BasicBlock *guard, unsigned offset, bool map, Value *value) :
+        key(0), guard(guard), value(value), loop(0), offset(offset), isCrucial(false), 
         del(true), map(map), type(0) {}
-      ProfiledValue(const Loop *loop, bool del = false) : 
-        key(0), guard(loop->getHeader()), value(0), loop(loop), del(del), 
+      ProfiledValue(const Loop *loop, Value *value, bool del = false) : 
+        key(0), guard(loop->getHeader()), value(value), loop(loop), del(del), 
         map(true), type(1) {}
       ProfiledValue(Value *value, BasicBlock *block) :
         key(0), guard(block), value(value), loop(0), del(0), map(true), type(2) {}
@@ -1243,7 +1243,7 @@ namespace polly {
                                               GlobalValue::LinkerPrivateLinkage, 0,
                                               testBlock->getName() +"_fail_prob");
 
-        ProfiledValue *PB0 = new ProfiledValue(testBlock, 1, false);
+        ProfiledValue *PB0 = new ProfiledValue(testBlock, 1, false, GV0);
         
         ProfilingValues.insert(PB0); 
 
@@ -1340,20 +1340,11 @@ namespace polly {
                && !(useOriginal && parallelValueMap)
                && "ValueToValueMap / useOriginal error");
 
-        (dbgs() << "Insert Parallel Code for " << getNameStr() << "\n");
-        if (originalVersion->getName() == "gl_read_color_span") {
-          dbgs() << "FOUND GL_READ_COLOR_SPAN !\n\n";
-          if (grcs)
-            return;
-          else
-            grcs = true;
-        }
-
         // Enable parallelization for CodeGeneration
-        EnablePollyVector = EnableVector; 
+        EnablePollyVector   = EnableVector; 
         // HACK for the evaluation
-        EnablePollyOpenMP = useOriginal;
-        EnablePollyForkJoin = true;
+        EnablePollyOpenMP   = useOriginal;
+        EnablePollyForkJoin = !useOriginal;
         PollyForks = forks;
 
         //
@@ -1379,7 +1370,7 @@ namespace polly {
         IgnoreOnlyFunction = false;
 
         Function *parallelVersionSubfn = 
-          M->getFunction(parallelVersion->getNameStr() + ".omp_subfn"); 
+          M->getFunction(parallelVersion->getNameStr() + ".fn_subfn"); 
         if (RS->SD && parallelVersionSubfn) 
           RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
         
@@ -1495,7 +1486,7 @@ namespace polly {
                                                loop->getHeader()->getNameStr() 
                                                + "_loop_ex_prob");
 
-          ProfiledValue *PL = new ProfiledValue(loop);
+          ProfiledValue *PL = new ProfiledValue(loop, GV);
           ProfilingValues.insert(PL); 
           const SCEV *tripCount = SE->getUnknown(GV);
           const SCEV *start = profileValueIfAny(AddRec->getStart(), SE, entry);
@@ -1590,12 +1581,16 @@ namespace polly {
             ProfiledValue *PV = 0;
             for (ProfilingValuesT::iterator it = ProfilingValues.begin(),
              end = ProfilingValues.end(); it != end; ++it) {
+             //dbgs() << "val: " << value << "  " << (*it)->value << "\n";
+             //dbgs() << "val: " << *value << "  " << *(*it)->value << "\n\n";
               if ((*it)->value == value) {
                 PV = *it;
                 break;
               }
             }
             
+            //dbgs() << "Unknown value to evaluate " << value << "\n";
+            //dbgs() << "Unknown value to evaluate " << *value << "\n";
             assert(PV && "Could not evaluate scoreSCEV with unknown value!");
 
             if (PV->key) {
@@ -2076,7 +2071,7 @@ namespace polly {
                                                + "_loop_ex_prob");
           //Constant *GV = Constant::getNullValue(Ty);
 
-          ProfiledValue *PL = new ProfiledValue(loop);
+          ProfiledValue *PL = new ProfiledValue(loop, GV);
           ProfilingValues.insert(PL); 
           tripCount = SE->getUnknown(GV);
         }
@@ -2158,8 +2153,8 @@ namespace polly {
         
         //Constant *GV = Constant::getNullValue(Int64Ty);
 
-        ProfiledValue *PB0 = new ProfiledValue(entry, 0, true);
-        ProfiledValue *PB1 = new ProfiledValue(entry, 1, true);
+        ProfiledValue *PB0 = new ProfiledValue(entry, 0, true, GV0);
+        ProfiledValue *PB1 = new ProfiledValue(entry, 1, true, GV1);
 
         ProfilingValues.insert(PB0); 
         ProfilingValues.insert(PB1); 

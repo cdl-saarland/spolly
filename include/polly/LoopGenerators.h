@@ -11,6 +11,8 @@
 // as LLVM-IR.
 //
 //===----------------------------------------------------------------------===//
+#ifndef POLLY_LOOP_GENERATORS_H
+#define POLLY_LOOP_GENERATORS_H
 #include "llvm/Support/IRBuilder.h"
 #include "llvm/ADT/SetVector.h"
 
@@ -22,6 +24,7 @@ namespace llvm {
   class BasicBlock;
 }
 
+namespace polly {
 using namespace llvm;
 
 /// @brief Create a scalar loop.
@@ -33,8 +36,10 @@ using namespace llvm;
 /// @param Builder    The builder used to create the loop.
 /// @param P          A pointer to the pass that uses this function. It is used
 ///                   to update analysis information.
+///
+/// @return Value*    The newly created induction variable for this loop.
 Value *createLoop(Value *LowerBound, Value *UpperBound, Value *Stride,
-                  IRBuilder<> *Builder, Pass *P, BasicBlock **AfterBlock);
+                  IRBuilder<> &Builder, Pass *P, BasicBlock *&AfterBlock);
 
 class OMPGenerator {
 public:
@@ -105,4 +110,6 @@ private:
   /// @brief Create the definition of the OpenMP subfunction.
   Function *createSubfunctionDefinition();
 };
+} // end namespace polly
+#endif
 

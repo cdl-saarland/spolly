@@ -17,6 +17,32 @@ perhaps with similar approaches we worked out.
 
 \section{SPolly In A Nutshell}
 
+\clearpage
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{Figures/draftPaperCT.eps}
+  \caption{Draft paper: SPolly at compile time}
+  \label{fig:draftPaperCT}  
+\end{figure}
+
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{Figures/draftPaperRT.eps}
+  \caption{Draft paper: SPolly at runtime}
+  \label{fig:draftPaperCT}  
+\end{figure}
+\clearpage
+
+
+\subsection{Speculative SCoPs}
+A speculative valid SCoPs (sSCoPs) is defined similar to a valid SCoPs but with 
+weakened conditions. General SCoPs need to fulfill all constraints listed in
+\ref{fig:SCoPconstraints}, while sSCoPs renounce the restrictions on aliasing
+and partially those on function calls.
+
+
+
 
 \section{Region Scores}
 
@@ -81,21 +107,30 @@ figure \ref{fig:ScoredSCoPs}.
 
 
 
+
+
+\subsection{sSCoP extraction}
+
+[ TODO ref to VMAD cause theire size explodes ]
+The sSCoP extraction was designed to simplify the method versioning for functions
+containing several speculative valid SCoPs. It creates a new sub function for every
+sSCoP and inserts a call in the former place. Later on this call could be inlined again
+but this is not implemented yet. On the one hand side the creation of profiling and
+parallel versions as well the later function exchanging becomes a lot easier and cheaper
+this way. On the other hand it is the first step to multiple specialized versions, e.g., with
+constant instead of variable loop bounds.
+
+
+
+\subsection{sSCoP Versions}
+
+
+\subsection{Introduced tests}
+
+
+
 %\section{}
 
 
-\clearpage
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.6\textwidth]{Figures/draftPaperCT.eps}
-  \caption{Draft paper: SPolly at compile time}
-  \label{fig:draftPaperCT}  
-\end{figure}
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.6\textwidth]{Figures/draftPaperRT.eps}
-  \caption{Draft paper: SPolly at runtime}
-  \label{fig:draftPaperCT}  
-\end{figure}
-\clearpage
+
 

@@ -1,47 +1,45 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces 2-dimensional polytope\relax }}{4}{figure.caption.14}
-\contentsline {figure}{\numberline {2.2}{\ignorespaces An example loop nest with its polyhedral representation\relax }}{5}{figure.caption.15}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Simple loop nest}}}{5}{subfigure.2.1}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Polyhedral representation for listing \ref {lst:ExampleLoopNest}}}}{5}{subfigure.2.2}
-\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Optimized version of listing \ref {lst:ExampleLoopNest}}}}{5}{subfigure.2.3}
-\contentsline {figure}{\numberline {2.3}{\ignorespaces SCoP CFG\relax }}{6}{figure.caption.40}
-\contentsline {figure}{\numberline {2.4}{\ignorespaces Sambamba in a nutshell\relax }}{8}{figure.caption.45}
-\contentsline {figure}{\numberline {2.5}{\ignorespaces Symboliced transaction queue with 3 worker threads\relax }}{9}{figure.caption.47}
-\contentsline {figure}{\numberline {2.6}{\ignorespaces A parallel section with 3 transactions\relax }}{9}{figure.caption.49}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces An example loop nest with its polyhedral representation\relax }}{5}{figure.caption.14}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Simple loop nest}}}{5}{subfigure.1.1}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Polyhedral representation for listing \ref {lst:ExampleLoopNest}}}}{5}{subfigure.1.2}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Optimized version of listing \ref {lst:ExampleLoopNest}}}}{5}{subfigure.1.3}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Sambamba in a nutshell\relax }}{7}{figure.caption.43}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Symboliced transaction queue with 3 worker threads\relax }}{9}{figure.caption.45}
+\contentsline {figure}{\numberline {2.4}{\ignorespaces A parallel section with 3 transactions\relax }}{9}{figure.caption.47}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces example sSCoPs\relax }}{10}{figure.caption.53}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {complete static sSCoP}}}{10}{subfigure.1.1}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Branch within a sSCoP}}}{10}{subfigure.1.2}
-\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {irreversible call within a sSCoP}}}{10}{subfigure.1.3}
-\contentsline {figure}{\numberline {3.2}{\ignorespaces Draft paper: SPolly at compile time\relax }}{12}{figure.caption.77}
-\contentsline {figure}{\numberline {3.3}{\ignorespaces Draft paper: SPolly at runtime\relax }}{12}{figure.caption.78}
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Draft paper: SPolly at compile time\relax }}{11}{figure.caption.50}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Draft paper: SPolly at runtime\relax }}{11}{figure.caption.51}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces example sSCoPs\relax }}{12}{figure.caption.54}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {complete static sSCoP}}}{12}{subfigure.3.1}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Branch within a sSCoP}}}{12}{subfigure.3.2}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {irreversible call within a sSCoP}}}{12}{subfigure.3.3}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces SPolly architecture\relax }}{14}{figure.caption.82}
-\contentsline {figure}{\numberline {4.2}{\ignorespaces CFG produced by Polly and SPolly, respectively\relax }}{17}{figure.caption.93}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Polly CFG}}}{17}{subfigure.2.1}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {SPolly optimized CFG}}}{17}{subfigure.2.2}
-\contentsline {figure}{\numberline {4.3}{\ignorespaces Alias tests concept\relax }}{18}{figure.caption.97}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Alias test from a birds eye view}}}{18}{subfigure.3.1}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Aliasing accesses}}}{18}{subfigure.3.2}
-\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Statically derived min/maximal accesses}}}{18}{subfigure.3.3}
-\contentsline {subfigure}{\numberline {(d)}{\ignorespaces {Introduced compare chain}}}{18}{subfigure.3.4}
-\contentsline {figure}{\numberline {4.4}{\ignorespaces Invariant test introduced by SPolly\relax }}{19}{figure.caption.119}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {source}}}{19}{subfigure.4.1}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {source with invariant tests}}}{19}{subfigure.4.2}
-\contentsline {figure}{\numberline {4.5}{\ignorespaces Forked CFG produced by SPolly and resulting ParCFG\relax }}{21}{figure.caption.147}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Initial loop nest}}}{21}{subfigure.5.1}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Listing \ref {lst:ForkJoinCodeGenerationSRC} after N-fork creation}}}{21}{subfigure.5.2}
-\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {SPolly forked CFG}}}{21}{subfigure.5.3}
-\contentsline {subfigure}{\numberline {(d)}{\ignorespaces {SPolly ParCFG}}}{21}{subfigure.5.4}
+\contentsline {figure}{\numberline {4.1}{\ignorespaces SPolly architecture\relax }}{15}{figure.caption.84}
+\contentsline {figure}{\numberline {4.2}{\ignorespaces CFG produced by Polly and SPolly, respectively\relax }}{18}{figure.caption.95}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Polly CFG}}}{18}{subfigure.2.1}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {SPolly optimized CFG}}}{18}{subfigure.2.2}
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Alias tests concept\relax }}{19}{figure.caption.99}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Alias test from a birds eye view}}}{19}{subfigure.3.1}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Aliasing accesses}}}{19}{subfigure.3.2}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Statically derived min/maximal accesses}}}{19}{subfigure.3.3}
+\contentsline {subfigure}{\numberline {(d)}{\ignorespaces {Introduced compare chain}}}{19}{subfigure.3.4}
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Invariant test introduced by SPolly\relax }}{20}{figure.caption.121}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {source}}}{20}{subfigure.4.1}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {source with invariant tests}}}{20}{subfigure.4.2}
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Forked CFG produced by SPolly and resulting ParCFG\relax }}{22}{figure.caption.149}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Initial loop nest}}}{22}{subfigure.5.1}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Listing \ref {lst:ForkJoinCodeGenerationSRC} after N-fork creation}}}{22}{subfigure.5.2}
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {SPolly forked CFG}}}{22}{subfigure.5.3}
+\contentsline {subfigure}{\numberline {(d)}{\ignorespaces {SPolly ParCFG}}}{22}{subfigure.5.4}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{24}{figure.caption.184}
-\contentsline {figure}{\numberline {5.2}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{25}{figure.caption.186}
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{25}{figure.caption.186}
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Numbers of valid and speculative valid SCoPs\relax }}{26}{figure.caption.188}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces Matmul case A\relax }}{27}{figure.caption.198}
-\contentsline {figure}{\numberline {6.2}{\ignorespaces Matmul case B\relax }}{28}{figure.caption.213}
-\contentsline {figure}{\numberline {6.3}{\ignorespaces Matmul case C\relax }}{28}{figure.caption.227}
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Matmul case A\relax }}{28}{figure.caption.200}
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Matmul case B\relax }}{29}{figure.caption.215}
+\contentsline {figure}{\numberline {6.3}{\ignorespaces Matmul case C\relax }}{29}{figure.caption.229}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {A.1}{\ignorespaces Matmul case A (full)\relax }}{32}{figure.caption.243}
+\contentsline {figure}{\numberline {A.1}{\ignorespaces Matmul case A (full)\relax }}{33}{figure.caption.245}
 \addvspace {10\p@ }

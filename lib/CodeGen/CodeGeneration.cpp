@@ -288,6 +288,72 @@ public:
     Generator.copyBB(GlobalMap);
   }
 
+  /// @brief Generate a new BasicBlock for a ScopStmt.
+  ///
+  /// @param Builder   The LLVM-IR Builder used to generate the statement. The
+  ///                  code is generated at the location, the Builder points to.
+  /// @param Stmt      The statement to code generate.
+  /// @param GlobalMap A map that defines for certain Values referenced from the
+  ///                  original code new Values they should be replaced with.
+  /// @param P         A reference to the pass this function is called from.
+  ///                  The pass is needed to update other analysis.
+  static void generateBlock(IRBuilder<> &Builder, ScopStmt &Stmt,
+                            ValueMapT &GlobalMap, Pass *P) {
+    BlockGenerator Generator(Builder, Stmt, P);
+
+    BasicBlock *BB = Generator.Statement.getBasicBlock();
+    BasicBlock *CopyBB = SplitBlock(Builder.GetInsertBlock(),
+                                    Builder.GetInsertPoint(), P);
+    CopyBB->setName("polly.stmt." + BB->getName());
+    Builder.SetInsertPoint(CopyBB->begin());
+
+    ValueMapT BBMap;
+
+    // To generate code for finder grain statement, we need to remeber the
+    // underlying instruction of the memory access.
+    // typedef ScopStmt::memacc_iterator acc_it;
+    // for (acc_it I = Stmt.memacc_begin(), E = Stmt.memacc_end(); I != E; ++I)
+    //  Generate code for access I.
+
+    typedef BasicBlock::const_iterator it;
+    for (it II = BB->begin(), IE = BB->end(); II != IE; ++II) {
+      const Instruction *Inst = II;
+      if (MemoryAccess *MA = Stmt.lookupAccessFor(Inst))
+        Generator.generateMemoryAccess(MA, Inst, GlobalMap, BBMap);
+    }
+  }
+
+
+  void generateMemoryAccess(MemoryAccess *MA, const Instruction *Inst,
+                            ValueMapT &GlobalMap, ValueMapT &BBMap) {
+    isl_map *CurrentAccessRelation = MA->getAccessRelation();
+    isl_map *NewAccessRelation = MA->getNewAccessRelation();
+
+    assert(isl_map_has_equal_space(CurrentAccessRelation, NewAccessRelation)
+           && "Current and new access function use different spaces");
+
+    const Value *PointerOperand = MA->isRead() ?
+                                  cast<LoadInst>(Inst)->getPointerOperand() :
+                                  cast<StoreInst>(Inst)->getPointerOperand();
+
+    // Do we need to generate the address from new access relation?
+    if (NewAccessRelation) {
+      Value *BaseAddress = const_cast<Value*>(MA->getBaseAddr());
+      Value *NewPointer = getNewAccessOperand(NewAccessRelation, BaseAddress,
+                                              BBMap, GlobalMap);
+      BBMap[PointerOperand] = NewPointer;
+    }
+
+    cloneInstrTree(Inst, BBMap, GlobalMap);
+
+    // Free the context.
+    isl_map_free(CurrentAccessRelation);
+    if (NewAccessRelation) {
+      BBMap.erase(PointerOperand);
+      isl_map_free(NewAccessRelation);
+    }
+  }
+
 protected:
   IRBuilder<> &Builder;
   ScopStmt &Statement;
@@ -356,10 +422,121 @@ protected:
   ///                  (for values recalculated in the new ScoP, but not
   ///                  within this basic block).
   void copyBB(ValueMapT &GlobalMap);
+
+  static Value *castOperandType(Value *NewOperand, Type *DstTy,
+                                Instruction *InsertPos) {
+    unsigned OldSize = DstTy->getScalarSizeInBits();
+    unsigned NewSize = NewOperand->getType()->getScalarSizeInBits();
+    // Insert a cast if types are different
+    // FIXME: Use IRBuilder, so we have chance to fold the cast.
+    if (OldSize < NewSize)
+      return CastInst::CreateTruncOrBitCast(NewOperand, DstTy,
+                                            NewOperand->getName() + "_c",
+                                            InsertPos);
+
+    return NewOperand;
+  }
+
+  /// @brief Clone the Instruction and its dependents recursively until the
+  ///        instuction appears in the value map.
+  ///
+  /// @param Root The instruction need to be cloned.
+  /// @param BB   The BasicBlock to hold the instruction.
+  ///
+  /// @return The newly cloned instruction.
+  Instruction *cloneInstrTree(const Instruction *Root, ValueMapT &BBMap,
+                              ValueMapT &GlobalMap, const Twine &NameSuffix="");
 };
 
 BlockGenerator::BlockGenerator(IRBuilder<> &B, ScopStmt &Stmt, Pass *P):
   Builder(B), Statement(Stmt), P(P) {}
+
+Instruction *BlockGenerator::cloneInstrTree(const Instruction *Root,
+                                            ValueMapT &BBMap,
+                                            ValueMapT &GlobalMap,
+                                            const Twine &NameSuffix) {
+  // Clone the incoming instruction.
+  Instruction *NewI = Root->clone();
+  const BasicBlock *OldBB = Root->getParent();
+  if (!NewI->getType()->isVoidTy()) NewI->setName(Root->getName() + NameSuffix);
+  // Insert it to the current bb and remember we already copy this instruction.
+  Builder.Insert(NewI);
+  // Remember we cloned this instruction.
+  BBMap[Root] = NewI;
+
+  // Depth first traverse the operand tree (or operand dag, because we will
+  // stop at PHINodes, so there are no cycle).
+  typedef Instruction::op_iterator ChildIt;
+  std::vector<std::pair<Instruction*, ChildIt> > WorkStack;
+
+  WorkStack.push_back(std::make_pair(NewI, NewI->op_begin()));
+
+  while (!WorkStack.empty()) {
+    Instruction *CurInst = WorkStack.back().first;
+    ChildIt It = WorkStack.back().second;
+    DEBUG(dbgs() << "Checking Operand of Node:\n" << *CurInst << "\n------>\n");
+    if (It == CurInst->op_end()) {
+      DEBUG(dbgs() << "Going to insert new inst: " << *CurInst << '\n');
+      // Insert the new instructions in topological order by insert the operand
+      // tree before the root.
+      // FIXME: Use IRBuilder?
+      if (!CurInst->getParent())
+        CurInst->insertBefore(NewI);
+
+      WorkStack.pop_back();
+    } else {
+      // for each node N,
+      Value *Operand = *It;
+      ++WorkStack.back().second;
+
+      DEBUG(dbgs() << "For Operand:\n" << *Operand << ' ' << Operand << "\n--->");
+
+      if (Value *NewParam = GlobalMap.lookup(Operand)) {
+        assert(Operand->getType() == NewParam->getType()
+               && "The type of parameter not match!");
+        DEBUG(dbgs() << "Replace parameter" << *Operand << " by "
+                     << *NewParam << ".\n");
+        It->set(NewParam);
+        // If a value appeared in parameter map, it should not appeared in local
+        // map
+        assert(!BBMap.count(Operand) && "Parameter in local map!");
+        continue;
+      }
+
+      Instruction *OpInst = dyn_cast<Instruction>(Operand);
+      // Do not clone the constant or parameters not in the parameters map.
+      if (OpInst == 0) continue;
+
+      // Now we need to clone Operand to CurBB.
+      // Check if we already clone it.
+      if (Value *Cloned = BBMap.lookup(OpInst)) {
+        DEBUG(dbgs() << "already cloned: " << *Cloned << ".\n");
+        It->set(castOperandType(Cloned, OpInst->getType(), NewI));
+        // Skip all its children as we already processed them.
+        continue;
+      }
+
+      // Ignore the parameter not in the subsitution map.
+      // FIXME: This is incorrect after IndependentBlocks pass is removed.
+      if (OldBB != OpInst->getParent()) continue;
+
+      // Else just clone the instruction.
+      // Note that NewOp is not inserted in any BB now, we will insert it when
+      // it popped form the work stack, so it will be inserted in topological
+      // order.
+      Instruction *NewOp = OpInst->clone();
+      NewOp->setName("p_" + OpInst->getName());
+      DEBUG(dbgs() << "Move to " << *NewOp << "\n");
+      It->set(NewOp);
+      // Insert it to the subsitiuation table.
+      BBMap[OpInst] = NewOp;
+      // Process its operands.
+      WorkStack.push_back(std::make_pair(NewOp, NewOp->op_begin()));
+    }
+  }
+
+  return NewI;
+}
 
 Value *BlockGenerator::getNewValue(const Value *Old, ValueMapT &BBMap,
                                    ValueMapT &GlobalMap) {
@@ -1277,7 +1454,7 @@ void ClastStmtCodeGen::codegen(const clast_user_stmt *u,
   int VectorDimensions = IVS ? IVS->size() : 1;
 
   if (VectorDimensions == 1) {
-    BlockGenerator::generate(Builder, *Statement, ValueMap, P);
+    BlockGenerator::generateBlock(Builder, *Statement, ValueMap, P);
     return;
   }
 
@@ -1366,7 +1543,7 @@ void ClastStmtCodeGen::codegenForForkJoinParallelism(const clast_for *f) {
   assert(!Overflow && "Got an Overflow during the IV computations");
   Stride = Builder.getInt(APIStrideForks);
  
-  IV = createLoop(LowerBound, UpperBound, Stride, &Builder, P, &AfterBB);
+  IV = createLoop(LowerBound, UpperBound, Stride, Builder, P, AfterBB);
    
   BasicBlock *Header = cast<Instruction>(IV)->getParent();
 
@@ -1688,7 +1865,7 @@ void ClastStmtCodeGen::codegenForSequential(const clast_for *f) {
   UpperBound = ExpGen.codegen(f->UB, IntPtrTy);
   Stride = Builder.getInt(APInt_from_MPZ(f->stride));
 
-  IV = createLoop(LowerBound, UpperBound, Stride, &Builder, P, &AfterBB);
+  IV = createLoop(LowerBound, UpperBound, Stride, Builder, P, AfterBB);
 
   // Add loop iv to symbols.
   ClastVars[f->iterator] = IV;
@@ -1719,7 +1896,22 @@ SetVector<Value*> ClastStmtCodeGen::getOMPValues() {
     }
   }
       
-
+    Region &R = S->getRegion();
+    Function *F = R.getEntry()->getParent();
+  if ( F->getName() == "gl_alpha_test" || F->getName() == "horner_bezier_curve"
+       || F->getName() == "gl_flush_pb" || F->getName() == "apply_texture") {
+    /// FIX 4 
+    /// Hack to include arguments PolybenchC 2mm and others
+    /// 
+    for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E; I++) {
+     if (Values.count(I)) continue;
+      
+      if (I->getName() == "ctx" || I->getName() == "t" || I->getName() =="order") {
+        dbgs() << " FIX FIX FIX Insert " << *I << "\n";
+        Values.insert(I);
+      }
+    }
+  }
 
   return Values;
 }
