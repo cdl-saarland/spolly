@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdflatex 2012.4.4)  26 APR 2012 04:10
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdflatex 2012.4.4)  28 APR 2012 17:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -621,6 +621,63 @@ Package: framed 2007/10/04 v 0.95: framed or shaded text with page breaks
 
 LaTeX Warning: Label `fig:draftPaperCT' multiply defined.
 
+
+LaTeX Warning: Label `fig:PollySCoPCFG' multiply defined.
+
+
+LaTeX Warning: Label `sub@fig:PollySCoPCFG' multiply defined.
+
+
+LaTeX Warning: Label `fig:SPollySCoPCFG' multiply defined.
+
+
+LaTeX Warning: Label `sub@fig:SPollySCoPCFG' multiply defined.
+
+
+LaTeX Warning: Label `fig:SCoPCFG' multiply defined.
+
+
+LaTeX Warning: Label `fig:AliastestConcept' multiply defined.
+
+
+LaTeX Warning: Label `sub@fig:AliastestConcept' multiply defined.
+
+
+LaTeX Warning: Label `lst:AliastestAccessesSrc' multiply defined.
+
+
+LaTeX Warning: Label `sub@lst:AliastestAccessesSrc' multiply defined.
+
+
+LaTeX Warning: Label `fig:AliastestAccesses' multiply defined.
+
+
+LaTeX Warning: Label `sub@fig:AliastestAccesses' multiply defined.
+
+
+LaTeX Warning: Label `lst:AliastestAccessesOut' multiply defined.
+
+
+LaTeX Warning: Label `sub@lst:AliastestAccessesOut' multiply defined.
+
+
+LaTeX Warning: Label `fig:Aliastest' multiply defined.
+
+
+LaTeX Warning: Label `lst:InvariantTestSRC' multiply defined.
+
+
+LaTeX Warning: Label `sub@lst:InvariantTestSRC' multiply defined.
+
+
+LaTeX Warning: Label `lst:InvariantTestOut' multiply defined.
+
+
+LaTeX Warning: Label `sub@lst:InvariantTestOut' multiply defined.
+
+
+LaTeX Warning: Label `lst:InvariantTest' multiply defined.
+
 )
 \openout1 = `Thesis.aux'.
 
@@ -803,7 +860,9 @@ used on input line 145.
 
 (./Primitives/Code/ExampleLoopNestTransformed.c) [4
 
-] [5 <./Figures/ExampleLoopNestPolytope2-eps-converted-to.pdf>] [6]
+] [5 <./Figures/ExampleLoopNestPolytope2-eps-converted-to.pdf>] [6
+
+] [7]
 Package epstopdf Info: Source file: <Figures/SambambaConcept.eps>
 (epstopdf)                    date: 2012-04-24 20:56:50
 (epstopdf)                    size: 42870 bytes
@@ -816,13 +875,15 @@ s-converted-to.pdf Figures/SambambaConcept.eps>
 (epstopdf)             \includegraphics on input line 336.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/SambambaConcept-eps-converted-to.pdf, id=461, 501.875pt x 482.80376pt>
+<Figures/SambambaConcept-eps-converted-to.pdf, id=466, 501.875pt x 482.80376pt>
 File: Figures/SambambaConcept-eps-converted-to.pdf Graphic file (type pdf)
 <use Figures/SambambaConcept-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/SambambaConcept-eps-converted-to.pdf used on i
 nput line 336.
 (pdftex.def)             Requested size: 125.24318pt x 120.47963pt.
- [7 <./Figures/SambambaConcept-eps-converted-to.pdf>] [8]
+ [8
+
+ <./Figures/SambambaConcept-eps-converted-to.pdf>]
 Package epstopdf Info: Source file: <Figures/TransactionQueue.eps>
 (epstopdf)                    date: 2012-04-24 20:46:33
 (epstopdf)                    size: 83912 bytes
@@ -832,63 +893,63 @@ pdf>
 (epstopdf)                    size: 37263 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/TransactionQueue-e
 ps-converted-to.pdf Figures/TransactionQueue.eps>
-(epstopdf)             \includegraphics on input line 366.
+(epstopdf)             \includegraphics on input line 369.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/TransactionQueue-eps-converted-to.pdf, id=478, 661.47125pt x 575.14874
+<Figures/TransactionQueue-eps-converted-to.pdf, id=475, 661.47125pt x 575.14874
 pt>
 File: Figures/TransactionQueue-eps-converted-to.pdf Graphic file (type pdf)
  <use Figures/TransactionQueue-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/TransactionQueue-eps-converted-to.pdf used on 
-input line 366.
-(pdftex.def)             Requested size: 179.51036pt x 156.08208pt.
+input line 369.
+(pdftex.def)             Requested size: 158.6418pt x 137.9332pt.
 
-Underfull \hbox (badness 6157) in paragraph at lines 370--376
-[]\OT1/cmr/m/n/10.95 The Sam-bamba par-al-lelizer will be-come
+Underfull \hbox (badness 3861) in paragraph at lines 373--379
+[]\OT1/cmr/m/n/10.95 The Sam-bamba par-al-lelizer will be-come the
  []
 
 
-Underfull \hbox (badness 2035) in paragraph at lines 370--376
-\OT1/cmr/m/n/10.95 the main in-ter-face for any kind of par-
+Underfull \hbox (badness 5548) in paragraph at lines 373--379
+\OT1/cmr/m/n/10.95 main in-ter-face for any kind of par-al-leliza-
  []
 
 
-Underfull \hbox (badness 3919) in paragraph at lines 370--376
-\OT1/cmr/m/n/10.95 al-leliza-tion in the frame-work. At the
+Underfull \hbox (badness 1910) in paragraph at lines 373--379
+\OT1/cmr/m/n/10.95 tion in the frame-work. At the mo-ment it
  []
 
 
-Underfull \hbox (badness 4518) in paragraph at lines 370--376
-\OT1/cmr/m/n/10.95 mo-ment it is in need of par-al-lel con-
+Underfull \hbox (badness 1371) in paragraph at lines 373--379
+\OT1/cmr/m/n/10.95 is in need of par-al-lel con-trol flow graphs to
  []
 
 
-Underfull \hbox (badness 3354) in paragraph at lines 370--376
-\OT1/cmr/m/n/10.95 trol flow graphs to ex-plic-itly state sec-
+Underfull \hbox (badness 3088) in paragraph at lines 373--379
+\OT1/cmr/m/n/10.95 ex-plic-itly state sec-tion which should be ex-
  []
 
 
-Underfull \hbox (badness 4353) in paragraph at lines 370--376
-\OT1/cmr/m/n/10.95 tion which should be ex-e-cuted in par-
+Underfull \hbox (badness 3428) in paragraph at lines 373--379
+\OT1/cmr/m/n/10.95 e-cuted in par-al-lel, but in the fu-ture more
  []
 
 
-Underfull \hbox (badness 2573) in paragraph at lines 370--376
-\OT1/cmr/m/n/10.95 al-lel, but in the fu-ture more au-to-matic
+Underfull \hbox (badness 2932) in paragraph at lines 373--379
+\OT1/cmr/m/n/10.95 au-to-matic loop par-al-leliza-tion will be im-ple-
  []
 
 
-Underfull \hbox (badness 5431) in paragraph at lines 370--376
-\OT1/cmr/m/n/10.95 loop par-al-leliza-tion will be im-ple-mented
+Underfull \hbox (badness 1466) in paragraph at lines 373--379
+\OT1/cmr/m/n/10.95 mented too. The run-time part of the par-
  []
 
 
-Underfull \hbox (badness 3884) in paragraph at lines 370--376
-\OT1/cmr/m/n/10.95 too. The run-time part of the par-al-
+Underfull \hbox (badness 4505) in paragraph at lines 373--379
+\OT1/cmr/m/n/10.95 there is no need for ex-ter-nal li-braries (as
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 370--376
+Underfull \hbox (badness 10000) in paragraph at lines 373--379
 
  []
 
@@ -901,18 +962,18 @@ Package epstopdf Info: Source file: <Figures/ParallelSectionEx.eps>
 (epstopdf)                    size: 9622 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/ParallelSectionEx-
 eps-converted-to.pdf Figures/ParallelSectionEx.eps>
-(epstopdf)             \includegraphics on input line 383.
+(epstopdf)             \includegraphics on input line 386.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/ParallelSectionEx-eps-converted-to.pdf, id=479, 601.24625pt x 728.7225
+<Figures/ParallelSectionEx-eps-converted-to.pdf, id=476, 601.24625pt x 728.7225
 pt>
 File: Figures/ParallelSectionEx-eps-converted-to.pdf Graphic file (type pdf)
  <use Figures/ParallelSectionEx-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/ParallelSectionEx-eps-converted-to.pdf used on
- input line 383.
+ input line 386.
 (pdftex.def)             Requested size: 137.76688pt x 166.96884pt.
 
-Overfull \hbox (271.35495pt too wide) in paragraph at lines 382--385
+Overfull \hbox (271.35495pt too wide) in paragraph at lines 385--388
  []$[]$ 
  []
 
@@ -924,9 +985,6 @@ Chapter 3.
 ------------------------------------------------------------------------------
  3 Concept
 ------------------------------------------------------------------------------
-[10
-
-]
 Package epstopdf Info: Source file: <Figures/draftPaperCT.eps>
 (epstopdf)                    date: 2012-04-24 23:53:15
 (epstopdf)                    size: 82862 bytes
@@ -936,16 +994,19 @@ Package epstopdf Info: Source file: <Figures/draftPaperCT.eps>
 (epstopdf)                    size: 38057 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/draftPaperCT-eps-c
 onverted-to.pdf Figures/draftPaperCT.eps>
-(epstopdf)             \includegraphics on input line 23.
+(epstopdf)             \includegraphics on input line 35.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/draftPaperCT-eps-converted-to.pdf, id=499, 617.30624pt x 557.08125pt>
+<Figures/draftPaperCT-eps-converted-to.pdf, id=492, 617.30624pt x 557.08125pt>
 File: Figures/draftPaperCT-eps-converted-to.pdf Graphic file (type pdf)
 
 <use Figures/draftPaperCT-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/draftPaperCT-eps-converted-to.pdf used on inpu
-t line 23.
-(pdftex.def)             Requested size: 250.48637pt x 226.05019pt.
+t line 35.
+(pdftex.def)             Requested size: 208.73653pt x 188.36807pt.
+ [10
+
+ <./Figures/draftPaperCT-eps-converted-to.pdf>]
 Package epstopdf Info: Source file: <Figures/draftPaperRT.eps>
 (epstopdf)                    date: 2012-04-24 23:46:44
 (epstopdf)                    size: 122078 bytes
@@ -955,7 +1016,7 @@ Package epstopdf Info: Source file: <Figures/draftPaperRT.eps>
 (epstopdf)                    size: 54861 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/draftPaperRT-eps-c
 onverted-to.pdf Figures/draftPaperRT.eps>
-(epstopdf)             \includegraphics on input line 31.
+(epstopdf)             \includegraphics on input line 64.
 Package epstopdf Info: Output file is already uptodate.
 
 <Figures/draftPaperRT-eps-converted-to.pdf, id=500, 617.30624pt x 643.40375pt>
@@ -963,33 +1024,166 @@ File: Figures/draftPaperRT-eps-converted-to.pdf Graphic file (type pdf)
 
 <use Figures/draftPaperRT-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/draftPaperRT-eps-converted-to.pdf used on inpu
-t line 31.
-(pdftex.def)             Requested size: 250.48637pt x 261.07779pt.
- [11
+t line 64.
+(pdftex.def)             Requested size: 208.73653pt x 217.55664pt.
 
- <./Figures/draftPaperCT-eps-converted-to.pdf> <./Figures/draftPaperRT-eps-conv
-erted-to.pdf>]
+(./Primitives/Code/sSCoPstatic.c) (./Primitives/Code/sSCoPbounds.c)
+(./Primitives/Code/sSCoPbranch.c) (./Primitives/Code/sSCoPprintf.c)
 
-LaTeX Warning: Reference `fig:SCoPconstraints' on page 12 undefined on input li
-ne 41.
+LaTeX Warning: `h' float specifier changed to `ht'.
 
-(./Primitives/Code/sSCoPstatic.c) (./Primitives/Code/sSCoPbranch.c)
-(./Primitives/Code/sSCoPprintf.c) [12
+[11 <./Figures/draftPaperRT-eps-converted-to.pdf>] [12]
 
-]) (./Chapters/Chapter4.tex [13]
+LaTeX Warning: Reference `SPollySCoPCFG' on page 13 undefined on input line 189
+.
+
+Package epstopdf Info: Source file: <Figures/PollySCoPCFG.eps>
+(epstopdf)                    date: 2012-04-16 14:59:10
+(epstopdf)                    size: 44114 bytes
+(epstopdf)             Output file: <Figures/PollySCoPCFG-eps-converted-to.pdf>
+
+(epstopdf)                    date: 2012-04-16 14:59:13
+(epstopdf)                    size: 19023 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/PollySCoPCFG-eps-c
+onverted-to.pdf Figures/PollySCoPCFG.eps>
+(epstopdf)             \includegraphics on input line 198.
+Package epstopdf Info: Output file is already uptodate.
+<Figures/PollySCoPCFG-eps-converted-to.pdf, id=557, 487.8225pt x 496.85625pt>
+File: Figures/PollySCoPCFG-eps-converted-to.pdf Graphic file (type pdf)
+
+<use Figures/PollySCoPCFG-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/PollySCoPCFG-eps-converted-to.pdf used on inpu
+t line 198.
+(pdftex.def)             Requested size: 187.86159pt x 191.33952pt.
+Package epstopdf Info: Source file: <Figures/SPollySCoPCFG.eps>
+(epstopdf)                    date: 2012-04-21 00:48:40
+(epstopdf)                    size: 47302 bytes
+(epstopdf)             Output file: <Figures/SPollySCoPCFG-eps-converted-to.pdf
+>
+(epstopdf)                    date: 2012-04-21 00:48:46
+(epstopdf)                    size: 21014 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/SPollySCoPCFG-eps-
+converted-to.pdf Figures/SPollySCoPCFG.eps>
+(epstopdf)             \includegraphics on input line 204.
+Package epstopdf Info: Output file is already uptodate.
+
+<Figures/SPollySCoPCFG-eps-converted-to.pdf, id=558, 491.8375pt x 496.85625pt>
+File: Figures/SPollySCoPCFG-eps-converted-to.pdf Graphic file (type pdf)
+
+<use Figures/SPollySCoPCFG-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/SPollySCoPCFG-eps-converted-to.pdf used on inp
+ut line 204.
+(pdftex.def)             Requested size: 187.86159pt x 189.77776pt.
+
+Overfull \hbox (14.59996pt too wide) in paragraph at lines 198--205
+ [][][][] 
+ []
+
+[13 <./Figures/PollySCoPCFG-eps-converted-to.pdf> <./Figures/SPollySCoPCFG-eps-
+converted-to.pdf>]
+Package epstopdf Info: Source file: <Primitives/aliastest.eps>
+(epstopdf)                    date: 2012-04-16 14:19:56
+(epstopdf)                    size: 54798 bytes
+(epstopdf)             Output file: <Primitives/aliastest-eps-converted-to.pdf>
+
+(epstopdf)                    date: 2012-04-16 14:20:38
+(epstopdf)                    size: 23861 bytes
+(epstopdf)             Command: <repstopdf --outfile=Primitives/aliastest-eps-c
+onverted-to.pdf Primitives/aliastest.eps>
+(epstopdf)             \includegraphics on input line 241.
+Package epstopdf Info: Output file is already uptodate.
+
+<Primitives/aliastest-eps-converted-to.pdf, id=576, 1315.91624pt x 293.095pt>
+File: Primitives/aliastest-eps-converted-to.pdf Graphic file (type pdf)
+
+<use Primitives/aliastest-eps-converted-to.pdf>
+Package pdftex.def Info: Primitives/aliastest-eps-converted-to.pdf used on inpu
+t line 241.
+(pdftex.def)             Requested size: 375.7232pt x 83.68498pt.
+
+Overfull \hbox (7.29999pt too wide) in paragraph at lines 241--242
+ [][] 
+ []
+
+(./Primitives/Code/aliastestbsp.c) (./Primitives/Code/aliastestout.c) [14 <./Pr
+imitives/aliastest-eps-converted-to.pdf>] (./Primitives/Code/InvariantTestSRC.c
+) (./Primitives/Code/InvariantTest.c) [15]
+(./Primitives/Code/NonComputableDependencies.c
+Overfull \hbox (5.94269pt too wide) in paragraph at lines 2--3
+[][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+)
+Package epstopdf Info: Source file: <Figures/NonComputableDependenciesSituation
+.eps>
+(epstopdf)                    date: 2012-04-27 20:13:52
+(epstopdf)                    size: 28310 bytes
+(epstopdf)             Output file: <Figures/NonComputableDependenciesSituation
+-eps-converted-to.pdf>
+(epstopdf)                    date: 2012-04-27 20:13:56
+(epstopdf)                    size: 11514 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/NonComputableDepen
+denciesSituation-eps-converted-to.pdf Figures/NonComputableDependenciesSituatio
+n.eps>
+(epstopdf)             \includegraphics on input line 358.
+Package epstopdf Info: Output file is already uptodate.
+
+<Figures/NonComputableDependenciesSituation-eps-converted-to.pdf, id=649, 238.8
+925pt x 146.5475pt>
+File: Figures/NonComputableDependenciesSituation-eps-converted-to.pdf Graphic f
+ile (type pdf)
+
+<use Figures/NonComputableDependenciesSituation-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/NonComputableDependenciesSituation-eps-convert
+ed-to.pdf used on input line 358.
+(pdftex.def)             Requested size: 166.98985pt x 102.43942pt.
+
+(./Primitives/Code/NonComputableDependenciesBad.c
+Overfull \hbox (16.14291pt too wide) in paragraph at lines 12--13
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+)
+Package epstopdf Info: Source file: <Figures/NonComputableDependenciesParCFG.ep
+s>
+(epstopdf)                    date: 2012-04-28 00:43:45
+(epstopdf)                    size: 38012 bytes
+(epstopdf)             Output file: <Figures/NonComputableDependenciesParCFG-ep
+s-converted-to.pdf>
+(epstopdf)                    date: 2012-04-28 00:45:05
+(epstopdf)                    size: 16742 bytes
+(epstopdf)             Command: <repstopdf --outfile=Figures/NonComputableDepen
+denciesParCFG-eps-converted-to.pdf Figures/NonComputableDependenciesParCFG.eps>
+
+(epstopdf)             \includegraphics on input line 373.
+Package epstopdf Info: Output file is already uptodate.
+
+<Figures/NonComputableDependenciesParCFG-eps-converted-to.pdf, id=654, 443.6575
+pt x 558.085pt>
+File: Figures/NonComputableDependenciesParCFG-eps-converted-to.pdf Graphic file
+ (type pdf)
+
+<use Figures/NonComputableDependenciesParCFG-eps-converted-to.pdf>
+Package pdftex.def Info: Figures/NonComputableDependenciesParCFG-eps-converted-
+to.pdf used on input line 373.
+(pdftex.def)             Requested size: 166.98985pt x 210.05629pt.
+ [16 <./Figures/NonComputableDependenciesSituation-eps-converted-to.pdf> <./Fig
+ures/NonComputableDependenciesParCFG-eps-converted-to.pdf>]) (./Chapters/Chapte
+r4.tex
+[17]
 Chapter 4.
 ------------------------------------------------------------------------------
  4 Implementation
 ------------------------------------------------------------------------------
 
-LaTeX Warning: Reference `tab:Bugreports' on page 14 undefined on input line 44
+LaTeX Warning: Reference `tab:Bugreports' on page 18 undefined on input line 40
 .
 
 
-LaTeX Warning: Reference `fig:PollyArchitecture' on page 14 undefined on input 
-line 73.
+LaTeX Warning: Reference `fig:PollyArchitecture' on page 18 undefined on input 
+line 70.
 
-[14
+[18
 
 ]
 Package epstopdf Info: Source file: <Figures/SPollyArchitecture.eps>
@@ -1001,30 +1195,22 @@ o.pdf>
 (epstopdf)                    size: 41198 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/SPollyArchitecture
 -eps-converted-to.pdf Figures/SPollyArchitecture.eps>
-(epstopdf)             \includegraphics on input line 81.
+(epstopdf)             \includegraphics on input line 77.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/SPollyArchitecture-eps-converted-to.pdf, id=558, 949.5475pt x 693.5912
+<Figures/SPollyArchitecture-eps-converted-to.pdf, id=712, 949.5475pt x 693.5912
 5pt>
 File: Figures/SPollyArchitecture-eps-converted-to.pdf Graphic file (type pdf)
  <use Figures/SPollyArchitecture-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/SPollyArchitecture-eps-converted-to.pdf used o
-n input line 81.
+n input line 77.
 (pdftex.def)             Requested size: 375.7232pt x 274.44708pt.
 
 
-LaTeX Warning: Reference `fig:SCoPconstraints' on page 15 undefined on input li
-ne 91.
+LaTeX Warning: Reference `fig:SCoPconstraints' on page 19 undefined on input li
+ne 86.
 
-
-Underfull \vbox (badness 4505) detected at line 110
- []
-
-[15 <./Figures/SPollyArchitecture-eps-converted-to.pdf>]
-Underfull \vbox (badness 1917) detected at line 144
- []
-
-[16] [17]
+[19 <./Figures/SPollyArchitecture-eps-converted-to.pdf>] [20]
 Package epstopdf Info: Source file: <Figures/PollySCoPCFG.eps>
 (epstopdf)                    date: 2012-04-16 14:59:10
 (epstopdf)                    size: 44114 bytes
@@ -1034,15 +1220,13 @@ Package epstopdf Info: Source file: <Figures/PollySCoPCFG.eps>
 (epstopdf)                    size: 19023 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/PollySCoPCFG-eps-c
 onverted-to.pdf Figures/PollySCoPCFG.eps>
-(epstopdf)             \includegraphics on input line 207.
+(epstopdf)             \includegraphics on input line 187.
 Package epstopdf Info: Output file is already uptodate.
-
-<Figures/PollySCoPCFG-eps-converted-to.pdf, id=587, 487.8225pt x 496.85625pt>
 File: Figures/PollySCoPCFG-eps-converted-to.pdf Graphic file (type pdf)
 
 <use Figures/PollySCoPCFG-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/PollySCoPCFG-eps-converted-to.pdf used on inpu
-t line 207.
+t line 187.
 (pdftex.def)             Requested size: 187.8616pt x 191.33952pt.
 Package epstopdf Info: Source file: <Figures/SPollySCoPCFG.eps>
 (epstopdf)                    date: 2012-04-21 00:48:40
@@ -1053,23 +1237,20 @@ Package epstopdf Info: Source file: <Figures/SPollySCoPCFG.eps>
 (epstopdf)                    size: 21014 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/SPollySCoPCFG-eps-
 converted-to.pdf Figures/SPollySCoPCFG.eps>
-(epstopdf)             \includegraphics on input line 213.
+(epstopdf)             \includegraphics on input line 193.
 Package epstopdf Info: Output file is already uptodate.
-
-<Figures/SPollySCoPCFG-eps-converted-to.pdf, id=588, 491.8375pt x 496.85625pt>
 File: Figures/SPollySCoPCFG-eps-converted-to.pdf Graphic file (type pdf)
 
 <use Figures/SPollySCoPCFG-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/SPollySCoPCFG-eps-converted-to.pdf used on inp
-ut line 213.
+ut line 193.
 (pdftex.def)             Requested size: 187.8616pt x 189.77776pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 221--222
+Underfull \hbox (badness 10000) in paragraph at lines 200--201
 
  []
 
-[18 <./Figures/PollySCoPCFG-eps-converted-to.pdf> <./Figures/SPollySCoPCFG-eps-
-converted-to.pdf>]
+[21]
 Package epstopdf Info: Source file: <Primitives/aliastest.eps>
 (epstopdf)                    date: 2012-04-16 14:19:56
 (epstopdf)                    size: 54798 bytes
@@ -1079,32 +1260,25 @@ Package epstopdf Info: Source file: <Primitives/aliastest.eps>
 (epstopdf)                    size: 23861 bytes
 (epstopdf)             Command: <repstopdf --outfile=Primitives/aliastest-eps-c
 onverted-to.pdf Primitives/aliastest.eps>
-(epstopdf)             \includegraphics on input line 252.
+(epstopdf)             \includegraphics on input line 230.
 Package epstopdf Info: Output file is already uptodate.
-
-<Primitives/aliastest-eps-converted-to.pdf, id=605, 1315.91624pt x 293.095pt>
 File: Primitives/aliastest-eps-converted-to.pdf Graphic file (type pdf)
-
-<use Primitives/aliastest-eps-converted-to.pdf>
+ <use Primitives/aliastest-eps-converted-to.pdf>
 Package pdftex.def Info: Primitives/aliastest-eps-converted-to.pdf used on inpu
-t line 252.
+t line 230.
 (pdftex.def)             Requested size: 375.7232pt x 83.68498pt.
 
-(./Primitives/Code/aliastestbsp.c) (./Primitives/Code/aliastestout.c) [19 <./Pr
-imitives/aliastest-eps-converted-to.pdf>] (./Primitives/Code/InvariantTestSRC.c
-) (./Primitives/Code/InvariantTest.c)
+(./Primitives/Code/aliastestbsp.c) (./Primitives/Code/aliastestout.c)
+(./Primitives/Code/InvariantTestSRC.c) (./Primitives/Code/InvariantTest.c)
+[22] [23]
 
-LaTeX Warning: Reference `SambambaSTM' on page 20 undefined on input line 362.
-
-
-LaTeX Warning: Reference `SambambaParCFG' on page 20 undefined on input line 36
-8.
+LaTeX Warning: Reference `SambambaSTM' on page 24 undefined on input line 330.
 
 
-Underfull \vbox (badness 10000) detected at line 371
- []
+LaTeX Warning: Reference `SambambaParCFG' on page 24 undefined on input line 33
+6.
 
-[20] (./Primitives/Code/ForkJoinCodeGenerationSRC.c)
+(./Primitives/Code/ForkJoinCodeGenerationSRC.c)
 (./Primitives/Code/ForkJoinCodeGenerationOUT.c
 Overfull \hbox (26.34314pt too wide) in paragraph at lines 3--4
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
@@ -1120,14 +1294,14 @@ Package epstopdf Info: Source file: <Figures/ForkJoinCFG.eps>
 (epstopdf)                    size: 14560 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/ForkJoinCFG-eps-co
 nverted-to.pdf Figures/ForkJoinCFG.eps>
-(epstopdf)             \includegraphics on input line 394.
+(epstopdf)             \includegraphics on input line 361.
 Package epstopdf Info: Output file is already uptodate.
- <Figures/ForkJoinCFG-eps-converted-to.pdf, id=675, 355.3275pt x 574.145pt>
+ <Figures/ForkJoinCFG-eps-converted-to.pdf, id=821, 355.3275pt x 574.145pt>
 File: Figures/ForkJoinCFG-eps-converted-to.pdf Graphic file (type pdf)
 
 <use Figures/ForkJoinCFG-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/ForkJoinCFG-eps-converted-to.pdf used on input
- line 394.
+ line 361.
 (pdftex.def)             Requested size: 116.89015pt x 188.8727pt.
 Package epstopdf Info: Source file: <Figures/ForkJoinParCFG.eps>
 (epstopdf)                    date: 2012-04-17 19:44:31
@@ -1138,22 +1312,22 @@ f>
 (epstopdf)                    size: 14962 bytes
 (epstopdf)             Command: <repstopdf --outfile=Figures/ForkJoinParCFG-eps
 -converted-to.pdf Figures/ForkJoinParCFG.eps>
-(epstopdf)             \includegraphics on input line 400.
+(epstopdf)             \includegraphics on input line 367.
 Package epstopdf Info: Output file is already uptodate.
 
-<Figures/ForkJoinParCFG-eps-converted-to.pdf, id=676, 773.89125pt x 516.93124pt
+<Figures/ForkJoinParCFG-eps-converted-to.pdf, id=822, 773.89125pt x 516.93124pt
 >
 File: Figures/ForkJoinParCFG-eps-converted-to.pdf Graphic file (type pdf)
  <use Figures/ForkJoinParCFG-eps-converted-to.pdf>
 Package pdftex.def Info: Figures/ForkJoinParCFG-eps-converted-to.pdf used on in
-put line 400.
+put line 367.
 (pdftex.def)             Requested size: 208.73653pt x 139.42343pt.
- [21] [22 <./Figures/ForkJoinCFG-eps-converted-to.pdf> <./Figures/ForkJoinParCF
+ [24] [25 <./Figures/ForkJoinCFG-eps-converted-to.pdf> <./Figures/ForkJoinParCF
 G-eps-converted-to.pdf>]
 
-LaTeX Warning: Reference `' on page 23 undefined on input line 446.
+LaTeX Warning: Reference `' on page 26 undefined on input line 407.
 
-) (./Chapters/Chapter5.tex [23]
+[26]) (./Chapters/Chapter5.tex [27]
 Chapter 5.
 ------------------------------------------------------------------------------
  5 Evaluation
@@ -1168,22 +1342,22 @@ Underfull \hbox (badness 10000) in paragraph at lines 24--42
 \OT1/cmr/m/n/10.95 (more de-tails in ta-ble [][]5.1[][]).
  []
 
-[24
+[28
 
-] <Figures/SPEC2000CT.pdf, id=731, 921.01591pt x 524.00124pt>
+] <Figures/SPEC2000CT.pdf, id=893, 921.01591pt x 524.00124pt>
 File: Figures/SPEC2000CT.pdf Graphic file (type pdf)
 
 <use Figures/SPEC2000CT.pdf>
 Package pdftex.def Info: Figures/SPEC2000CT.pdf used on input line 86.
 (pdftex.def)             Requested size: 375.7232pt x 213.76248pt.
 
-<Figures/polybenchCT.pdf, id=732, 928.92836pt x 556.45317pt>
+<Figures/polybenchCT.pdf, id=894, 928.92836pt x 556.45317pt>
 File: Figures/polybenchCT.pdf Graphic file (type pdf)
 
 <use Figures/polybenchCT.pdf>
 Package pdftex.def Info: Figures/polybenchCT.pdf used on input line 95.
 (pdftex.def)             Requested size: 375.7232pt x 225.06511pt.
- [25 <./Figures/SPEC2000CT.pdf>]
+ [29 <./Figures/SPEC2000CT.pdf>]
 Overfull \hbox (2.39345pt too wide) in paragraph at lines 103--124
 [][] 
  []
@@ -1194,7 +1368,7 @@ Overfull \hbox (83.51929pt too wide) in paragraph at lines 125--126
 am-bam-ba/test-data/spec2000/timeAnalysis.py 
  []
 
-[26 <./Figures/polybenchCT.pdf>]
+[30 <./Figures/polybenchCT.pdf>]
 Underfull \hbox (badness 10000) in paragraph at lines 179--179
 []|\OT1/cmr/m/n/10.95 Wrong ar-gu-
  []
@@ -1239,52 +1413,32 @@ Underfull \hbox (badness 10000) in paragraph at lines 179--179
 []|\OT1/cmr/m/n/10.95 PollybenchC2
  []
 
-) (./Chapters/Chapter6.tex [27]
+) (./Chapters/Chapter6.tex [31]
 Chapter 6.
 ------------------------------------------------------------------------------
  6 Case Study
 ------------------------------------------------------------------------------
 
-LaTeX Warning: Reference `todo' on page 28 undefined on input line 23.
+LaTeX Warning: Reference `todo' on page 32 undefined on input line 23.
 
 (./Primitives/Code/matmul1prep.c)
-Underfull \hbox (badness 3396) in paragraph at lines 39--45
-[]\OT1/cmr/m/n/10.95 Listing [][]6.1[][] shows the ma-trix mul-ti-
+Underfull \hbox (badness 1348) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 ca-tion as used in many pre-sen-ta-tions
  []
 
 
-Underfull \hbox (badness 3240) in paragraph at lines 39--45
-\OT1/cmr/m/n/10.95 pli-ca-tion as used in many pre-sen-ta-
+Underfull \hbox (badness 1210) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 and bench-marks. This case is quite
  []
 
 
-Underfull \hbox (badness 1320) in paragraph at lines 39--45
-\OT1/cmr/m/n/10.95 tions and bench-marks. This case is
+Underfull \hbox (badness 1852) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 dis-tinct and fixed in size. Fur-ther-
  []
 
 
-Underfull \hbox (badness 2189) in paragraph at lines 39--45
-\OT1/cmr/m/n/10.95 quite grate-ful be-cause the global ar-
- []
-
-
-Underfull \hbox (badness 4193) in paragraph at lines 39--45
-\OT1/cmr/m/n/10.95 can be com-puted stat-i-cally. With
- []
-
-
-Underfull \hbox (badness 3078) in paragraph at lines 39--45
-\OT1/cmr/m/n/10.95 this in mind the pop-u-lar-ity of this
- []
-
-
-Underfull \hbox (badness 1199) in paragraph at lines 39--45
-\OT1/cmr/m/n/10.95 case is hardly sur-pris-ing, just as the
- []
-
-
-Underfull \hbox (badness 7963) in paragraph at lines 39--45
-\OT1/cmr/m/n/10.95 good re-sults of all tested ver-sions
+Underfull \hbox (badness 1147) in paragraph at lines 39--45
+\OT1/cmr/m/n/10.95 pop-u-lar-ity of this case is hardly sur-
  []
 
 
@@ -1292,50 +1446,10 @@ Underfull \hbox (badness 10000) in paragraph at lines 39--45
 
  []
 
-(./Primitives/Code/matmul2prep.c) [28
+(./Primitives/Code/matmul2prep.c) [32
 
 ]
-Underfull \hbox (badness 3396) in paragraph at lines 59--65
-[]\OT1/cmr/m/n/10.95 Listing [][]6.1[][] shows the ma-trix mul-ti-
- []
-
-
-Underfull \hbox (badness 3240) in paragraph at lines 59--65
-\OT1/cmr/m/n/10.95 pli-ca-tion as used in many pre-sen-ta-
- []
-
-
-Underfull \hbox (badness 1320) in paragraph at lines 59--65
-\OT1/cmr/m/n/10.95 tions and bench-marks. This case is
- []
-
-
-Underfull \hbox (badness 2189) in paragraph at lines 59--65
-\OT1/cmr/m/n/10.95 quite grate-ful be-cause the global ar-
- []
-
-
-Underfull \hbox (badness 4193) in paragraph at lines 59--65
-\OT1/cmr/m/n/10.95 can be com-puted stat-i-cally. With
- []
-
-
-Underfull \hbox (badness 3078) in paragraph at lines 59--65
-\OT1/cmr/m/n/10.95 this in mind the pop-u-lar-ity of this
- []
-
-
-Underfull \hbox (badness 1199) in paragraph at lines 59--65
-\OT1/cmr/m/n/10.95 case is hardly sur-pris-ing, just as the
- []
-
-
-Underfull \hbox (badness 7963) in paragraph at lines 59--65
-\OT1/cmr/m/n/10.95 good re-sults of all tested ver-sions
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 59--65
+Underfull \hbox (badness 10000) in paragraph at lines 57--62
 
  []
 
@@ -1344,24 +1458,24 @@ Overfull \hbox (1.31705pt too wide) in paragraph at lines 2--3
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
-)) (./Chapters/Chapter7.tex [29]
+) (./Primitives/Code/matmul4prep.c)) (./Chapters/Chapter7.tex [33]
 Chapter 7.
 ------------------------------------------------------------------------------
  7 Conclusion
 ------------------------------------------------------------------------------
-) [30
+) [34
 
 ] (./Thesis.lof)
 \tf@lof=\write5
 \openout5 = `Thesis.lof'.
 
- (./Thesis.lot [31
+ (./Thesis.lot [35
 
 ])
 \tf@lot=\write6
 \openout6 = `Thesis.lot'.
 
- [32] (./Appendices/AppendixA.tex
+ [36] (./Appendices/AppendixA.tex
 Appendix A.
 ------------------------------------------------------------------------------
  A Case Study Source Code
@@ -1375,7 +1489,7 @@ File: omlcmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OML/cmr/m/n' in size <6> not available
 (Font)              Font shape `OML/cmm/m/it' tried instead on input line 8.
-)) (./Appendices/AppendixB.tex [33
+)) (./Appendices/AppendixB.tex [37
 
 
 ]
@@ -1393,9 +1507,9 @@ Underfull \hbox (badness 10000) in paragraph at lines 51--54
 
  []
 
-) [34
+) [38
 
-] [35]
+] [39]
 ------------------------------------------------------------------------------
  Bibliography
 ------------------------------------------------------------------------------
@@ -1411,19 +1525,25 @@ Underfull \hbox (badness 1221) in paragraph at lines 44--50
 s-No^^?el Pouchet, and
  []
 
-[36
+[40
 
 
 ])
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 269.
- [37]
+ [41]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 269.
  (./Thesis.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 269.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 269.
-Package rerunfilecheck Info: File `Thesis.out' has not changed.
-(rerunfilecheck)             Checksum: C2EFDE5EA55920470FDF4ED2CEE87B86;9697.
 
+
+Package rerunfilecheck Warning: File `Thesis.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `Thesis.out':
+(rerunfilecheck)             Before: F7EC1E3AE31568FDA375EFB7806CCE80;9946
+(rerunfilecheck)             After:  ECA9FB7DB973687DB4EC5EBA8A45F61D;9946.
 
 LaTeX Warning: There were undefined references.
 
@@ -1432,21 +1552,162 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 12570 strings out of 493629
- 177891 string characters out of 3148779
- 322022 words of memory out of 3000000
- 15199 multiletter control sequences out of 15000+200000
- 16308 words of font info for 61 fonts, out of 3000000 for 9000
+ 12785 strings out of 493629
+ 181871 string characters out of 3148779
+ 322966 words of memory out of 3000000
+ 15226 multiletter control sequences out of 15000+200000
+ 16140 words of font info for 60 fonts, out of 3000000 for 9000
  831 hyphenation exceptions out of 8191
  49i,13n,46p,441b,1322s stack positions out of 5000i,500n,10000p,200000b,50000s
-pdfTeX warning (dest): name{Hfootnote.89} has been referenced but does not ex
-ist, replaced by a fixed one
+pdfTeX warning (dest): name{table.caption.359} has been referenced but does n
+ot exist, replaced by a fixed one
 
-pdfTeX warning (dest): name{Hfootnote.88} has been referenced but does not exis
-t, replaced by a fixed one
+pdfTeX warning (dest): name{table.caption.291} has been referenced but does not
+ exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{table.caption.277} has been referenced but does not
+ exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.362} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.331} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.290} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.288} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.250} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.222} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.199} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.195} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.317} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.302} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{table.caption.298} has been referenced but does not
+ exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{table.caption.283} has been referenced but does not
+ exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{lstnumber.258} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{table.caption.419} has been referenced but does not
+ exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{subfigure.274} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{lstnumber.272} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{subfigure.197} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{Hfootnote.188} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{Hfootnote.187} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{table.caption.187} has been referenced but does not
+ exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{figure.caption.184} has been referenced but does no
+t exist, replaced by a fixed one
+
+pdfTeX warning (dest): name{lstnumber.247} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{lstnumber.233} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{lstnumber.220} has been referenced but does not exi
+st, replaced by a fixed one
+
+pdfTeX warning (dest): name{lstnumber.212} has been referenced but does not exi
+st, replaced by a fixed one
 
 pdfTeX warning (dest): name{lstnumber.33} has been referenced but does not exis
 t, replaced by a fixed one
+
+pdfTeX warning (dest): name{dummy.420} has been referenced but does not exist, 
+replaced by a fixed one
+
+pdfTeX warning (dest): name{appendix.417} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{appendix.361} has been referenced but does not exis
+t, replaced by a fixed one
+
+pdfTeX warning (dest): name{chapter.360} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{subsection.330} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{subsection.316} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{subsection.301} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{section.300} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{chapter.299} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{section.297} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{subsection.295} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{subsection.286} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{section.284} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{section.282} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{chapter.281} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{section.280} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{subsection.278} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{section.276} has been referenced but does not exist
+, replaced by a fixed one
+
+pdfTeX warning (dest): name{subsection.249} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{subsection.186} has been referenced but does not ex
+ist, replaced by a fixed one
+
+pdfTeX warning (dest): name{section.183} has been referenced but does not exist
+, replaced by a fixed one
 
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts
@@ -1466,10 +1727,10 @@ texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmtt8.pfb></usr/share/texmf-dist/fonts/type1/public
 /amsfonts/symbols/msam7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/
 symbols/msbm10.pfb>
-Output written on Thesis.pdf (47 pages, 656591 bytes).
+Output written on Thesis.pdf (51 pages, 698646 bytes).
 PDF statistics:
- 1171 PDF objects out of 1200 (max. 8388607)
- 1009 compressed objects within 11 object streams
- 368 named destinations out of 1000 (max. 500000)
- 532 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1417 PDF objects out of 1440 (max. 8388607)
+ 1244 compressed objects within 13 object streams
+ 534 named destinations out of 1000 (max. 500000)
+ 542 words of extra memory for PDF output out of 10000 (max. 10000000)
 

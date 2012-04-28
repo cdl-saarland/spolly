@@ -477,12 +477,12 @@ bool IslScheduleOptimizer::runOnScop(Scop &S) {
               "or 'no'. Falling back to default: 'yes'\n";
   }
 
-  DEBUG(dbgs() << "\n\nCompute schedule from: ");
-  DEBUG(dbgs() << "Domain := "; isl_union_set_dump(Domain); dbgs() << ";\n");
-  DEBUG(dbgs() << "Proximity := "; isl_union_map_dump(Proximity);
-        dbgs() << ";\n");
-  DEBUG(dbgs() << "Validity := "; isl_union_map_dump(Validity);
-        dbgs() << ";\n");
+  dbgs() << "\n\nCompute schedule from: ";
+  dbgs() << "Domain := "; isl_union_set_dump(Domain); dbgs() << ";\n";
+  dbgs() << "Proximity := "; isl_union_map_dump(Proximity);
+        dbgs() << ";\n";
+  dbgs() << "Validity := "; isl_union_map_dump(Validity);
+        dbgs() << ";\n";
 
   int IslFusionStrategy;
 

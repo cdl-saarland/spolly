@@ -1369,6 +1369,10 @@ private:
   ///
   void codegenForForkJoinParallelism(const clast_for *f);
 
+  /// @brief Create several loops for a later added parellel execution
+  ///
+  void codegenForChunks(const clast_for *f);
+
   bool isInnermostLoop(const clast_for *f);
 
   /// @brief Get the number of loop iterations for this loop.
@@ -1479,6 +1483,53 @@ void ClastStmtCodeGen::codegen(const clast_block *b) {
     codegen(b->body);
 }
 
+void ClastStmtCodeGen::codegenForChunks(const clast_for *f) {
+  dbgs() << "Create chunk loops with " << Forks << " chunks \n\n";
+  assert(Forks > 1 && "Use -spolly-forks=X to set the number of chunks > 1");
+
+  Value *LowerBound, *UpperBound, *UpperBoundOrig, *IV, *Stride, *ChunkSize;
+  BasicBlock *AfterBB;
+  
+  Type *IntPtrTy = getIntPtrTy();
+  IntegerType *Int64Ty = Builder.getInt64Ty();
+
+  LowerBound = ExpGen.codegen(f->LB, IntPtrTy);
+  UpperBoundOrig = UpperBound = ExpGen.codegen(f->UB, IntPtrTy);
+  
+  // Adjust the stride (loop unrolling) 
+  APInt APIStride = APInt_from_MPZ(f->stride).zext(64);
+  Stride = Builder.getInt(APIStride);
+
+  Value *One = ConstantInt::get(Int64Ty, 1, false);
+  ChunkSize  = Builder.CreateSub(UpperBound, LowerBound, "bound_diff");
+  ChunkSize  = Builder.CreateSDiv(ChunkSize, ConstantInt::get(Int64Ty, Forks, false));
+  ChunkSize  = Builder.CreateSelect(Builder.CreateICmpSLE(ChunkSize, Stride), 
+                                    Stride, ChunkSize);
+
+  unsigned chunk  = 0;
+  UpperBound = Builder.CreateAdd(LowerBound, ChunkSize);
+  do {
+      
+    IV = createLoop(LowerBound, UpperBound, Stride, Builder, P, AfterBB);
+    // Add loop iv to symbols.
+    ClastVars[f->iterator] = IV;
+
+    if (f->body)
+      codegen(f->body);
+    
+    // Loop is finished, so remove its iv from the live symbols.
+    ClastVars.erase(f->iterator);
+    Builder.SetInsertPoint(AfterBB->begin());
+
+    LowerBound = Builder.CreateAdd(LowerBound, ChunkSize);
+    LowerBound = Builder.CreateAdd(LowerBound, One);
+    UpperBound = Builder.CreateAdd(LowerBound, ChunkSize);
+  } while (++chunk < Forks);
+  if (Instruction *I = dyn_cast<Instruction>(LowerBound)) I->removeFromParent();
+  if (Instruction *I = dyn_cast<Instruction>(UpperBound)) I->removeFromParent();
+ 
+
+}
 
 /// @brief Unroll the loop N times to simplify fork-join parallelism
 /// 
@@ -2095,7 +2146,7 @@ void ClastStmtCodeGen::codegen(const clast_for *f) {
         << isParallelFor << "\n");
   if ( enabled && isParallelFor ) {
     (dbgs() << "   InnermostLoop: " << isInnermostLoop(f) << "\n");
-    int ni = 0; // getNumberOfIterations(f);
+    int ni = getNumberOfIterations(f);
     (dbgs() << "   NumberOfInstructions: " << ni << "\n");
     if (Vector && isInnermostLoop(f) && (1 < ni && ni <= 16)) {
       codegenForVector(f);
@@ -2105,7 +2156,14 @@ void ClastStmtCodeGen::codegen(const clast_for *f) {
 
     (dbgs() << "     ParallelCodeGeneration: " << parallelCodeGeneration << "\n");
     if (!parallelCodeGeneration) {
-      if (OpenMP) {
+      if (SPOLLY_CHUNKS) {
+        DEBUG(dbgs() << "\t Call codegen for Cunks \n");
+        parallelCodeGeneration = true;
+        parallelLoops.push_back(f->iterator);
+        codegenForChunks(f);
+        parallelCodeGeneration = false;
+        return;
+      } else if (OpenMP) {
         DEBUG(dbgs() << "\t Call codegen for OpenMP \n");
         parallelCodeGeneration = true;
         parallelLoops.push_back(f->iterator);
@@ -2121,6 +2179,18 @@ void ClastStmtCodeGen::codegen(const clast_for *f) {
         return;
       }
     }
+  }
+
+  DEBUG(dbgs() << "parallelCodeGeneration : " << parallelCodeGeneration
+        << "  SPOLLY_CHUNKS " << SPOLLY_CHUNKS << "\n");
+
+  if (SPOLLY_CHUNKS && !parallelCodeGeneration) {
+    DEBUG(dbgs() << "\t Call codegen for Cunks \n");
+    parallelCodeGeneration = true;
+    parallelLoops.push_back(f->iterator);
+    codegenForChunks(f);
+    parallelCodeGeneration = false;
+    return;
   }
 
   DEBUG(dbgs() << "\t Call codegen for Sequential \n");

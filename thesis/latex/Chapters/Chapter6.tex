@@ -38,12 +38,10 @@ result is checked each time in order to prevent false optimizations.
 
 Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
 many presentations and benchmarks. This case is quite grateful because the
-global arrays are distinct, the loop nest is perfectly nested and all 
-memory accesses can be computed statically. With this in mind the popularity of
-this case is hardly surprising, just as the good results of all tested versions 
-are.  \\ 
-
-
+global arrays are distinct and fixed in size. Furthermore the loop nest is
+perfectly nested and all memory accesses can be computed statically.
+With this in mind the popularity of this case is hardly surprising,
+just as the outstanding results are.\\
 
 
 \subsection{Case B}
@@ -51,30 +49,36 @@ are.  \\
     \begin{minipage}[c]{0.4\textwidth}
     \vspace*{-3mm}
     \lstinputlisting{Primitives/Code/matmul2prep.c}
-    \caption{Matmul case B}
     \end{minipage}
+    \caption{Matmul case B}
     \label{lst:MatmulVersionB}
 \end{wrapfigure}
 
-Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
-many presentations and benchmarks. This case is quite grateful because the
-global arrays are distinct, the loop nest is perfectly nested and all 
-memory accesses can be computed statically. With this in mind the popularity of
-this case is hardly surprising, just as the good results of all tested versions 
-are.  \\ 
+Case B (see listing \ref{lst:MatmulVersionB}) is very similar to the previous one.
+The arrays are still fixed in size but now given as arguments. As the declaration 
+is not global anymore, aliasing between \texttt{A,B} and \texttt{C} is possible. 
+Nevertheless are the memory accesses for all three pointers still computable.
+\\
 
 
-
-\subsection{Case C}
-\begin{wrapfigure}[]{r}{0.5\textwidth}
+\subsection{Case C and D}
+\begin{figure}[htpb]
   \centering
-    \begin{minipage}[c]{0.4\textwidth}
-    \vspace*{-3mm}
+  \subfloat[Matmul case C] {
+    \begin{minipage}[c][5cm]{0.4\textwidth}
     \lstinputlisting{Primitives/Code/matmul3prep.c}
     \end{minipage}
-  \caption{Matmul case C}
    \label{lst:MatmulVersionC}
-\end{wrapfigure}
+  }
+  \subfloat[Matmul case D] {
+    \begin{minipage}[c][5cm]{0.4\textwidth}
+    \lstinputlisting{Primitives/Code/matmul4prep.c}
+    \end{minipage}
+    \label{lst:MatmulVersionD}
+  }
+  \caption{Matmul case C and D}
+   \label{lst:MatmulVersionCD}
+\end{figure}
 Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
 many presentations and benchmarks. This case is quite grateful because the
 global arrays are distinct, the loop nest is perfectly nested and all 
@@ -82,6 +86,13 @@ memory accesses can be computed statically. With this in mind the popularity of
 this case is hardly surprising, just as the good results of all tested versions 
 are. 
 
+
+Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
+many presentations and benchmarks. This case is quite grateful because the
+global arrays are distinct, the loop nest is perfectly nested and all 
+memory accesses can be computed statically. With this in mind the popularity of
+this case is hardly surprising, just as the good results of all tested versions 
+are. 
 
 \begin{table}[htpb]
 

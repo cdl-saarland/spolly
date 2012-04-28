@@ -66,7 +66,10 @@
 using namespace llvm;
 using namespace polly;
 
+
+polly::RegionSpeculation *RS2 = 0;
 bool polly::SPollyExtractRegions;
+bool polly::SPOLLY_CHUNKS = false;
 
 static cl::opt<bool>
 ReplaceByParallelVersion("spolly-replace",
@@ -704,6 +707,8 @@ namespace {
 
 namespace polly {
   
+  class SPollyInfo;
+  static SPollyInfo *sSCoP;
 
   /// @brief A SPollyInfo object represents a speculative valid region
   ///
@@ -1332,7 +1337,20 @@ namespace polly {
           }
         }
       }
-      
+     
+       
+      std::vector<Value *> &getAliasGroupFor(Value *v) {
+        for (unsigned u = 0, e = NumberOfAliasGroups; u != e; u++) {
+          AliasGroupT AG = AliasGroups[u];
+          for (std::vector<Value*>::const_iterator it = AG->begin(),
+               end = AG->end(); it != end; it++ ) {
+            if (*it == v) return *AG;
+          }
+        }
+
+        std::vector<Value*> empty;
+        return empty;
+      }
     
       /// @brief Use Polly to insert parallel code
       void createParallelVersion(bool useOriginal, unsigned forks) {
@@ -1344,9 +1362,10 @@ namespace polly {
         EnablePollyVector   = EnableVector; 
         // HACK for the evaluation
         EnablePollyOpenMP   = useOriginal;
-        EnablePollyForkJoin = !useOriginal;
+        EnablePollyForkJoin = !useOriginal && !SPOLLY_CHUNKS;
         PollyForks = forks;
-
+        sSCoP = this;
+        RS2 = RS;
         //
         Module *M = parallelVersion->getParent();
 
@@ -1368,6 +1387,8 @@ namespace polly {
 
         // Reset the state of the OnlyFunction argument        
         IgnoreOnlyFunction = false;
+        sSCoP = 0;
+        RS2 = 0;
 
         Function *parallelVersionSubfn = 
           M->getFunction(parallelVersion->getNameStr() + ".fn_subfn"); 
@@ -2990,6 +3011,11 @@ void RegionSpeculation::print() {
     (it->second)->print(dbgs());
   }
 }
+  
+
+std::vector<Value *> &RegionSpeculation::getAliasGroupFor(Value *v) {
+    return sSCoP->getAliasGroupFor(v);
+ }
 
 
 StatisticPrinter::StatisticPrinter() : FunctionPass(ID) {

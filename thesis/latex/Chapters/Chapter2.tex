@@ -171,7 +171,7 @@ thus the whole loope nest may be executed in parallel now.
   \item Putting Polyhedral Loop Transformations to Work \cite{BCGST03} 
 \end{itemize}
 
-%\clearpage
+\clearpage
 
 \section{Polly - A Polyhedral Optimizer For LLVM}
 \label{Polly}
@@ -309,11 +309,10 @@ scheduling is changed to allow this more often.
 
 \subsection*{Further Reading}
 
-\yellow
 \begin{itemize}
   \item Polly - Polyhedral optimization in LLVM \cite{grosser.11.impact}  
   \item Enabling Polyhedral Optimizations in LLVM \cite{grosser:thesis}
-  \item A Framework for Automatic OpenMP Code Generation \cite{raghesh2011framework}
+  %\item A Framework for Automatic OpenMP Code Generation \cite{raghesh2011framework}
   \item Base algorithm of isl \cite{Bondhugula:2008:PAP:1379022.1375595}
   \item \url{http://polly.llvm.org} \nocite{Polly:Online}
   \item \url{http://www.kotnet.org/~skimo/isl/} \nocite{ISL:Online}
@@ -323,6 +322,7 @@ scheduling is changed to allow this more often.
 
 
 
+\clearpage
 \phantomsection
 \section*{2.4 ~ Sambamba \\ A Framework For Adaptive Program Optimization}
 \addcontentsline{toc}{section}{2.4 ~ Sambamba - A Framework For Adaptive Program Optimization} 
@@ -342,28 +342,31 @@ compile time and a runtime parts. While each one is conceptually
 independent, the compile time parts may store information which can be accessed
 at runtime to reduce the overhead, even if expensive analysis results are needed. 
 Another fundamental pillar of the framework is the multi versioning system which
-allows for different, specialized function versions. [TODO should VMAD be mentioned here]
-A similar approach has
-been published by Jimborean et al.\cite{JIMBOREAN-2012-664345}, in fact th
-In both cases a dispatcher is used to choose one of the available 
-implementations each time the function is called. 
-In this manner exclusive optimizations can be applied on the same function and
-according to the input a version can be dispatched. Runtime profiling also 
-reveals opportunities to speculatively transform the program and obtain more
-specialized versions. A main difference between Sambamba and the work of 
-Jimborean is probably how these function versions are constructed. Sambamba does
-not rely on source code annotations but allows all modules to find and extract
-the versions fully automatic. A high level view on the Sambama concept is given
+allows for different, specialized function versions.
+[TODO FILL THIS PAGE ]
+%[TODO should VMAD be mentioned here]
+%A similar approach has
+%been published by Jimborean et al.\cite{JIMBOREAN-2012-664345}, in fact th
+%In both cases a dispatcher is used to choose one of the available 
+%implementations each time the function is called. 
+%In this manner exclusive optimizations can be applied on the same function and
+%according to the input a version can be dispatched. Runtime profiling also 
+%reveals opportunities to speculatively transform the program and obtain more
+%specialized versions. A main difference between Sambamba and the work of 
+%Jimborean is probably how these function versions are constructed. Sambamba does
+%not rely on source code annotations but allows all modules to find and extract
+%the versions fully automatic. 
+A high level view on the Sambama concept is given
 by figure \ref{fig:SambambaConcept} before some of the  built-in utilities 
 and modules, used during this work, are explained. 
 
 
 \clearpage
 \subsection{Sambambas Parallelizer}
-\begin{wrapfigure}[]{l}{0.45\textwidth}
+\begin{wrapfigure}[]{l}{0.40\textwidth}
   \centering
   %\vspace*{-10mm}
-  \includegraphics[width=0.43\textwidth]{TransactionQueue.eps}
+  \includegraphics[width=0.38\textwidth]{TransactionQueue.eps}
   \caption{Symboliced transaction queue with 3 worker threads}
   \label{fig:TransactionQueue}  
 \end{wrapfigure}

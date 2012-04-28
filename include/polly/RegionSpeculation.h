@@ -55,6 +55,7 @@ namespace llvm {
 namespace polly {
   
 extern bool SPollyExtractRegions;
+extern bool SPOLLY_CHUNKS;
 
 class ScopStmt;
 class ScopDetection;
@@ -133,7 +134,6 @@ public:
   unsigned size() const { return SpeculativeValidRegions.size(); }
   //@}
   
-
   /// @brief Access functions for SPollyInfo objects
   //@{
   //typedef std::pair<Function *, ValueToValueMapTy *> FunctionPair;
@@ -157,7 +157,9 @@ public:
   std::string getNameStr(SPollyInfo *SPI);
   bool checksAreSound(SPollyInfo *SPI);
   int64_t getScore(SPollyInfo *SPI);
- 
+
+  std::vector<Value *> &getAliasGroupFor(Value *v);
+
   void changeCalledVersion(SPollyInfo *SPI, Function *Version); 
   //@}
 

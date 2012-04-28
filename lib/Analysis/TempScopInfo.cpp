@@ -38,6 +38,8 @@ using namespace polly;
 //===----------------------------------------------------------------------===//
 /// Helper Class
 
+static Value *val = 0;
+
 void Comparison::print(raw_ostream &OS) const {
   // Not yet implemented.
 }
@@ -103,11 +105,25 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
       bool IsAffine = isAffineExpr(&R, AccessFunction, *SE,
                                    BasePointer->getValue());
 
-      Functions.push_back(std::make_pair(IRAccess(Type,
-                                                  BasePointer->getValue(),
+      Value *BPValue = BasePointer->getValue();
+      if (!BPValue->hasName()) {
+        if (!val)
+          val = BPValue;
+
+        Functions.push_back(std::make_pair(IRAccess(Type,
+                                                  val,
                                                   AccessFunction, Size,
                                                   IsAffine),
                                          &Inst));
+      } else {
+
+      Functions.push_back(std::make_pair(IRAccess(Type,
+                                                  BPValue,
+                                                  AccessFunction, Size,
+                                                  IsAffine),
+                                         &Inst));
+      }
+
     }
   }
 
@@ -263,6 +279,7 @@ bool TempScopInfo::runOnFunction(Function &F) {
   SD = &getAnalysis<ScopDetection>();
   AA = &getAnalysis<AliasAnalysis>();
   TD = &getAnalysis<TargetData>();
+  val = 0;
 
   for (ScopDetection::iterator I = SD->begin(), E = SD->end(); I != E; ++I) {
     Region *R = const_cast<Region*>(*I);

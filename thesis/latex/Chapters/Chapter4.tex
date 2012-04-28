@@ -4,47 +4,44 @@
 \label{Chapter4}
 \lhead{Chapter 4. \emph{Implementation}} % Write in your own chapter title to set the page header
 
-\orange
-\begin{shaded}
-SPolly in its entirety is a compound of three parts. The first one is called 
-region speculation and it is embedded into Polly. The second and the third 
-part are Sambamba modules, one for the compile time and the other one
-for the runtime. The region speculation part acts like a storage and interface
-for all discovered sSCoPs, thus it contains most of the transformation code.
-The Sambama passes concentrate on the program 
-\begin{wraptable}[]{r}{0.45\textwidth}
-  \caption{Lines of code for Polly, SPolly and Sambamba components}
-  \begin{center}
-    \begin{tabular}{ l r }
-     component     & LOC  \\
-      \hline
-      SPolly     & XXX \\
-      ~ Region Speculation     & XXX \\
-      ~ SPolly Sambama CT  & XXX \\
-      ~ SPolly Sambama RT  & XXX \\
-      Polly     & XXX \\
-      ~ SCoP Detection     & XXX \\
-      ~ Code Generation    & XXX \\
-      Sambamba     & XXX \\
-      ~ Parallelizer     & XXX \\
-               TODO MORE & \\
-    \end{tabular}
-  \end{center}
-  \label{tab:LinesOfCode}
-\end{wraptable}
-logic which is at the moment 
-far more evolved in the runtime part. The compile time component plays a minor
-role but it can be enriched by new functionalities in the future. Beyond the 
-three parts of SPolly I implemented a basic Profiler and a Statistic module for
-Sambamba which have been very helpful during the development and may become 
-permanent features of Sambama as there are no comparable counterparts at the 
-moment. During the implementation various bugs occurred and even if most of them
+%\begin{wraptable}[]{r}{0.45\textwidth}
+  %\caption{Lines of code for Polly, SPolly and Sambamba components}
+  %\begin{center}
+    %\begin{tabular}{ l r }
+     %component     & LOC  \\
+      %\hline
+      %SPolly     & XXX \\
+      %~ Region Speculation     & 2045 \\
+      %~ SPolly Sambama CT  & 102 \\
+      %~ SPolly Sambama RT  & XXX \\
+      %Polly     & 12643 \\
+      %~ SCoP Detection     & 604 \\
+      %~ Code Generation    & 1793 \\
+      %Sambamba     & 23533 \\
+      %~ Profiler   & 269 \\
+      %~ Statistics   & 85 \\
+    %\end{tabular}
+  %\end{center}
+  %\label{tab:LinesOfCode}
+%\end{wraptable}
+
+SPolly in its entirety is a compound of three parts. The region speculation, 
+embedded into Polly, and the two Sambamba modules  for compile time and
+runtime respectively. The region speculation part is the interface
+to all discovered sSCoPs, thus it contains most of the transformation code, 
+while the Sambama passes concentrate on the program logic. 
+At the moment the runtime part is far more evolved and the compile time component
+plays only a minor role. Apart from SPolly itself, a basic profiler and a
+statistic module for Sambamba arose during this work. Both have been very helpful
+during the development and may become permanent features of Sambama.
+   During the implementation various bugs occurred and even if most of them
 arose through my own fault I triggered some in the code base of Polly and 
 Sambamba too. A full table of reported bugs is listed in table 
-\ref{tab:Bugreports}. Table \ref{tab:LinesOfCode} compares the work in a
-quantitative manner as it lists the lines of code (LOC) added for SPolly as well
-as for Sambama and Polly parts.
-[TODO one sentence about the table content]
+\ref{tab:Bugreports}. 
+
+%Table \ref{tab:LinesOfCode} compares the work in a
+%quantitative manner as it lists the lines of code (LOC) added for SPolly as well
+%as for Sambama and Polly parts. The 
 
 [TODO rephrase] 
 Table \ref{tab:CommandLineOptions} lists all available command line options 
@@ -74,7 +71,6 @@ As the architecture of Polly is nicely illustrated by figure
 \ref{fig:SPollyArchitecture} to capture the changes introduced by SPolly. 
 In comparison the region speculation, the fork join backend and the sSCoP
 backend have been added as they can be used without Sambamba. 
-\end{shaded}
 
 \begin{figure}[htbp]
   \centering
@@ -83,7 +79,6 @@ backend have been added as they can be used without Sambamba.
   \label{fig:SPollyArchitecture}  
 \end{figure}
 
-\begin{shaded}
 
 \subsection{Speculative SCoPs}
 A speculative valid SCoPs (sSCoPs) is defined similar to a valid SCoPs but with 
@@ -107,7 +102,6 @@ violating function calls, e.g., a ``printf'', occur on every execution path.
 In the following these computations as well as the creation of 
 profiling and parallel versions for a sSCoP are explained briefly. 
 
-\end{shaded}
 
 \begin{table}[htbp]
   \centering
@@ -127,9 +121,6 @@ profiling and parallel versions for a sSCoP are explained briefly.
 \end{table}
 
 
-\orange
-\begin{shaded}
-
 \subsubsection{sSCoP extraction}
 The sSCoP extraction was designed to simplify the method versioning for functions 
 containing several speculative valid SCoPs. It creates a new sub function for 
@@ -141,10 +132,6 @@ multiple specialized versions, e.g., with constant instead of variable loop
 bounds.
 
 
-\end{shaded}
-
-\orange
-\begin{shaded}
 
 \subsubsection{sSCoP Versions}
 Method versioning is one of the great benefits of the Sambamba system and allows
@@ -164,10 +151,7 @@ information are in the first place used to compute the region scores, thus to
 improve the heuristic which chooses sSCoPs for optimization. Later on,
 specialized versions may arise based on them. 
 
-\end{shaded}
 
-\red
-\begin{shaded}
 
 \paragraph{The Optimized Version \\}
 ~\\
@@ -175,11 +159,8 @@ Just as valid SCoPs may valid sSCoPs be optimized by Polly, but there are also
 differences. As Polly normally takes care of possible dependencies it cannot 
 do the same for all kinds of sSCoPs. 
 
-\end{shaded}
 
 
-\orange
-\begin{shaded}
 \subsubsection{Introduced tests}
 To reduce the overhead of misspeculation tests are introduced in front of
 each sSCoP. At the moment there are two different kinds available, 
@@ -195,7 +176,6 @@ produced by Polly is not taken (constant false), but remains in the CFG. As far
 as I know, SPolly is the first extension to Polly which uses the untouched 
 original SCoP.
 
-\end{shaded}
 
 \begin{figure}[htbp]
   \centering
@@ -216,7 +196,6 @@ original SCoP.
 \end{figure}
 
 
-\begin{shaded}
 \paragraph{Alias tests \\} 
 ~\\
 
@@ -240,7 +219,6 @@ tests while listing \ref{lst:AliastestAccessesSrc} and figure
 The alias test for this example would look like listing
 \ref{lst:AliastestAccessesOut}.
 
-\end{shaded}
 
 
 \lstset{frame=none}
@@ -283,8 +261,6 @@ The alias test for this example would look like listing
 \end{figure}
 \resetlst
 
-\orange
-\begin{shaded}
 \paragraph{Invariants tests \\}
 ~\\
 Apart from alias tests, SPolly may introduce invariants tests if there are
@@ -300,7 +276,6 @@ in more detail. Listing \ref{lst:InvariantTestSRC} gives an example of an sSCoP
 for which invariant tests can be introduced and \ref{lst:InvariantTestOut} shows
 the modified source. 
 
-\end{shaded}
 
 \lstset{frame=none}
 \begin{figure}[htbp]
@@ -323,8 +298,6 @@ the modified source.
 \end{figure}
 \resetlst
 
-\orange
-\begin{shaded}
 \paragraph{Complete Checks \\}
 ~\\
 Alias tests may rule out aliasing in sSCoPs completely, thus some sSCoPs become
@@ -339,11 +312,6 @@ complete checks. Chapter \ref{Chapter6} will discuss this example and the variou
 implementations in detail.
 
 
-\end{shaded}
-
-
-\orange
-\begin{shaded}
 \subsection{Code Generation}
 As part of the extension of Polly a new code generation type was added. Apart 
 from sequential, vectorized and OpenMP annotated code generation SPolly is 
@@ -368,7 +336,6 @@ yields code as in listing \ref{lst:ForkJoinCodeGenerationOUT} the creation of
 a ParCFG (see \ref{SambambaParCFG}) remains. Figures \ref{fig:ForkJoinCFG} and
 \ref{fig:ForkJoinParCFG} visualize these changes.
 
-\end{shaded}
 
 \lstset{frame=none}
 \begin{figure}[htbp]
@@ -403,8 +370,6 @@ a ParCFG (see \ref{SambambaParCFG}) remains. Figures \ref{fig:ForkJoinCFG} and
 \end{figure}
 \resetlst
 
-\orange
-\begin{shaded}
 \section{Sambama Compile Time Module}
 The compile time part of the Sambamba module locates all sSCoPs
 within the given input module and transfers each one afterwards in a separated 
@@ -431,10 +396,6 @@ As the method versioning system of Sambamba evolves, the compile time part
 should, in order to reduce the workload at runtime and increase the ability to
 adapt. 
 
-\end{shaded}
-
-\red
-\begin{shaded}
 \section{Sambama Runtime Module}
 
 In addition to the compile time parts, which only rely on static analyses,
@@ -445,7 +406,6 @@ the program logic, is implemented in the runtime module.
 
 Table \ref{}[TODO] gives an overview of the functionalities.
 
-\end{shaded}
 
 \begin{table}[htbp]
   \caption{Functionality of the SPolly Sambamba module}
@@ -460,14 +420,10 @@ Table \ref{}[TODO] gives an overview of the functionalities.
 \end{table}
 
 
-\begin{shaded}
 
 \subsection{Profiling}
 
-\end{shaded}
 
-\orange
-\begin{shaded}
 \section{Profiling For Sambamba}
 
 Sambamba, as heavily developed research project, was not capable of any kind
@@ -489,6 +445,28 @@ any runtime information. This heuristic could be part of future work since even
 with a profiler by hand, there are cases where the gathered information
 (see [TODO]) are not helpful at all.
 
-\end{shaded}
 
+
+\section{Region Scores}
+Initial efforts to create these scores did not use any kind of 
+memory, thus the whole region was analysed every time new information was available.
+To avoid this unnecessary computations the current score is a
+symbolic value which may contain variables for values not known statically, e.g.,
+branch probabilities or loop bounds.
+Evaluation of these symbolic values will take all profiling 
+information into account and yield a comparable integer value. 
+Only during the initial score creation the region will be traversed to find
+parameters and branches for later annotation. 
+
+All instructions will be scored and the violating ones
+will be checked for their speculative potential.
+As memory instructions are 
+guarded by the STM for the case the speculation failed, calls may not be
+reversible, thus without any speculative potential at all. Such function calls
+are not checked earlier since the region speculation needs the information about
+possible other branches within this region. 
+Listing \ref{lst:sSCoPprintf} 
+provides such an example but these cases will be revisited in the next 
+two chapters too. Table \ref{tab:Scores} lists the scores for the examples in 
+figure \ref{fig:ScoredSCoPs}.
 
