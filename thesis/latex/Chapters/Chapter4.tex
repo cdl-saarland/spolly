@@ -43,13 +43,13 @@ Sambamba too. A full table of reported bugs is listed in table
 %quantitative manner as it lists the lines of code (LOC) added for SPolly as well
 %as for Sambama and Polly parts. The 
 
-[TODO rephrase] 
-Table \ref{tab:CommandLineOptions} lists all available command line options 
-added in the context of SPolly. Although all of these options work 
-without the Sambamba modules, yet Sambama at all, the last three would only 
-produce sequential executable code without any parallelization. 
-[TODO] As for now I am not quite sure if this could be of any practical use, 
-but to my understanding Polly could get a similar option in the near future. 
+%[TODO rephrase] 
+%Table \ref{tab:CommandLineOptions} lists all available command line options 
+%added in the context of SPolly. Although all of these options work 
+%without the Sambamba modules, yet Sambama at all, the last three would only 
+%produce sequential executable code without any parallelization. 
+%[TODO] As for now I am not quite sure if this could be of any practical use, 
+%but to my understanding Polly could get a similar option in the near future. 
 
 
 
@@ -58,10 +58,10 @@ but to my understanding Polly could get a similar option in the near future.
 \section{Speculative Polly}
 It would be feasible to look at SPolly as extension to Polly, especially designed
 to interact with Sambamba. As such it was crucial to preserve all functionality 
-of Polly and supplement it with (mostly speculative) new ones. Most of them are
+of Polly and supplement it with new ones. Most of them are
 implemented in the region speculation, but there are some new options in the 
-code generation too. Apart from these two locations the SCoP detection was the 
-only component which has been touched. It is ideally suited to serve as the 
+code generation too. The bridge between the region speculation and Polly 
+is is ideally suited to serve as the 
 bridge between Polly and the speculative part as speculative valid regions 
 would be rejected here. The information currently needed for region speculation
 is also available at this point and can be directly reused. 

@@ -1484,7 +1484,7 @@ void ClastStmtCodeGen::codegen(const clast_block *b) {
 }
 
 void ClastStmtCodeGen::codegenForChunks(const clast_for *f) {
-  dbgs() << "Create chunk loops with " << Forks << " chunks \n\n";
+  //dbgs() << "Create chunk loops with " << Forks << " chunks \n\n";
   assert(Forks > 1 && "Use -spolly-forks=X to set the number of chunks > 1");
 
   Value *LowerBound, *UpperBound, *UpperBoundOrig, *IV, *Stride, *ChunkSize;
@@ -1509,7 +1509,7 @@ void ClastStmtCodeGen::codegenForChunks(const clast_for *f) {
   unsigned chunk  = 0;
   UpperBound = Builder.CreateAdd(LowerBound, ChunkSize);
   do {
-      
+     
     IV = createLoop(LowerBound, UpperBound, Stride, Builder, P, AfterBB);
     // Add loop iv to symbols.
     ClastVars[f->iterator] = IV;
@@ -1524,6 +1524,8 @@ void ClastStmtCodeGen::codegenForChunks(const clast_for *f) {
     LowerBound = Builder.CreateAdd(LowerBound, ChunkSize);
     LowerBound = Builder.CreateAdd(LowerBound, One);
     UpperBound = Builder.CreateAdd(LowerBound, ChunkSize);
+    UpperBound = Builder.CreateSelect(Builder.CreateICmpSLE(UpperBound, UpperBoundOrig),
+                                      UpperBound, UpperBoundOrig);
   } while (++chunk < Forks);
   if (Instruction *I = dyn_cast<Instruction>(LowerBound)) I->removeFromParent();
   if (Instruction *I = dyn_cast<Instruction>(UpperBound)) I->removeFromParent();
@@ -1958,7 +1960,7 @@ SetVector<Value*> ClastStmtCodeGen::getOMPValues() {
      if (Values.count(I)) continue;
       
       if (I->getName() == "ctx" || I->getName() == "t" || I->getName() =="order") {
-        dbgs() << " FIX FIX FIX Insert " << *I << "\n";
+        //dbgs() << " FIX FIX FIX Insert " << *I << "\n";
         Values.insert(I);
       }
     }
