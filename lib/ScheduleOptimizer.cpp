@@ -372,7 +372,7 @@ static isl_union_map *getScheduleForBandList(isl_band_list *BandList) {
   NumBands = isl_band_list_n_band(BandList);
   Schedule = isl_union_map_empty(isl_space_params_alloc(ctx, 0));
 
-  dbgs()<< "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
+  //dbgs()<< "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww\n";
   for (int i = 0; i < NumBands; i++) {
     isl_band *Band;
     isl_union_map *PartialSchedule;
@@ -383,9 +383,9 @@ static isl_union_map *getScheduleForBandList(isl_band_list *BandList) {
     PartialSchedule = getScheduleForBand(Band, &ScheduleDimensions);
     Space = isl_union_map_get_space(PartialSchedule);
 
-    dbgs()<< "000000000000000000000000000001111 " << i << "\n";
+    //dbgs()<< "000000000000000000000000000001111 " << i << "\n";
     if (isl_band_has_children(Band)) {
-      dbgs()<< "111111111111111111111111111111111 " << i << "\n";
+      //dbgs()<< "111111111111111111111111111111111 " << i << "\n";
       isl_band_list *Children;
       isl_union_map *SuffixSchedule;
 
@@ -395,12 +395,12 @@ static isl_union_map *getScheduleForBandList(isl_band_list *BandList) {
 							 SuffixSchedule);
       isl_band_list_free(Children);
     } else if (EnablePollyVector) {
-      dbgs() << "aoidsjoidajdsaoijdsaoijdsa\n\n";
+      //dbgs() << "aoidsjoidajdsaoijdsaoijdsa\n\n";
       for (int j = 0;  j < isl_band_n_member(Band); j++) {
 	if (isl_band_member_is_zero_distance(Band, j)) {
           isl_map *TileMap;
           isl_union_map *TileUMap;
-          dbgs() << "SADSSDADSDSASSDADSASDADSSDA\n\n";
+          //dbgs() << "SADSSDADSDSASSDADSASDADSSDA\n\n";
 	  TileMap = getPrevectorMap(ctx, ScheduleDimensions - j - 1,
                                     ScheduleDimensions);
 	  TileUMap = isl_union_map_from_map(TileMap);
@@ -477,12 +477,12 @@ bool IslScheduleOptimizer::runOnScop(Scop &S) {
               "or 'no'. Falling back to default: 'yes'\n";
   }
 
-  dbgs() << "\n\nCompute schedule from: ";
-  dbgs() << "Domain := "; isl_union_set_dump(Domain); dbgs() << ";\n";
-  dbgs() << "Proximity := "; isl_union_map_dump(Proximity);
-        dbgs() << ";\n";
-  dbgs() << "Validity := "; isl_union_map_dump(Validity);
-        dbgs() << ";\n";
+  //dbgs() << "\n\nCompute schedule from: ";
+  //dbgs() << "Domain := "; isl_union_set_dump(Domain); dbgs() << ";\n";
+  //dbgs() << "Proximity := "; isl_union_map_dump(Proximity);
+        //dbgs() << ";\n";
+  //dbgs() << "Validity := "; isl_union_map_dump(Validity);
+        //dbgs() << ";\n";
 
   int IslFusionStrategy;
 

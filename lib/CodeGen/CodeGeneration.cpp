@@ -2144,19 +2144,19 @@ void ClastStmtCodeGen::codegenForVector(const clast_for *F) {
 void ClastStmtCodeGen::codegen(const clast_for *f) {
   bool enabled = (Vector || OpenMP || ForkJoin);
   bool isParallelFor = P->getAnalysis<Dependences>().isParallelFor(f);
-  (dbgs() << "Codegen: " << enabled << " && " 
-        << isParallelFor << "\n");
+  //(dbgs() << "Codegen: " << enabled << " && " 
+        //<< isParallelFor << "\n");
   if ( enabled && isParallelFor ) {
-    (dbgs() << "   InnermostLoop: " << isInnermostLoop(f) << "\n");
+    //(dbgs() << "   InnermostLoop: " << isInnermostLoop(f) << "\n");
     int ni = getNumberOfIterations(f);
-    (dbgs() << "   NumberOfInstructions: " << ni << "\n");
+    //(dbgs() << "   NumberOfInstructions: " << ni << "\n");
     if (Vector && isInnermostLoop(f) && (1 < ni && ni <= 16)) {
       codegenForVector(f);
       DEBUG(dbgs() << "\t Call codegen for Vector \n");
       return;
     }
 
-    (dbgs() << "     ParallelCodeGeneration: " << parallelCodeGeneration << "\n");
+    //(dbgs() << "     ParallelCodeGeneration: " << parallelCodeGeneration << "\n");
     if (!parallelCodeGeneration) {
       if (SPOLLY_CHUNKS) {
         DEBUG(dbgs() << "\t Call codegen for Cunks \n");
