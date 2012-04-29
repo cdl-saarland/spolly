@@ -4,12 +4,18 @@
 \label{Chapter3}
 \lhead{Chapter 3. \emph{Concept}} % Write in your own chapter title to set the page header
 
-From a high point of view, this work tries to weaken the harsh requirements on 
-SCoPs in order to make Pollys loop analyses and optimizations applicable on a 
-wider range of programs. We expect benefit not only from the polyhedral 
-optimizations, but also through speculative parallelization. The polyhedral 
-analyses are used twice since they reveal loop nests which may be optimized as 
-well as speculatively parallelizeable loops. 
+From a high point of view SPolly is divided into a speculative loop parallelizer 
+and a non speculative extension to Polly. Even if the objectives for both parts 
+are the same, namely to improve the performance of loops, the actions to accomplish 
+them are different. While the former one will introduce speculative parallelism
+for promising loops at runtime, the later one tries to weaken the harsh 
+requirements on SCoPs in order to make Pollys loop optimizations applicable on
+a wider range of loop nests. In the presented setting both approaches may benefit
+from the polyhedral optimizations and also from parallel execution, so it is 
+hardly surprising that the polyhedral analyses play a decisive role. 
+On the one hand they reveal loop nests which may be optimized by Polly, with or
+without the extensions of SPolly, on the other hand they are used to detect 
+promising loops to speculate on.
 Apart from the implementation work, which will be described in the 
 next chapter, immense effort has been made on the concepts and key ideas behind.
 We believe that these ideas and the knowledge gained during the work is very 
@@ -30,24 +36,24 @@ other approaches facing similar situations.
 %them into the main application of Polly anytime soon. 
 
 %\paragraph{Compile Time }~\\
-\begin{wrapfigure}[]{r}{0.5\textwidth}
+\begin{wrapfigure}[]{r}{0.4\textwidth}
   \centering
-  \includegraphics[width=0.5\textwidth]{Figures/draftPaperCT.eps}
+  \includegraphics[width=0.4\textwidth]{Figures/draftPaperCT.eps}
   \caption{Draft paper: \\SPolly at compile time}
   \vspace*{-5mm}
   \label{fig:draftPaperCT}  
 \end{wrapfigure}
-During \textbf{compile time} the main goal of SPolly is to simplify the runtime part, thus
-to reduce runtime overhead through preprocessing and even static method versioning.
-First  the SCoP detection tries to find valid regions within the given LLVM-IR, 
+During \textbf{compile time} the main goal of SPolly is to simplify the runtime part,
+thus to reduce runtime overhead through preprocessing and even static method versioning.
+First the SCoP detection tries to find valid regions within the given LLVM-IR, 
 but instead of rejecting a region once a restriction is violated, 
 the region speculation is asked how to proceed. Restrictions we want to speculate
 on are gathered by the region speculation, but ignored by the SCoP detection.
 This proceeding allows to find all violations with a region and to treat valid and
 speculatively valid ones nearly the same. After all  
 speculative valid SCoPs (or short sSCoPs) are encountered the Sambamba compile 
-time part takes action. It separates the sSCoPs as some of them do not really 
-need speculation at all. Those sSCoPs are optimized and exchanged, 
+time part takes action. It separates the sSCoPs as some of them do not need
+speculation at all. Those sSCoPs are optimized and exchanged, 
 while the others are currently only extracted. This means they are replaced by
 calls to functions only containing the speculative valid region. 
 %(see \ref{RegionExtraction}).
@@ -57,6 +63,9 @@ namely those which can be ruled out by tests in beforehand.
 %Further details on
 %the ratings are given in section \ref{RegionScores} while 
 %section \ref{SpeculationFreesSCoPs} coveres the case of speculation free sSCoPs.
+
+
+
 
 %\paragraph{Runtime }~\\
 \begin{wrapfigure}[]{l}{0.5\textwidth}
@@ -70,22 +79,69 @@ The \textbf{runtime} part of SPolly first retrieves the extracted sSCoPs and
 precomputed versions from the data store. If not already done during  compile
 time, profiling versions will be created now. It would be possible to restrict
 this to the best rated sSCoPs only, but as the creation is very cheap and the execution 
-overhead for most of them non-existent it is feasible to do so for rather bad
+overhead for most of them is non-existent it is feasible to do so for rather bad
 ranked sSCoPs as well. Those profiling versions will now collect information
 not only about the time consumption of the sSCoP, but also about loop bounds,
 branch probabilities and the results of introduced checks. Except of the time
 consumption these values will affect the rating of the sSCoP which again is used
-to identify promising sSCoPs. The next section
-will explain this rating and the effects of profiling in more detail, while
-section \ref{IntroducedTests} covers the test creation and theirs use. 
+to identify promising sSCoPs.
+
+The next section will explain this rating and the effects of profiling in more 
+detail, while section \ref{IntroducedTests} covers the test creation and theirs use. 
 As explained above, the combined static and dynamic information determine which region
 is promising, thus which region will be speculatively optimized and in the end
 executed in parallel. Because the impact on the performance might be worse than
-expected, maybe even worse than in the beginning, the runtime part will
-continually monitor all exchanged functions and intervene if necessary. As the
-method versioning of Sambamba is not fully evolved, SPolly will not try to create
-different optimized versions based on different parameters even if this would be
-already possible. 
+expected, maybe even worse than the sequential execution, the runtime part will
+continually monitor all exchanged functions and intervene if necessary.
+
+
+
+
+\section{Speculative Parallel Execution}
+\label{SpeculativeParallelExecution}
+Speculatively executing loops in parallel is one of the two major purposes of 
+SPolly. Several strategies have been considered and most of them have been 
+discarded as they would restrict the applicability to much. Even if the execution
+is secured by a STM it may not ne sound to successively execute N iterations of
+a loop nest in parallel because loop carried dependencies greater than N would 
+not be detected. As one great feature of Polly and the underlying polytope model
+is to detect and model loop carried memory dependencies, it sounds plausible to
+use this for speculative execution purposes as well. Unfortunately real speculative 
+extensions will compromise this ability. At this point the duality of SPolly 
+comes into the play. The first step will overestimating non computable 
+memory accesses as they arise from aliases we cannot check in beforehand or from
+function calls within a SCoP. The resulting polytope model is sound and may 
+reveal transformations for a better data-locality or vectorization. In the second
+step speculation is applied. The optimized loop nest is split into N
+identical ones but with adjusted lower and upper bounds. These loop nest are 
+now speculatively executed in parallel. As the ordering of the iterations is only
+changed by Polly and based on a sound overestimation conflicts may only arise
+between the loop nests. If the STM implementation provides a commit order it is
+ensured that the threads will commit theirs results in the order they have been
+started, which is in fact the initial ordering of the loop nest. 
+Possible conflicts between the loop nests will now be detected and the affected 
+first thread will restart the whole computation. In the worst case there are 
+dependencies between all loop nests and each thread may recompute its part 
+every time a former one committed its results. As countermeasure SPolly monitors
+all speculative parallelized sSCoPs and reverts the speculation for bad performing 
+ones. In contrast to the speculation free optimization approach, this one is also
+capable of parallelizing sSCoPs with almost arbitrary function calls. To do so the
+STM has to provide a special wait construct which enforces the executing thread
+to wait for all threads ahead in the commit order. Even if this is not the case for 
+the given STM, SPolly could introducing such wait calls right before each
+function call in the sSCoP with no further effort.
+
+
+
+
+
+
+
+\section{Speculation Free Optimizations}
+\label{SpeculationFreesSCoPs}
+
+
+
 
 
 \section{Region Scores}
@@ -123,7 +179,6 @@ already possible.
   \label{fig:ScoredSCoPs}
 \end{figure}
 \resetlst
-
 Region scores are used as a heuristic to decide whether or not a sSCoP is worth
 to speculate on, thus for which regions profiling and optimized versions should
 be created and as a result executed.
@@ -161,6 +216,9 @@ implementation and meaning see the corresponding section in the next chapter.
 
 
 
+
+
+
 \section{Method Versioning}
 Even if method versioning in Sambamba is not fully implement yet, SPolly is 
 already capable of generating a profiling and an optimized version. Both just 
@@ -169,7 +227,13 @@ Further work on SPolly will include the creation of more different optimized
 versions as there are plenty of optional parameters which could be adjusted as 
 needed. The impact of tiling size, loop fusion and the amount of actual introduced
 tests for the optimized version may have significant impact, but in the short time
-of this work it was not feasible to investigate them fully.
+of this work it was not feasible to investigate them fully. Future, work as 
+described last chapter, may use the already present infrastructure to adapt 
+and specialize sSCoPs further.
+
+
+
+
 
 
 \section{Introduced Tests}
@@ -205,6 +269,10 @@ constant true, but in the SPolly version it is replaced by the actual test resul
   \caption{CFG produced by Polly and SPolly, respectively}
   \label{fig:SCoPCFG}  
 \end{figure}
+
+
+
+
 
 \subsection{Alias Tests}
 Testing for aliasing pointers in general would not be feasible so another way 
@@ -275,6 +343,7 @@ The alias test for this example would look like listing
 
 
 
+
 \subsection{Invariant Tests}
 Apart from alias tests, SPolly may introduce invariants tests if there are
 possibly invariant variables and a function call within a sSCoP. The key idea
@@ -310,6 +379,10 @@ the modified source.
 \resetlst
 
 
+
+
+
+
 \section{Irreversible Function Calls}
 Parallelizing loops containing function calls is a challenge on its own. 
 The called functions may have not computable side effects or they might just 
@@ -321,7 +394,12 @@ allows loops which execute them only under certain conditions.
 [TODO gefaellt mir nich]
 
 
+
+
+
+
 \section{Non Computable Dependencies}
+\label{NonComputableDependencies}
 Ruling out may aliases due to checks as described earlier is not feasible in every
 situation. Assuming the example in listing \ref{lst:NonComputableDependenciesSrc}
 we may check if \texttt{A} and \texttt{B} alias in front of the loop nest, but
@@ -377,6 +455,10 @@ in the sections \ref{OverestimatingDependencies} and
 \end{figure}
 \resetlst
 
+
+
+
+
 \subsection{Overestimating Dependencies}
 \label{OverestimatingDependencies}
 To handle loop nests with unknown dependencies, a conservative approach which 
@@ -391,14 +473,8 @@ Considering listing \ref{lst:NonComputableDependenciesSrc} again this method
 will hoist the conditional out of the loop and at the same time reveal that
 the innermost one has no loop carried dependencies. 
 
-\section{Speculation Free Optimizations}
-\label{SpeculationFreesSCoPs}
 
-\section{Speculative Parallelism Beyond The Polytope Model}
-\label{SpeculativeParallelismBeyondThePolytopeModel}
-whereas the other one is a speculative parallel execution of the loop in huge chunks.
-As the later one would require a commit order in the STM implementation, it 
-not yet possible. 
+
 
 
 \section{What Is Missing}

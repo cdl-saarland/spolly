@@ -53,29 +53,48 @@
 
 \addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
 
-I, Johannes Doerfert, declare that this thesis titled, `SPECULATIVE LOOP PARALLELIZATION' and the work presented in it are my own. I confirm that:
+\begin{center}
+  \bf \large
+  Eidesstattliche Erkl\"{a}rung
+\end{center}
+Ich erkl\"{a}re hiermit an Eides Statt,
+dass ich die vorliegende Arbeit selbstst\"{a}ndig verfasst und keine
+anderen als die angegebenen Quellen und Hilfsmittel verwendet habe.
 
-\begin{itemize} 
-\item[\tiny{$\blacksquare$}] This work was done wholly or mainly while in candidature for a research degree at this University.
+\begin{center}
+  \bf \large
+  Statement in Lieu of an Oath
+\end{center}
+I hereby confirm that I have written this thesis on my own and 
+that I have not used any other media or materials than the ones
+referred to in this thesis.
+
+\vfill
+\begin{center}
+  \bf \large
+  Einverst\"{a}ndniserkl\"{a}rung
+\end{center}
+Ich bin damit einverstanden, dass meine (bestandene) Arbeit in beiden 
+Versionen in die Bibliothek der Informatik aufgenommen und damit 
+ver\"{o}ffentlicht wird. 
+
+\begin{center}
+  \bf \large
+  Declaration of Consent
+\end{center}
+I agree to make both versions of my thesis (with a passing grade) 
+accessible to the public by having them added to the library of the
+Computer Science Department.
+
+\vfill
+\vfill
  
-\item[\tiny{$\blacksquare$}] Where any part of this thesis has previously been submitted for a degree or any other qualification at this University or any other institution, this has been clearly stated.
- 
-\item[\tiny{$\blacksquare$}] Where I have consulted the published work of others, this is always clearly attributed.
- 
-\item[\tiny{$\blacksquare$}] Where I have quoted from the work of others, the source is always given. With the exception of such quotations, this thesis is entirely my own work.
- 
-\item[\tiny{$\blacksquare$}] I have acknowledged all main sources of help.
- 
-\item[\tiny{$\blacksquare$}] Where the thesis is based on work done by myself jointly with others, I have made clear exactly what was done by others and what I have contributed myself.
-\\
-\end{itemize}
- 
- 
-Signed:\\
+Datum/Date:\\
+\rule[1em]{25em}{0.5pt}  % This prints a line to write the date
+
+Unterschrift/Signature:\\
 \rule[1em]{25em}{0.5pt}  % This prints a line for the signature
  
-Date:\\
-\rule[1em]{25em}{0.5pt}  % This prints a line to write the date
 }
 \clearpage  % Declaration ended, now start a new page
 
@@ -101,18 +120,22 @@ Brian Kernighan, professor at Princeton University
 \addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
 
 SPolly, short for speculative Polly, is an attempt to combine two recent research 
-projects in the context of compilers.
-One the one hand side there is Polly, a LLVM project to increase data locality
-and parallelism of loop nests. On the other hand there is Sambamba, which 
+projects in the context of compilers. 
+There is Polly, an LLVM project to increase data-locality
+and parallelism of regular loop nests and Sambamba, which 
 pursues a new, adaptive way of compiling and offers features like method 
 versioning, speculation and runtime adaption. As an extension of the former one
 and with the capabilities offered by the later one,
 SPolly can perform state-of-the-art loop optimizations on a wide range of loops,
-even in general purpose benchmarks as the SPEC 2000 benchmark suite. I will 
-explain when speculation is possible, how runtime information is used and how
-this is integrated into Polly and Sambama. At the end an evaluation on 
-SPEC 2000 benchmarks and the Polybench 3.2 benchmark suite is presented as well
-as some discussions on the results.
+even in general purpose benchmarks as the SPEC 2000 benchmark suite. It is also
+capable of detection promising loops for parallel execution even if they contain 
+irreversibel function calls or non computable dependencies.
+This thesis will explain under what circumstances speculation is possible,
+how static and dynamic information are used to minimize the amount of
+misspeculation and how this is integrated into the existing environment of 
+Polly and Sambamba. To substantiate the improvements of this work an evaluation on 
+SPEC 2000 benchmarks and a case study on different versions of
+the matrix multiplication benchmark is presented at the end.
 
 
 }
@@ -150,21 +173,19 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 {
 % \textbf{Acronym} & \textbf{W}hat (it) \textbf{S}tands \textbf{F}or \\
 \textbf{AA} & \textbf{A}lias \textbf{A}nalysis \\
+\textbf{CFG} & \textbf{C}ontrol \textbf{F}low \textbf{G}raph   \\
+\textbf{cloog} & \textbf{C}hunky \textbf{Loo}p \textbf{G}enerator \\
+\textbf{isl} & \textbf{i}nteger \textbf{s}et \textbf{l}ibrary \\
+\textbf{LOC} & \textbf{l}ines \textbf{o}f \textbf{c}ode   \\
 \textbf{LLVM} & \textbf{L}ow \textbf{L}evel \textbf{V}irtual \textbf{M}achine \\
 \textbf{LLVM-IR} & LLVM \textbf{I}ntermediate \textbf{R}epresentation  \\
-\textbf{SCoP} & \textbf{S}tatic \textbf{Co}ntrol \textbf{P}art \\
-\textbf{SPolly} & \textbf{S}peculative \textbf{P}olly \\
-\textbf{isl} & \textbf{i}nteger \textbf{s}et \textbf{l}ibrary \\
-\textbf{cloog} & \textbf{C}hunky \textbf{Loo}p \textbf{G}enerator \\
-\textbf{SE} & \textbf{S}calar \textbf{E}volution  \\
-\textbf{SD} & \textbf{S}CoP \textbf{D}etection  \\
-\textbf{RS} & \textbf{R}egion \textbf{S}peculation (see ...)  \\
-\textbf{Polly} & \textbf{Poly}hedral \textbf{LL}VM   \\
-\textbf{CFG} & \textbf{C}ontrol \textbf{F}low \textbf{G}raph   \\
-\textbf{LOC} & \textbf{l}ines \textbf{o}f \textbf{c}ode   \\
-\textbf{ParCFG} & \textbf{Par}allel \textbf{CFG}   \\
 \textbf{OpenMP} & \textbf{Open} \textbf{M}ulti-\textbf{P}rocessing   \\
+\textbf{Polly} & \textbf{Poly}hedral \textbf{LL}VM   \\
+\textbf{SCoP} & \textbf{S}tatic \textbf{Co}ntrol \textbf{P}art \\
+\textbf{sSCoP} & \textbf{s}peculative \textbf{S}tatic \textbf{Co}ntrol \textbf{P}art \\
 \textbf{SIMD} & \textbf{S}ingle \textbf{I}nstruction \textbf{M}ultiple \textbf{D}ata   \\
+\textbf{SPolly} & \textbf{S}peculative \textbf{P}olly \\
+\textbf{ParCFG} & \textbf{Par}allel \textbf{CFG}   \\
   
 
 
@@ -198,7 +219,8 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \setstretch{1.3}  % Return the line spacing back to 1.3
 
 \pagestyle{empty}  % Page style needs to be empty for this page
-\dedicatory{For/Dedicated to/To my\ldots}
+\dedicatory{Dedicated to my closest family and friends whose never
+  ending patience is priceless}
 
 \addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
 
@@ -234,6 +256,7 @@ The acknowledgements and the people to thank go here, don't forget to include yo
 \lhead{\emph{List of Figures}}  % Set the left side page header to "List if Figures"
 \listoffigures  % Write out the List of Figures
 
+\clearpage
 %% ----------------------------------------------------------------
 \lhead{\emph{List of Tables}}  % Set the left side page header to "List of Tables"
 \listoftables  % Write out the List of Tables

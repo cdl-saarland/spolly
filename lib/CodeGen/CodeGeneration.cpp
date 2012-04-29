@@ -540,6 +540,7 @@ Instruction *BlockGenerator::cloneInstrTree(const Instruction *Root,
 
 Value *BlockGenerator::getNewValue(const Value *Old, ValueMapT &BBMap,
                                    ValueMapT &GlobalMap) {
+  dbgs() << "get value " << *Old << " " << GlobalMap.count(Old) << "\n";
   // We assume constants never change.
   // This avoids map lookups for many calls to this function.
   if (isa<Constant>(Old))
@@ -1505,6 +1506,7 @@ void ClastStmtCodeGen::codegenForChunks(const clast_for *f) {
   ChunkSize  = Builder.CreateSDiv(ChunkSize, ConstantInt::get(Int64Ty, Forks, false));
   ChunkSize  = Builder.CreateSelect(Builder.CreateICmpSLE(ChunkSize, Stride), 
                                     Stride, ChunkSize);
+  ChunkSize  = Builder.CreateSub(ChunkSize, One);
 
   unsigned chunk  = 0;
   UpperBound = Builder.CreateAdd(LowerBound, ChunkSize);
@@ -1522,7 +1524,6 @@ void ClastStmtCodeGen::codegenForChunks(const clast_for *f) {
     Builder.SetInsertPoint(AfterBB->begin());
 
     LowerBound = Builder.CreateAdd(LowerBound, ChunkSize);
-    LowerBound = Builder.CreateAdd(LowerBound, One);
     UpperBound = Builder.CreateAdd(LowerBound, ChunkSize);
     UpperBound = Builder.CreateSelect(Builder.CreateICmpSLE(UpperBound, UpperBoundOrig),
                                       UpperBound, UpperBoundOrig);
@@ -1951,20 +1952,21 @@ SetVector<Value*> ClastStmtCodeGen::getOMPValues() {
       
     Region &R = S->getRegion();
     Function *F = R.getEntry()->getParent();
-  if ( F->getName() == "gl_alpha_test" || F->getName() == "horner_bezier_curve"
-       || F->getName() == "gl_flush_pb" || F->getName() == "apply_texture") {
+  //if ( F->getName() == "gl_alpha_test" || F->getName() == "horner_bezier_curve"
+       //|| F->getName() == "gl_flush_pb" || F->getName() == "apply_texture") {
+  dbgs() << "FIX \n";
     /// FIX 4 
     /// Hack to include arguments PolybenchC 2mm and others
     /// 
     for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E; I++) {
      if (Values.count(I)) continue;
       
-      if (I->getName() == "ctx" || I->getName() == "t" || I->getName() =="order") {
-        //dbgs() << " FIX FIX FIX Insert " << *I << "\n";
+      //if (I->getName() == "ctx" || I->getName() == "t" || I->getName() =="order") {
+        dbgs() << " FIX FIX FIX Insert " << *I << "\n";
         Values.insert(I);
       }
-    }
-  }
+    //}
+  //}
 
   return Values;
 }

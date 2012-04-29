@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  27 APR 2012 11:34
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  29 APR 2012 04:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -59,7 +59,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.14 showed\cite
+l.15 showed\cite
                 {grosser:thesis, JIMBOREAN-2012-664345},
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -68,8 +68,48 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.20 (\texttt
-             {N} is defined as 1024).
+l.19 \paragraph
+               {Measurement} ~\\
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+Runaway argument?
+ This section will compare different implementations of a simple 2d m\ETC.
+! Paragraph ended before \\ was complete.
+<to be read again> 
+                   \par 
+l.33 
+     
+I suspect you've forgotten a `}', causing me to apply this
+control sequence to too much text. How can we recover?
+My plan is to forget the whole thing and hope for the best.
+
+! Undefined control sequence.
+l.34 \paragraph
+               {Notes} ~\\
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+Runaway argument?
+ Even if the STM embedded into the Sambamba framework does not provid\ETC.
+! Paragraph ended before \\ was complete.
+<to be read again> 
+                   \par 
+l.40 
+     
+I suspect you've forgotten a `}', causing me to apply this
+control sequence to too much text. How can we recover?
+My plan is to forget the whole thing and hope for the best.
+
+! Undefined control sequence.
+l.42 \clearpage
+               
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
@@ -77,8 +117,8 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.23 the server described in table \ref
-                                       {todo}. The base algorithm stays the ...
+l.43 \lstset
+            {frame=none}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
@@ -86,7 +126,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.28 \subsection
+l.44 \subsection
                 {Case A}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -95,7 +135,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.29 \begin
+l.45 \begin
            {wrapfigure}[]{r}{0.5\textwidth}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -104,17 +144,8 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.29 \begin{wrapfigure}[]{r}{0.5\textwidth
+l.45 \begin{wrapfigure}[]{r}{0.5\textwidth
                                           }
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-l.31     \begin
-               {minipage}[c]{0.4\textwidth}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
@@ -123,18 +154,18 @@ and I'll forget about whatever was undefined.
 
 ! Missing number, treated as zero.
 <to be read again> 
-                   {
-l.31     \begin{
-                minipage}[c]{0.4\textwidth}
+                   \hfill 
+l.47     \hfill
+               
 A number should have been here; I inserted `0'.
 (If you can't figure out why I needed to see a number,
 look up `weird error' in the index to The TeXbook.)
 
 ! Illegal unit of measure (pt inserted).
 <to be read again> 
-                   {
-l.31     \begin{
-                minipage}[c]{0.4\textwidth}
+                   \hfill 
+l.47     \hfill
+               
 Dimensions can be in units of em, ex, in, pt, pc,
 cm, mm, dd, cc, nd, nc, bp, or sp; but yours is a new one!
 I'll assume that you meant to say pt, for printer's points.
@@ -143,7 +174,16 @@ delete the erroneous units; e.g., type `2' to delete
 two letters. (See Chapter 27 of The TeXbook.)
 
 ! Undefined control sequence.
-l.31     \begin{minipage}[c]{0.4\textwidth
+l.49     \begin
+               {minipage}[c]{0.4\textwidth}
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+! Undefined control sequence.
+l.49     \begin{minipage}[c]{0.4\textwidth
                                           }
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -152,8 +192,8 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.32     \vspace
-                *{-3mm}
+l.50     \vspace
+                *{-7mm}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
@@ -161,7 +201,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.33     \lstinputlisting
+l.51     \lstinputlisting
                          {Primitives/Code/matmul1prep.c}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -169,11 +209,11 @@ misspelled it (e.g., `\hobx'), type `I' and the correct
 spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
-[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] )</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on /home/johannes/git/speculative-polly/thesis/latex/Chapters/.tmp/TrkEtb/Chapter6.pdf (1 page, 29997 bytes).
+[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] )</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb>
+Output written on /home/johannes/git/speculative-polly/thesis/latex/Chapters/.tmp/i_iOjL/Chapter6.pdf (1 page, 22059 bytes).
 PDF statistics:
- 16 PDF objects out of 1000 (max. 8388607)
- 10 compressed objects within 1 object stream
+ 12 PDF objects out of 1000 (max. 8388607)
+ 7 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

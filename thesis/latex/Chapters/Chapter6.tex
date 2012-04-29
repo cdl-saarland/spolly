@@ -8,30 +8,51 @@
 \section{Matrix Multiplication}
 \label{MatrixMultiplication}
 Matrix multiplication is a well known computational problem and part of many 
-algorithms. If the data size grows, the runtime may have crucial impact on th
-e overall performance. Tiling, vectorization and parallel execution yield an
+algorithms and programs, e.g. ammp or mesa.
+If the data size grows, the runtime may have crucial impact on the
+overall performance. Tiling, vectorization and parallel execution yield an
 enormous speedups as different approaches already
 showed\cite{grosser:thesis, JIMBOREAN-2012-664345},
 still the question about applicability remains. A slightly modified source code 
 would not be optimized at all, even if the computation has not been changed. 
 
+\paragraph{Measurement} ~\\
 This section will compare different implementations of a simple 2d
-matrix multiplication. As sample size  $1024*1024$ floats are used 
-(\texttt{N} is defined as 1024).
-Each example is executed 10 times and the geometric mean of the results 
-(without the best and worst one) is computed. All numbers are generated on 
-the server described in table \ref{todo}. The base algorithm stays the same 
-for each case, so there is no hand made optimization involved. The computed 
-result is checked each time in order to prevent false optimizations.
+matrix multiplication for a sample size of  $1024*1024$ floats.
+Each example is executed $10$ times and the geometric mean of the results 
+(without the best and worst one) is computed. With this strategy it was possible 
+to evaluate sequential executions with a maximal deviation of $5\%$. As this 
+did not hold for parallel executions we decided to use the geometric mean of 
+$100$ executions here. All numbers are generated on 
+the server described in table \ref{todo}. If not mentioned explicitly, the base
+algorithm stays the same for each case, so there is no hand made optimization 
+involved. Furthermore no hand made optimizations are applied on intermediate 
+results, thus the outcome is only dependent on the input and the presented 
+options. To prevent false optimizations the result is dumped after each matrix
+multiplication. 
+
+\paragraph{Notes} ~\\
+Even if the STM embedded into the Sambamba framework does
+not provide a commit order yet, SPolly will speculatively execution loops in
+parallel. For the matrix multiplication example with proper inputs 
+this is sound but it will obviously not reflect the overhead introduced by a
+commit order.
 
 
-\subsection{Case A}
+\clearpage
+\lstset{frame=none}
+\subsection*{Case A}
 \begin{wrapfigure}[]{r}{0.5\textwidth}
   \centering
+    \hfill
+    \hfill
     \begin{minipage}[c]{0.4\textwidth}
-    \vspace*{-3mm}
+    \vspace*{-7mm}
     \lstinputlisting{Primitives/Code/matmul1prep.c}
     \end{minipage}
+    \hfill
+    \hfill
+    \vspace*{-2mm}
   \caption{Matmul case A}
    \label{lst:MatmulVersionA}
 \end{wrapfigure}
@@ -44,62 +65,118 @@ With this in mind the popularity of this case is hardly surprising,
 just as the outstanding results are.\\
 
 
-\subsection{Case B}
+\subsection*{Case B}
 \begin{wrapfigure}[]{l}{0.5\textwidth}
     \begin{minipage}[c]{0.4\textwidth}
-    \vspace*{-3mm}
+    \vspace*{-7mm}
     \lstinputlisting{Primitives/Code/matmul2prep.c}
     \end{minipage}
+    \hfill
+    \hfill
+    \vspace*{-2mm}
     \caption{Matmul case B}
     \label{lst:MatmulVersionB}
 \end{wrapfigure}
 
 Case B (see listing \ref{lst:MatmulVersionB}) is very similar to the previous one.
-The arrays are still fixed in size but now given as arguments. As the declaration 
-is not global anymore, aliasing between \texttt{A,B} and \texttt{C} is possible. 
-Nevertheless are the memory accesses for all three pointers still computable.
-\\
+The arrays are still fixed in size but now given as arguments. Even if the
+declaration is still global, common alias analysis can not prove the independence
+of each array anymore. Summarized aliasing between \texttt{A,B} and \texttt{C} 
+is possible.\\
+~\\
+\subsection*{Case C and D}
 
-
-\subsection{Case C and D}
 \begin{figure}[htpb]
   \centering
   \subfloat[Matmul case C] {
-    \begin{minipage}[c][5cm]{0.4\textwidth}
+    \hfill
+    \hfill
+    \begin{minipage}[c][6cm]{0.4\textwidth}
     \lstinputlisting{Primitives/Code/matmul3prep.c}
     \end{minipage}
+    \hfill
+    \hfill
    \label{lst:MatmulVersionC}
   }
+  \hfill
   \subfloat[Matmul case D] {
-    \begin{minipage}[c][5cm]{0.4\textwidth}
+    \hfill
+    \hfill
+    \begin{minipage}[c][6cm]{0.4\textwidth}
     \lstinputlisting{Primitives/Code/matmul4prep.c}
     \end{minipage}
+    \hfill
+    \hfill
     \label{lst:MatmulVersionD}
   }
   \caption{Matmul case C and D}
    \label{lst:MatmulVersionCD}
 \end{figure}
-Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
-many presentations and benchmarks. This case is quite grateful because the
-global arrays are distinct, the loop nest is perfectly nested and all 
-memory accesses can be computed statically. With this in mind the popularity of
-this case is hardly surprising, just as the good results of all tested versions 
-are. 
+
+Cases C and D as presented in listings \ref{lst:MatmulVersionC} and 
+\ref{lst:MatmulVersionD} are using pointers instead of fixed size arrays. 
+This common practice to generalize the computation suffers from the same 
+disadvantages as the second case. Common alias analyses will provide insufficient
+information to optimize the loop nest. In the context of this work case D is 
+of special interest as it does not allow conclusive alias tests in front of the
+loop nest. \\ ~\\
+
+\subsection*{Case E}
+\begin{wrapfigure}[]{r}{0.5\textwidth}
+    \hfill
+    \hfill
+  \begin{minipage}[c]{0.4\textwidth}
+    \vspace*{-7mm}
+    \lstinputlisting{Primitives/Code/matmul5prep.c}
+    \end{minipage}
+    \hfill
+    \hfill
+    %\vspace*{-2mm}
+    \caption{Matmul case E, extracted from the ammp benchmark in the SPEC 2000 benchmark suite}
+    \label{lst:MatmulVersionE}
+\end{wrapfigure}
+The last case we will look at is the matrix multiplication within the ammp 
+benchmark. It is similar to case D but with hand made optimizations which could
+be performed by clang (and therefor by Polly and SPolly) too, if type based alias
+analysis is available. The particular differences between case D and
+E are the lifted index computations and the strength reduction on the innermost
+loop.  A stripped version of the original source code is given in 
+listing \ref{lst:MatmulVersionE}. 
 
 
-Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
-many presentations and benchmarks. This case is quite grateful because the
-global arrays are distinct, the loop nest is perfectly nested and all 
-memory accesses can be computed statically. With this in mind the popularity of
-this case is hardly surprising, just as the good results of all tested versions 
-are. 
+\clearpage
 
 \begin{table}[htpb]
-
-  \caption{Case study results}
+  \caption{Execution times for the different matrix multiplication examples. 
+  All data is provided in milliseconds for an input size of $1024 * 1024$ floats.}
   \label{tab:CaseStudyResults}
+  \begin{tabularx}{\textwidth}{| c | c | c | c | c | X |}
+    \hline
+    Optimizer & Case A & Case B & Case C & Case D & Options \\
+    \hline
+    \hline
+    gcc     & 9305 & 9130  & 9154 &     &   best of O1, O2, O3   \\ 
+    clang   & 9268 & 9289  & 9180 &     &   best of O1, O2, O3   \\ 
+    Polly   & 3718 & "     & "    &     &  isl, tile size 256  \\  
+    Polly   &  "   & "     & "    &     &  isl, tile size 256, vectorized  \\  
+    Polly   & 1180 & "     & "    &     &  OpenMP  \\  
+    Polly   &  "   &  1080 & 1077 &     &  OpenMP, ignore aliasing  \\  
+    Polly   &  "   &  115  & 115  &     &  isl, tile size 256, OpenMP, ignore aliasing  \\  
+    Polly   &  "   &  328  & 334  &     &  isl, tile size 32,  OpenMP, ignore aliasing  \\  
+    SPolly  &  "   &  114  & 115  &     &  isl, tile size 256,  OpenMP, replace sound  \\  
+    SPolly  &  "   &  330  & 333  &     &  isl, tile size 32,  OpenMP, replace sound  \\  
+    SPolly  &  "   &       &      &     &  isl, tile size 256, speculative parallelization  \\  
+    SPolly  &  313 &  316  & 312  &     &  isl, tile size 32, speculative parallelization  \\  
+    
+    \hline
+  \end{tabularx}
 \end{table}
 
+\subsection*{Results and Discussion}
+Regarding the results in table \ref{tab:CaseStudyResults} both Polly and SPolly 
+achieved speedups up to 79 and , respectively. 
+Even if we expect the improvement to be less on smaller input sizes, the trend
+as well as the applicability should not change.
 
 %\begin{figure}[htpb]
   %\centering

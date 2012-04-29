@@ -285,7 +285,7 @@
     \vskip 60\p@
     \begin{center}
       \setlength{\parskip}{0pt}
-      {\large \color{Maroon} \bf \TITLE \par}
+      {\LARGE \color{Maroon} \bf \TITLE \par}
       \smallskip
       {\authornames \par}
       \bigskip
@@ -311,7 +311,8 @@
       {\large Advisors: Clemens Hammacher and Kevin Streit \par}
       \smallskip
       \smallskip
-      {\large Reviewers: ... TODO ... \par}
+      {\large Reviewers: Prof. Dr. Sebastion Hack \par}
+      {\large \hspace*{18mm} Prof. Dr. Andreas Zeller \par}
       \smallskip
       \bigskip
       {\large Submitted: \@date \par}

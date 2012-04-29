@@ -12,8 +12,8 @@
       %\hline
       %SPolly     & XXX \\
       %~ Region Speculation     & 2045 \\
-      %~ SPolly Sambama CT  & 102 \\
-      %~ SPolly Sambama RT  & XXX \\
+      %~ SPolly Sambamba CT  & 102 \\
+      %~ SPolly Sambamba RT  & XXX \\
       %Polly     & 12643 \\
       %~ SCoP Detection     & 604 \\
       %~ Code Generation    & 1793 \\
@@ -29,11 +29,11 @@ SPolly in its entirety is a compound of three parts. The region speculation,
 embedded into Polly, and the two Sambamba modules  for compile time and
 runtime respectively. The region speculation part is the interface
 to all discovered sSCoPs, thus it contains most of the transformation code, 
-while the Sambama passes concentrate on the program logic. 
+while the Sambamba passes concentrate on the program logic. 
 At the moment the runtime part is far more evolved and the compile time component
 plays only a minor role. Apart from SPolly itself, a basic profiler and a
 statistic module for Sambamba arose during this work. Both have been very helpful
-during the development and may become permanent features of Sambama.
+during the development and may become permanent features of Sambamba.
    During the implementation various bugs occurred and even if most of them
 arose through my own fault I triggered some in the code base of Polly and 
 Sambamba too. A full table of reported bugs is listed in table 
@@ -41,12 +41,12 @@ Sambamba too. A full table of reported bugs is listed in table
 
 %Table \ref{tab:LinesOfCode} compares the work in a
 %quantitative manner as it lists the lines of code (LOC) added for SPolly as well
-%as for Sambama and Polly parts. The 
+%as for Sambamba and Polly parts. The 
 
 %[TODO rephrase] 
 %Table \ref{tab:CommandLineOptions} lists all available command line options 
 %added in the context of SPolly. Although all of these options work 
-%without the Sambamba modules, yet Sambama at all, the last three would only 
+%without the Sambamba modules, yet Sambamba at all, the last three would only 
 %produce sequential executable code without any parallelization. 
 %[TODO] As for now I am not quite sure if this could be of any practical use, 
 %but to my understanding Polly could get a similar option in the near future. 
@@ -79,12 +79,6 @@ backend have been added as they can be used without Sambamba.
   \label{fig:SPollyArchitecture}  
 \end{figure}
 
-
-\subsection{Speculative SCoPs}
-A speculative valid SCoPs (sSCoPs) is defined similar to a valid SCoPs but with 
-weakened conditions. General SCoPs need to fulfill all constraints listed in
-\ref{fig:SCoPconstraints}, while sSCoPs renounce the restrictions on aliasing
-and partially those on function calls. 
 
 
 \subsection{Region Speculation}
@@ -125,11 +119,12 @@ profiling and parallel versions for a sSCoP are explained briefly.
 The sSCoP extraction was designed to simplify the method versioning for functions 
 containing several speculative valid SCoPs. It creates a new sub function for 
 every sSCoP and inserts a call in the former place. Later on this call could be
-inlined again but this is not implemented yet. On the one hand side the creation 
+inlined again but this is not implemented yet. On the one hand the creation 
 of profiling and parallel versions as well the later function exchanging becomes
 a lot easier and cheaper this way. On the other hand it is the first step to 
 multiple specialized versions, e.g., with constant instead of variable loop 
-bounds.
+bounds. Section \ref{FutureWorkSpecializedVersion} will cover this in more 
+detail.
 
 
 
@@ -137,14 +132,12 @@ bounds.
 Method versioning is one of the great benefits of the Sambamba system and allows
 to adapt the execution at runtime. In the scope of this work two different 
 versions are created, a profiling one and a optimized one. As these two are 
-explained in the following, there are several possible others described in this
-thesis and summarized in the last chapter. 
-
+explained in the following.
 
 
 \paragraph{The Profiling Version\\}
 ~\\
-Profiling is a powerful ability for just in time executed program, like the ones
+Profiling is a powerful ability for just in time executed programs, like the ones
 produced by Sambamba. SPolly benefits not only from the introduced tests, but also
 from the monitored branch probabilities and loop trip counts. The retrieved 
 information are in the first place used to compute the region scores, thus to
@@ -157,7 +150,12 @@ specialized versions may arise based on them.
 ~\\
 Just as valid SCoPs may valid sSCoPs be optimized by Polly, but there are also 
 differences. As Polly normally takes care of possible dependencies it cannot 
-do the same for all kinds of sSCoPs. 
+do the same for all kinds of sSCoPs. As stated in section \ref{NonComputableDependencies}
+there is a safe way to overestimate all possible depenencies, thus to use Polly
+for optimizations. This way is very restrictive and therefor it does not yield
+a desired speedup that often. If SPolly can introduce complete checks, the 
+situation changes and 
+
 
 
 
@@ -316,7 +314,7 @@ implementations in detail.
 As part of the extension of Polly a new code generation type was added. Apart 
 from sequential, vectorized and OpenMP annotated code generation SPolly is 
 capable of creating a unrolled and blocked loop, which can be easily 
-translated into an ParCFG, thus parallelized by a Sambama module. Listing 
+translated into an ParCFG, thus parallelized by a Sambamba module. Listing 
 \ref{lst:ForkJoinCodeGenerationOUT} presents this transformation. The special 
 case where lower and upper bound as well as the 
 stride are statically known constants, the second loop, which computes 
@@ -327,7 +325,7 @@ way into Polly in the near future.
 \subsubsection*{Parallelization}
 
 In order to secure the speculative executions with Sambambas STM
-(see \ref{SambambaSTM}) the Sambama parallelizer needs to be used.
+(see \ref{SambambaSTM}) the Sambamba parallelizer needs to be used.
 As this parallelizer does not yet support loop parallelization per se, some 
 transformation needed to be done first. The new code generation type was created
 to do the difficult one without recomputing information provided during by the
@@ -370,7 +368,7 @@ a ParCFG (see \ref{SambambaParCFG}) remains. Figures \ref{fig:ForkJoinCFG} and
 \end{figure}
 \resetlst
 
-\section{Sambama Compile Time Module}
+\section{Sambamba Compile Time Module}
 The compile time part of the Sambamba module locates all sSCoPs
 within the given input module and transfers each one afterwards in a separated 
 function. These extracted sSCoPs are stored within the created Sambamba 
@@ -396,7 +394,7 @@ As the method versioning system of Sambamba evolves, the compile time part
 should, in order to reduce the workload at runtime and increase the ability to
 adapt. 
 
-\section{Sambama Runtime Module}
+\section{Sambamba Runtime Module}
 
 In addition to the compile time parts, which only rely on static analyses,
 the runtime part uses different kinds of runtime information to decide. 

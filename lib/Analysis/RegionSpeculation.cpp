@@ -1391,7 +1391,7 @@ namespace polly {
         RS2 = 0;
 
         Function *parallelVersionSubfn = 
-          M->getFunction(parallelVersion->getNameStr() + ".fn_subfn"); 
+          M->getFunction(parallelVersion->getNameStr() + ".omp_subfn"); 
         if (RS->SD && parallelVersionSubfn) 
           RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
         

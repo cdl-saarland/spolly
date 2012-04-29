@@ -4,7 +4,7 @@
 \vspace {1em}
 \contentsline {chapter}{Acknowledgements}{iv}{dummy.3}
 \vspace {1em}
-\contentsline {chapter}{Abbreviations}{viii}{dummy.4}
+\contentsline {chapter}{Abbreviations}{vii}{dummy.4}
 \vspace {2em}
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.7}
 \contentsline {section}{\numberline {1.1}Related Work}{1}{section.8}
@@ -22,56 +22,54 @@
 \contentsline {subsection}{\numberline {2.3.5}Parallel Control Flow Graphs}{9}{subsection.46}
 \contentsline {chapter}{\numberline {3}Concept}{10}{chapter.48}
 \contentsline {section}{\numberline {3.1}SPolly In A Nutshell}{10}{section.49}
-\contentsline {section}{\numberline {3.2}Region Scores}{11}{section.52}
-\contentsline {section}{\numberline {3.3}Method Versioning}{12}{section.86}
-\contentsline {section}{\numberline {3.4}Introduced Tests}{13}{section.87}
-\contentsline {subsection}{\numberline {3.4.1}Alias Tests}{13}{subsection.91}
-\contentsline {subsection}{\numberline {3.4.2}Invariant Tests}{15}{subsection.114}
-\contentsline {section}{\numberline {3.5}Irreversible Function Calls}{15}{section.141}
-\contentsline {section}{\numberline {3.6}Non Computable Dependencies}{15}{section.142}
-\contentsline {subsection}{\numberline {3.6.1}Overestimating Dependencies}{16}{subsection.177}
-\contentsline {section}{\numberline {3.7}Speculation Free Optimizations}{17}{section.178}
-\contentsline {section}{\numberline {3.8}Speculative Parallelism Beyond The Polytope Model}{17}{section.179}
-\contentsline {section}{\numberline {3.9}What Is Missing}{17}{section.180}
-\contentsline {chapter}{\numberline {4}Implementation}{18}{chapter.181}
-\contentsline {section}{\numberline {4.1}Speculative Polly}{18}{section.182}
-\contentsline {subsection}{\numberline {4.1.1}Speculative SCoPs}{19}{subsection.184}
-\contentsline {subsection}{\numberline {4.1.2}Region Speculation}{19}{subsection.185}
-\contentsline {subsubsection}{\numberline {4.1.2.1}sSCoP extraction}{20}{subsubsection.189}
-\contentsline {subsubsection}{\numberline {4.1.2.2}sSCoP Versions}{20}{subsubsection.190}
-\contentsline {paragraph}{The Profiling Version\\}{20}{paragraph*.191}
-\contentsline {paragraph}{The Optimized Version \\}{21}{paragraph*.192}
-\contentsline {subsubsection}{\numberline {4.1.2.3}Introduced tests}{21}{subsubsection.193}
-\contentsline {paragraph}{Alias tests \\}{21}{paragraph*.197}
-\contentsline {paragraph}{Invariants tests \\}{22}{paragraph*.220}
-\contentsline {paragraph}{Complete Checks \\}{22}{paragraph*.247}
-\contentsline {subsection}{\numberline {4.1.3}Code Generation}{24}{subsection.248}
-\contentsline {section}{\numberline {4.2}Sambama Compile Time Module}{24}{section.274}
-\contentsline {section}{\numberline {4.3}Sambama Runtime Module}{25}{section.275}
-\contentsline {subsection}{\numberline {4.3.1}Profiling}{26}{subsection.277}
-\contentsline {section}{\numberline {4.4}Profiling For Sambamba}{26}{section.278}
-\contentsline {section}{\numberline {4.5}Region Scores}{26}{section.279}
-\contentsline {chapter}{\numberline {5}Evaluation}{28}{chapter.280}
-\contentsline {section}{\numberline {5.1}The Environment}{28}{section.281}
-\contentsline {section}{\numberline {5.2}Compile Time Evaluation}{29}{section.283}
-\contentsline {subsection}{\numberline {5.2.1}Preperation}{29}{subsection.284}
-\contentsline {subsection}{\numberline {5.2.2}Quantitative Results}{29}{subsection.285}
-\contentsline {subsubsection}{\numberline {5.2.2.1}SPEC2000}{29}{subsubsection.286}
-\contentsline {subsubsection}{\numberline {5.2.2.2}Polybench 3.2}{30}{subsubsection.288}
-\contentsline {subsubsection}{\numberline {5.2.2.3}Available tests}{30}{subsubsection.291}
-\contentsline {paragraph}{Alias tests}{30}{paragraph*.292}
-\contentsline {paragraph}{Invariant tests}{30}{paragraph*.293}
-\contentsline {subsection}{\numberline {5.2.3}Sound Transformations}{31}{subsection.294}
-\contentsline {section}{\numberline {5.3}Runtime Evaluation}{31}{section.295}
-\contentsline {section}{\numberline {5.4}Problems}{31}{section.296}
-\contentsline {chapter}{\numberline {6}Case Study}{32}{chapter.298}
-\contentsline {section}{\numberline {6.1}Matrix Multiplication}{32}{section.299}
-\contentsline {subsection}{\numberline {6.1.1}Case A}{32}{subsection.300}
-\contentsline {subsection}{\numberline {6.1.2}Case B}{33}{subsection.315}
-\contentsline {subsection}{\numberline {6.1.3}Case C and D}{33}{subsection.329}
-\contentsline {chapter}{\numberline {7}Conclusion}{34}{chapter.359}
+\contentsline {section}{\numberline {3.2}Speculative Parallel Execution}{11}{section.52}
+\contentsline {section}{\numberline {3.3}Speculation Free Optimizations}{12}{section.53}
+\contentsline {section}{\numberline {3.4}Region Scores}{12}{section.54}
+\contentsline {section}{\numberline {3.5}Method Versioning}{13}{section.88}
+\contentsline {section}{\numberline {3.6}Introduced Tests}{14}{section.89}
+\contentsline {subsection}{\numberline {3.6.1}Alias Tests}{14}{subsection.93}
+\contentsline {subsection}{\numberline {3.6.2}Invariant Tests}{16}{subsection.116}
+\contentsline {section}{\numberline {3.7}Irreversible Function Calls}{16}{section.143}
+\contentsline {section}{\numberline {3.8}Non Computable Dependencies}{16}{section.144}
+\contentsline {subsection}{\numberline {3.8.1}Overestimating Dependencies}{17}{subsection.179}
+\contentsline {section}{\numberline {3.9}What Is Missing}{18}{section.180}
+\contentsline {chapter}{\numberline {4}Implementation}{19}{chapter.181}
+\contentsline {section}{\numberline {4.1}Speculative Polly}{19}{section.182}
+\contentsline {subsection}{\numberline {4.1.1}Region Speculation}{20}{subsection.184}
+\contentsline {subsubsection}{\numberline {4.1.1.1}sSCoP extraction}{20}{subsubsection.188}
+\contentsline {subsubsection}{\numberline {4.1.1.2}sSCoP Versions}{21}{subsubsection.189}
+\contentsline {paragraph}{The Profiling Version\\}{21}{paragraph*.190}
+\contentsline {paragraph}{The Optimized Version \\}{21}{paragraph*.191}
+\contentsline {subsubsection}{\numberline {4.1.1.3}Introduced tests}{22}{subsubsection.192}
+\contentsline {paragraph}{Alias tests \\}{22}{paragraph*.196}
+\contentsline {paragraph}{Invariants tests \\}{23}{paragraph*.219}
+\contentsline {paragraph}{Complete Checks \\}{24}{paragraph*.246}
+\contentsline {subsection}{\numberline {4.1.2}Code Generation}{24}{subsection.247}
+\contentsline {section}{\numberline {4.2}Sambamba Compile Time Module}{26}{section.273}
+\contentsline {section}{\numberline {4.3}Sambamba Runtime Module}{26}{section.274}
+\contentsline {subsection}{\numberline {4.3.1}Profiling}{27}{subsection.276}
+\contentsline {section}{\numberline {4.4}Profiling For Sambamba}{27}{section.277}
+\contentsline {section}{\numberline {4.5}Region Scores}{27}{section.278}
+\contentsline {chapter}{\numberline {5}Evaluation}{28}{chapter.279}
+\contentsline {section}{\numberline {5.1}The Environment}{28}{section.280}
+\contentsline {section}{\numberline {5.2}Compile Time Evaluation}{29}{section.282}
+\contentsline {subsection}{\numberline {5.2.1}Preperation}{29}{subsection.283}
+\contentsline {subsection}{\numberline {5.2.2}Quantitative Results}{29}{subsection.284}
+\contentsline {subsubsection}{\numberline {5.2.2.1}SPEC2000}{29}{subsubsection.285}
+\contentsline {subsubsection}{\numberline {5.2.2.2}Polybench 3.2}{30}{subsubsection.287}
+\contentsline {subsubsection}{\numberline {5.2.2.3}Available tests}{30}{subsubsection.290}
+\contentsline {paragraph}{Alias tests}{30}{paragraph*.291}
+\contentsline {paragraph}{Invariant tests}{30}{paragraph*.292}
+\contentsline {subsection}{\numberline {5.2.3}Sound Transformations}{31}{subsection.293}
+\contentsline {section}{\numberline {5.3}Runtime Evaluation}{31}{section.294}
+\contentsline {section}{\numberline {5.4}Problems}{31}{section.295}
+\contentsline {chapter}{\numberline {6}Case Study}{32}{chapter.297}
+\contentsline {section}{\numberline {6.1}Matrix Multiplication}{32}{section.298}
+\contentsline {paragraph}{Measurement}{32}{paragraph*.299}
+\contentsline {paragraph}{Notes}{32}{paragraph*.300}
+\contentsline {chapter}{\numberline {7}Conclusion}{36}{chapter.376}
 \vspace {2em}
-\contentsline {chapter}{\numberline {A}Case Study Source Code}{37}{appendix.360}
-\contentsline {chapter}{\numberline {B}SPolly As Static Optimizer Pass}{38}{appendix.416}
+\contentsline {chapter}{\numberline {A}Case Study Source Code}{39}{appendix.377}
+\contentsline {chapter}{\numberline {B}SPolly As Static Optimizer Pass}{40}{appendix.433}
 \vspace {2em}
-\contentsline {chapter}{Bibliography}{40}{dummy.419}
+\contentsline {chapter}{Bibliography}{42}{dummy.436}

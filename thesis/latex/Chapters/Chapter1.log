@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  25 APR 2012 21:48
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  29 APR 2012 05:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -41,7 +41,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.36 \section
+l.39 \section
              {Related Work}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -50,7 +50,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.42 Tobias Grosser describes in his thesis\cite
+l.45 Tobias Grosser describes in his thesis\cite
                                                 {grosser:thesis} a speedup o...
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -59,7 +59,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.44 Polly\cite
+l.47 Polly\cite
                {grosser.11.impact}. He also produced similar results for other
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -68,7 +68,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.45 benchmarks of the Polybench\cite
+l.48 benchmarks of the Polybench\cite
                                      {Polybench:Online} benchmark suite.
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -77,7 +77,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.47 topic\cite
+l.50 topic\cite
                {Bondhugula:2008:PAP:1379022.1375595,BCBPR10,Pradelle:2012:PP...
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -86,7 +86,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.51 Baghdadi et. al.\cite
+l.54 Baghdadi et. al.\cite
                           {BCBPR10} revealed a huge potential for speculativ...
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -95,7 +95,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.64 \section
+l.67 \section
              {Overview}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -104,7 +104,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.82 First Chapter \ref
+l.86 First Chapter \ref
                        {Chapter2} will provide information on the used tools...
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -113,7 +113,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.84 are stated in Chapter \ref
+l.88 are stated in Chapter \ref
                                {Chapter3}.
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -122,7 +122,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.85 ...ils about SPolly are given in Chapter \ref
+l.89 ...ils about SPolly are given in Chapter \ref
                                                   {Chapter4} followed by
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -131,7 +131,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.87 (Chapter \ref
+l.91 (Chapter \ref
                   {Chapter5}).
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -140,7 +140,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.88 While Chapter \ref
+l.92 While Chapter \ref
                        {Chapter7} concludes the thesis and provides ideas for
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -149,7 +149,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.90 ...ation example is presented in Chapter \ref
+l.94 ...ation example is presented in Chapter \ref
                                                   {Chapter6}.
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -158,8 +158,8 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.92 \vspace
-            *{6cm}
+l.96 \vspace
+            *{2cm}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
@@ -167,7 +167,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.93 {\Large
+l.97 {\Large
              \it Notes:\\}
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -180,7 +180,7 @@ and I'll forget about whatever was undefined.
                 \par 
 <to be read again> 
                    }
-l.93 {\Large \it Notes:\\}
+l.97 {\Large \it Notes:\\}
                           
 I've run across a `}' that doesn't seem to match anything.
 For example, `\def\a#1{...}' and `\a}' would produce
@@ -195,34 +195,18 @@ Runaway argument?
                    \par 
 <to be read again> 
                    }
-l.93 {\Large \it Notes:\\}
+l.97 {\Large \it Notes:\\}
                           
 I suspect you've forgotten a `}', causing me to apply this
 control sequence to too much text. How can we recover?
 My plan is to forget the whole thing and hope for the best.
 
-! Argument of \\ has an extra }.
-<inserted text> 
-                \par 
-<to be read again> 
-                   }
-l.98 }
-      
-I've run across a `}' that doesn't seem to match anything.
-For example, `\def\a#1{...}' and `\a}' would produce
-this error. If you simply proceed now, the `\par' that
-I've just inserted will cause me to report a runaway
-argument that might be the root of the problem. But if
-your `}' was spurious, just type `2' and it will go away.
-
 Runaway argument?
- TODO more ? 
+ 
 ! Paragraph ended before \\ was complete.
 <to be read again> 
                    \par 
-<to be read again> 
-                   }
-l.98 }
+l.100 
       
 I suspect you've forgotten a `}', causing me to apply this
 control sequence to too much text. How can we recover?
