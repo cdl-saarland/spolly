@@ -1524,6 +1524,7 @@ void ClastStmtCodeGen::codegenForChunks(const clast_for *f) {
     Builder.SetInsertPoint(AfterBB->begin());
 
     LowerBound = Builder.CreateAdd(LowerBound, ChunkSize);
+    LowerBound = Builder.CreateAdd(LowerBound, One);
     UpperBound = Builder.CreateAdd(LowerBound, ChunkSize);
     UpperBound = Builder.CreateSelect(Builder.CreateICmpSLE(UpperBound, UpperBoundOrig),
                                       UpperBound, UpperBoundOrig);
