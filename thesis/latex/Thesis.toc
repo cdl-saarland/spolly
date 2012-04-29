@@ -10,66 +10,68 @@
 \contentsline {section}{\numberline {1.1}Related Work}{1}{section.8}
 \contentsline {section}{\numberline {1.2}Overview}{2}{section.9}
 \contentsline {chapter}{\numberline {2}Background}{3}{chapter.10}
-\contentsline {section}{\numberline {2.1}LLVM - The Low Level Virtual Machine}{3}{section.11}
+\contentsline {section}{\numberline {2.1}LLVM - The LLVM Compiler Infrastructure}{3}{section.11}
 \contentsline {section}{\numberline {2.2}The Polyhedral Model}{4}{section.12}
-\contentsline {section}{\numberline {2.3}Polly - A Polyhedral Optimizer For LLVM}{6}{section.35}
-\contentsline {subsection}{\numberline {2.3.1}Static Control Parts}{6}{subsection.38}
-\contentsline {subsection}{\numberline {2.3.2}SCoP Detection}{7}{subsection.39}
-\contentsline {subsection}{\numberline {2.3.3}Loop Optimizations}{7}{subsection.40}
-\contentsline {subsubsection}{\numberline {2.3.3.1}Parallel Code Generation}{7}{subsubsection.41}
-\contentsline {section}{2.4 \nobreakspace {} Sambamba - A Framework For Adaptive Program Optimization}{8}{section*.42}
-\contentsline {subsection}{\numberline {2.3.4}Sambambas Parallelizer}{9}{subsection.44}
-\contentsline {subsection}{\numberline {2.3.5}Parallel Control Flow Graphs}{9}{subsection.46}
-\contentsline {chapter}{\numberline {3}Concept}{10}{chapter.48}
-\contentsline {section}{\numberline {3.1}SPolly In A Nutshell}{10}{section.49}
-\contentsline {section}{\numberline {3.2}Speculative Parallel Execution}{11}{section.52}
-\contentsline {section}{\numberline {3.3}Speculation Free Optimizations}{12}{section.53}
-\contentsline {section}{\numberline {3.4}Region Scores}{12}{section.54}
-\contentsline {section}{\numberline {3.5}Method Versioning}{13}{section.88}
-\contentsline {section}{\numberline {3.6}Introduced Tests}{14}{section.89}
-\contentsline {subsection}{\numberline {3.6.1}Alias Tests}{14}{subsection.93}
-\contentsline {subsection}{\numberline {3.6.2}Invariant Tests}{16}{subsection.116}
-\contentsline {section}{\numberline {3.7}Irreversible Function Calls}{16}{section.143}
-\contentsline {section}{\numberline {3.8}Non Computable Dependencies}{16}{section.144}
-\contentsline {subsection}{\numberline {3.8.1}Overestimating Dependencies}{17}{subsection.179}
-\contentsline {section}{\numberline {3.9}What Is Missing}{18}{section.180}
-\contentsline {chapter}{\numberline {4}Implementation}{19}{chapter.181}
-\contentsline {section}{\numberline {4.1}Speculative Polly}{19}{section.182}
-\contentsline {subsection}{\numberline {4.1.1}Region Speculation}{20}{subsection.184}
-\contentsline {subsubsection}{\numberline {4.1.1.1}sSCoP extraction}{20}{subsubsection.188}
-\contentsline {subsubsection}{\numberline {4.1.1.2}sSCoP Versions}{21}{subsubsection.189}
-\contentsline {paragraph}{The Profiling Version\\}{21}{paragraph*.190}
-\contentsline {paragraph}{The Optimized Version \\}{21}{paragraph*.191}
-\contentsline {subsubsection}{\numberline {4.1.1.3}Introduced tests}{22}{subsubsection.192}
-\contentsline {paragraph}{Alias tests \\}{22}{paragraph*.196}
-\contentsline {paragraph}{Invariants tests \\}{23}{paragraph*.219}
-\contentsline {paragraph}{Complete Checks \\}{24}{paragraph*.246}
-\contentsline {subsection}{\numberline {4.1.2}Code Generation}{24}{subsection.247}
-\contentsline {section}{\numberline {4.2}Sambamba Compile Time Module}{26}{section.273}
-\contentsline {section}{\numberline {4.3}Sambamba Runtime Module}{26}{section.274}
-\contentsline {subsection}{\numberline {4.3.1}Profiling}{27}{subsection.276}
-\contentsline {section}{\numberline {4.4}Profiling For Sambamba}{27}{section.277}
-\contentsline {section}{\numberline {4.5}Region Scores}{27}{section.278}
-\contentsline {chapter}{\numberline {5}Evaluation}{28}{chapter.279}
-\contentsline {section}{\numberline {5.1}The Environment}{28}{section.280}
-\contentsline {section}{\numberline {5.2}Compile Time Evaluation}{29}{section.282}
-\contentsline {subsection}{\numberline {5.2.1}Preperation}{29}{subsection.283}
-\contentsline {subsection}{\numberline {5.2.2}Quantitative Results}{29}{subsection.284}
-\contentsline {subsubsection}{\numberline {5.2.2.1}SPEC2000}{29}{subsubsection.285}
-\contentsline {subsubsection}{\numberline {5.2.2.2}Polybench 3.2}{30}{subsubsection.287}
-\contentsline {subsubsection}{\numberline {5.2.2.3}Available tests}{30}{subsubsection.290}
-\contentsline {paragraph}{Alias tests}{30}{paragraph*.291}
-\contentsline {paragraph}{Invariant tests}{30}{paragraph*.292}
-\contentsline {subsection}{\numberline {5.2.3}Sound Transformations}{31}{subsection.293}
-\contentsline {section}{\numberline {5.3}Runtime Evaluation}{31}{section.294}
-\contentsline {section}{\numberline {5.4}Problems}{31}{section.295}
-\contentsline {chapter}{\numberline {6}Case Study}{32}{chapter.297}
-\contentsline {section}{\numberline {6.1}Matrix Multiplication}{32}{section.298}
-\contentsline {paragraph}{Measurement}{32}{paragraph*.299}
-\contentsline {paragraph}{Notes}{32}{paragraph*.300}
-\contentsline {chapter}{\numberline {7}Conclusion}{36}{chapter.376}
+\contentsline {section}{\numberline {2.3}Polly - A Polyhedral Optimizer For LLVM}{6}{section.34}
+\contentsline {subsection}{\numberline {2.3.1}Static Control Parts}{6}{subsection.37}
+\contentsline {subsection}{\numberline {2.3.2}SCoP Detection}{7}{subsection.38}
+\contentsline {subsection}{\numberline {2.3.3}Loop Optimizations}{7}{subsection.39}
+\contentsline {subsubsection}{\numberline {2.3.3.1}Parallel Code Generation}{7}{subsubsection.40}
+\contentsline {section}{\numberline {2.4}Sambamba - A Framework For Adaptive Program Optimization}{8}{section.41}
+\contentsline {paragraph}{Stages in the Sambamba framework\\}{8}{paragraph*.43}
+\contentsline {subsection}{\numberline {2.4.1}Sambambas Parallelizer}{9}{subsection.44}
+\contentsline {subsection}{\numberline {2.4.2}Parallel Control Flow Graphs}{9}{subsection.46}
+\contentsline {subsection}{\numberline {2.4.3}Software Transactional Memory}{10}{subsection.48}
+\contentsline {chapter}{\numberline {3}Concept}{11}{chapter.49}
+\contentsline {section}{\numberline {3.1}Speculative Parallel Execution}{11}{section.50}
+\contentsline {subsection}{\numberline {3.1.1}s}{11}{subsection.51}
+\contentsline {section}{\numberline {3.2}Speculation Free Optimizations}{13}{section.52}
+\contentsline {section}{\numberline {3.3}SPolly In A Nutshell}{13}{section.53}
+\contentsline {section}{\numberline {3.4}Region Scores}{14}{section.56}
+\contentsline {section}{\numberline {3.5}Method Versioning}{15}{section.90}
+\contentsline {section}{\numberline {3.6}Introduced Tests}{15}{section.91}
+\contentsline {subsection}{\numberline {3.6.1}Alias Tests}{16}{subsection.95}
+\contentsline {subsection}{\numberline {3.6.2}Invariant Tests}{17}{subsection.118}
+\contentsline {section}{\numberline {3.7}Non Computable Dependencies}{18}{section.145}
+\contentsline {subsection}{\numberline {3.7.1}Overestimating Dependencies}{18}{subsection.178}
+\contentsline {section}{\numberline {3.8}What Is Missing}{19}{section.179}
+\contentsline {chapter}{\numberline {4}Implementation}{20}{chapter.180}
+\contentsline {section}{\numberline {4.1}Speculative Polly}{20}{section.181}
+\contentsline {subsection}{\numberline {4.1.1}Region Speculation}{21}{subsection.183}
+\contentsline {subsubsection}{\numberline {4.1.1.1}sSCoP extraction}{21}{subsubsection.187}
+\contentsline {subsubsection}{\numberline {4.1.1.2}sSCoP Versions}{22}{subsubsection.188}
+\contentsline {paragraph}{The Profiling Version\\}{22}{paragraph*.189}
+\contentsline {paragraph}{The Optimized Version \\}{22}{paragraph*.190}
+\contentsline {subsubsection}{\numberline {4.1.1.3}Introduced tests}{23}{subsubsection.191}
+\contentsline {paragraph}{Alias tests \\}{23}{paragraph*.195}
+\contentsline {paragraph}{Invariants tests \\}{24}{paragraph*.218}
+\contentsline {paragraph}{Complete Checks \\}{25}{paragraph*.245}
+\contentsline {subsection}{\numberline {4.1.2}Code Generation}{25}{subsection.246}
+\contentsline {section}{\numberline {4.2}Sambamba Compile Time Module}{27}{section.272}
+\contentsline {section}{\numberline {4.3}Sambamba Runtime Module}{27}{section.273}
+\contentsline {subsection}{\numberline {4.3.1}Profiling}{28}{subsection.275}
+\contentsline {section}{\numberline {4.4}Profiling For Sambamba}{28}{section.276}
+\contentsline {section}{\numberline {4.5}Region Scores}{28}{section.277}
+\contentsline {chapter}{\numberline {5}Evaluation}{29}{chapter.278}
+\contentsline {section}{\numberline {5.1}The Environment}{29}{section.279}
+\contentsline {section}{\numberline {5.2}Compile Time Evaluation}{30}{section.281}
+\contentsline {subsection}{\numberline {5.2.1}Preperation}{30}{subsection.282}
+\contentsline {subsection}{\numberline {5.2.2}Quantitative Results}{30}{subsection.283}
+\contentsline {subsubsection}{\numberline {5.2.2.1}SPEC2000}{30}{subsubsection.284}
+\contentsline {subsubsection}{\numberline {5.2.2.2}Polybench 3.2}{31}{subsubsection.286}
+\contentsline {subsubsection}{\numberline {5.2.2.3}Available tests}{31}{subsubsection.289}
+\contentsline {paragraph}{Alias tests}{31}{paragraph*.290}
+\contentsline {paragraph}{Invariant tests}{31}{paragraph*.291}
+\contentsline {subsection}{\numberline {5.2.3}Sound Transformations}{32}{subsection.292}
+\contentsline {section}{\numberline {5.3}Runtime Evaluation}{32}{section.293}
+\contentsline {section}{\numberline {5.4}Problems}{32}{section.294}
+\contentsline {chapter}{\numberline {6}Case Study}{33}{chapter.296}
+\contentsline {section}{\numberline {6.1}Matrix Multiplication}{33}{section.297}
+\contentsline {paragraph}{Measurement}{33}{paragraph*.298}
+\contentsline {paragraph}{Notes}{33}{paragraph*.299}
+\contentsline {chapter}{\numberline {7}Conclusion}{37}{chapter.375}
 \vspace {2em}
-\contentsline {chapter}{\numberline {A}Case Study Source Code}{39}{appendix.377}
-\contentsline {chapter}{\numberline {B}SPolly As Static Optimizer Pass}{40}{appendix.433}
+\contentsline {chapter}{\numberline {A}Case Study Source Code}{40}{appendix.376}
+\contentsline {chapter}{\numberline {B}SPolly As Static Optimizer Pass}{41}{appendix.432}
 \vspace {2em}
-\contentsline {chapter}{Bibliography}{42}{dummy.436}
+\contentsline {chapter}{Bibliography}{43}{dummy.435}

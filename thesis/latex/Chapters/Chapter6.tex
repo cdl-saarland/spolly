@@ -131,8 +131,8 @@ loop nest. \\ ~\\
     \end{minipage}
     \hfill
     \hfill
-    %\vspace*{-2mm}
-    \caption{Matmul case E, extracted from the ammp benchmark in the SPEC 2000 benchmark suite}
+    \caption{Matmul case E, extracted from the ammp benchmark (SPEC 2000)}
+    \vspace*{-4mm}
     \label{lst:MatmulVersionE}
 \end{wrapfigure}
 The last case we will look at is the matrix multiplication within the ammp 
@@ -141,42 +141,48 @@ be performed by clang (and therefor by Polly and SPolly) too, if type based alia
 analysis is available. The particular differences between case D and
 E are the lifted index computations and the strength reduction on the innermost
 loop.  A stripped version of the original source code is given in 
-listing \ref{lst:MatmulVersionE}. 
+listing \ref{lst:MatmulVersionE}.  \\
 
+\subsection*{Results and Discussion}
+Regarding the results in table \ref{tab:CaseStudyResults} both Polly and SPolly 
+achieved speedups up to 79 and , respectively. 
+Even if smaller input data will not reach such dimensions, the results
+attest SPolly to be nearly as effective as Polly but with much greater
+applicability. All 
 
-\clearpage
 
 \begin{table}[htpb]
   \caption{Execution times for the different matrix multiplication examples. 
   All data is provided in milliseconds for an input size of $1024 * 1024$ floats.}
   \label{tab:CaseStudyResults}
-  \begin{tabularx}{\textwidth}{| c | c | c | c | c | X |}
+  \begin{tabularx}{\textwidth}{| c | c | c | c | c | c | X |}
     \hline
-    Optimizer & Case A & Case B & Case C & Case D & Options \\
+    Optimizer & Case A & Case B & Case C & Case D & Case E & Options \\
     \hline
     \hline
-    gcc     & 9305 & 9130  & 9154 &     &   best of O1, O2, O3   \\ 
-    clang   & 9268 & 9289  & 9180 &     &   best of O1, O2, O3   \\ 
-    Polly   & 3718 & "     & "    &     &  isl, tile size 256  \\  
-    Polly   &  "   & "     & "    &     &  isl, tile size 256, vectorized  \\  
-    Polly   & 1180 & "     & "    &     &  OpenMP  \\  
-    Polly   &  "   &  1080 & 1077 &     &  OpenMP, ignore aliasing  \\  
-    Polly   &  "   &  115  & 115  &     &  isl, tile size 256, OpenMP, ignore aliasing  \\  
-    Polly   &  "   &  328  & 334  &     &  isl, tile size 32,  OpenMP, ignore aliasing  \\  
-    SPolly  &  "   &  114  & 115  &     &  isl, tile size 256,  OpenMP, replace sound  \\  
-    SPolly  &  "   &  330  & 333  &     &  isl, tile size 32,  OpenMP, replace sound  \\  
-    SPolly  &  "   &       &      &     &  isl, tile size 256, speculative parallelization  \\  
-    SPolly  &  313 &  316  & 312  &     &  isl, tile size 32, speculative parallelization  \\  
-    
+    gcc     & 9305 & 9130  & 9154 &     &    &  best of O1, O2, O3   \\ 
+    clang   & 9268 & 9289  & 9180 &     &    &  best of O1, O2, O3   \\ 
+    Polly   & 3718 & "     & "    &     &    &  isl, ts\footnotemark[1]  256  \\  
+    Polly   &  "   & "     & "    &     &    &  isl, ts 256, vectorized  \\  
+    Polly   & 1072 & "     & "    &     &    &  OpenMP  \\  
+    Polly   &  "   &  1080 & 1077 &     &    &  OpenMP, ia\footnotemark[2]  \\  
+    Polly   &  114 &  115  & 115  &     &    &  isl, ts 256, OpenMP, ia   \\  
+    Polly   &  331 &  328  & 334  &     &    &  isl, ts 32,  OpenMP, ia  \\  
+    SPolly  &  114 &  114  & 115  &     &    &  isl, ts 256,  OpenMP, rs\footnotemark[3]  \\  
+    SPolly  &  397 &  330  & 333  &     &    &  isl, ts 32,  OpenMP, rs  \\  
+    SPolly  &  763 &  618  & 664  &     &    & isl, ts 256, sp\footnotemark[4] \\  
+    SPolly  &  313 &  316  & 312  &     &    & isl, ts  32, sp \\  
+    %SPolly  &  405 &  406  & 418  &     &    & isl, tile size 64, speculative parallelization \\ 
     \hline
   \end{tabularx}
+  ~\\
+  \footnotemark[1] tile size \\
+  \footnotemark[2] ignore aliasing \\
+  \footnotemark[3] replaced with parallel OpenMP version if checks were sound  \\
+  \footnotemark[4] speculatively parallelized with Sambamba \\
 \end{table}
 
-\subsection*{Results and Discussion}
-Regarding the results in table \ref{tab:CaseStudyResults} both Polly and SPolly 
-achieved speedups up to 79 and , respectively. 
-Even if we expect the improvement to be less on smaller input sizes, the trend
-as well as the applicability should not change.
+
 
 %\begin{figure}[htpb]
   %\centering

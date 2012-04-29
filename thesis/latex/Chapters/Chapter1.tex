@@ -7,7 +7,7 @@
 %\section{Motivation}
 
 Nowadays multiprocessors became ubiquitous even in the area of personal and 
-mobile computing, but automatic parallelization did not. 
+mobile computing; however, automatic parallelization did not. 
 Programmers still write sequential code which will be
 translated to sequential binaries and executed by a single thread using only
 one of many cores. % This kind of execution is still normality. 
@@ -66,37 +66,44 @@ their results indicate a general speedup.
 
 \section{Overview}
 
-SPolly, short for speculative Polly,
-is an attempt to combine two recent research projects in the context of compilers.
-One the one hand there is Polly, a LLVM project to increase data locality
-and parallelism for loop nests. On the other hand there is Sambamba, which 
-pursues an adaptive way of compiling and offers features like method 
+SPolly, short for speculative Polly, is an attempt to combine two recent research 
+projects in the context of compilers. 
+There is Polly, an LLVM project to increase data-locality
+and parallelism of regular loop nests and Sambamba, which 
+pursues a new, adaptive way of compiling and offers features like method 
 versioning, speculation and runtime adaption. As an extension of the former one
 and with the capabilities offered by the later one,
 SPolly can perform state-of-the-art loop optimizations on a wide range of loops,
-even in general purpose benchmarks as the SPEC 2000 benchmark suite. 
+even in general purpose benchmarks as the SPEC 2000 benchmark suite. It is also
+capable of detection promising loops for parallel execution even if they contain 
+irreversibel function calls or non computable dependencies.
+This thesis will explain under what circumstances speculation is possible,
+how static and dynamic information are used to minimize the amount of
+misspeculation and how this is integrated into the existing environment of 
+Polly and Sambamba. To substantiate the improvements of this work an evaluation on 
+SPEC 2000 benchmarks and a case study on different versions of
+the matrix multiplication benchmark is presented at the end.
 
-The key idea is to enable more loop optimizations due to speculation.
-To demarcate this from guessing, profiling is used and combined with 
-static information. The heuristic to choose promising candidates is presented 
-as well as the restrictions  which are weakened or even removed. 
+%The key idea is to enable more loop optimizations by speculation.
+%To demarcate this from guessing, profiling is used and combined with 
+%static information. The heuristic to choose promising candidates is presented 
+%as well as the restrictions  which are weakened or even removed. 
 
 
 The rest of the thesis will be organised as follows. 
 First Chapter \ref{Chapter2} will provide information on the used tools and techniques,
-especially Polly and Sambamba. Afterwards the concepts and ideas for this work
+especially Polly and Sambamba. Afterwards the concept as well as the key ideas 
 are stated in Chapter \ref{Chapter3}. 
-Technical details about SPolly are given in Chapter \ref{Chapter4} followed by 
+Technical details about SPolly are given in Chapter \ref{Chapter4}, followed by 
 an evaluation on the SPEC 2000 and Polybench 3.2 benchmark suites 
 (Chapter \ref{Chapter5}). 
 While Chapter \ref{Chapter7} concludes the thesis and provides ideas for
 future work, a detailed case study on different versions of the matrix 
 multiplication example is presented in Chapter \ref{Chapter6}. 
 
-\vspace*{5mm}
+%\vspace*{5mm}
 \paragraph*{Note} ~ \\
-For simplicity source code is presented in a C like language only, even if 
-SPolly actually works on the intermediate representation of the LLVM. \\
+For simplicity source code is presented in a C like language only.
 
 
 

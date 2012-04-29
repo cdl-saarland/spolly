@@ -6,7 +6,7 @@
 
 From a high point of view SPolly is divided into a speculative loop parallelizer 
 and a non speculative extension to Polly. Even if the objectives for both parts 
-are the same, namely to improve the performance of loops, the actions to accomplish 
+are the same, namely to improve the performance of loops, the approaches to accomplish 
 them are different. While the former one will introduce speculative parallelism
 for promising loops at runtime, the later one tries to weaken the harsh 
 requirements on SCoPs in order to make Pollys loop optimizations applicable on
@@ -17,13 +17,83 @@ On the one hand they reveal loop nests which may be optimized by Polly, with or
 without the extensions of SPolly, on the other hand they are used to detect 
 promising loops to speculate on.
 Apart from the implementation work, which will be described in the 
-next chapter, immense effort has been made on the concepts and key ideas behind.
-We believe that these ideas and the knowledge gained during the work is very 
+next chapter, this thesis presents the concepts and key ideas behind.
+We believe that these ideas and the gained knowledge is very 
 valuable not only for future work on SPolly or one of its bases but also for
 other approaches facing similar situations.
+
 %On the way to a working version 
 %many pitfalls have been encountered that should be avoided in the future, 
 %perhaps with similar approaches we worked out. 
+
+
+\section{Speculative Parallel Execution}
+\label{SpeculativeParallelExecution}
+Speculatively executing loops in parallel is one of the two major purposes of 
+SPolly. The challenge was to exploit as much parallelism as possible 
+without restricting the applicability to much. 
+
+\subsection{Semantic Preservation}
+Dven if the execution is secured by a (not extended) STM it may not 
+be sound to execute a loop nest in parallel. 
+If there is a conflict between two iterations and the
+later one (in terms of the original ordering) commits its result before the 
+former one could, the STM will force the former one to recompute, 
+but now based on corrupted data already committed and therefore permanently written.
+From this fact the need of an commit order arose, as it would in any case preserve
+the initial ordering when applying permanent changes.
+
+As one great feature of Polly and the underlying polyhedral model
+is to detect and model loop carried data dependencies, it sounds plausible to
+use this for speculative execution purposes as well. Unfortunately speculative 
+extensions will compromise this ability because they will speculatively assume less
+dependencies in order to weaken the requirements. 
+To handle such situations SPolly tries to unify both of its parts. 
+At first, non computable memory accesses, as they arise from 
+aliases we cannot check in beforehand or from function calls within a SCoP, are
+overestimated. The resulting polyhedral model is complete with regards to possible
+data dependencies, but could anyway reveal transformations for a 
+better data-locality or possible vectorization. 
+Afterwards speculation is applied, thus the optimized loop nest is
+speculatively  parallelized. Note here, that only Polly could change the iteration 
+order but because this would be based on a complete and overestimated polyhedral model, 
+it would still yield a sound ordering. 
+
+In the worst case there are dependencies between all parallel executed iterations
+and each thread has to recompute its part once another one committed its results.
+As countermeasure to such time consuming misspeculations SPolly monitors 
+the runtime of all speculatively parallelized SCoPs and reverts the speculation 
+for poorly performing ones.
+
+In contrast to the speculation free optimization approach, this one is also
+capable of parallelizing sSCoPs with almost arbitrary function calls. To do so the
+STM has to provide the  wait construct as described earlier. 
+Even if this is not yet the case, SPolly could introducing such wait with no further effort. 
+This will certainly cause additional overhead during the parallel execution, 
+but it does not preclude a performance gain per se.
+
+In the special case of sSCoPs, we know certain things about the 
+control flow and the memory accesses within a parallelized region. 
+With the assumptions we may derive from the requirements on sSCoPs it is possible
+to secure the speculative parallel execution by introducing wait constructs 
+right before each possibly violating function call. Executing those function calls
+in the correct ordering will enforce all their possible effects to be applied 
+in the correct order too. 
+If arbitrary control flow and conditionals are allowed, this conclusion does not
+hold anymore. In fact every memory access could change the taken execution path of 
+another thread, thus every branch would need annotation. 
+
+
+
+\section{Speculation Free Optimizations}
+\label{SpeculationFreesSCoPs}
+As second objective SPolly may enable sound polyhedral optimizations, even
+parallelization, on sSCoPs with no need for speculation at all. This is the case
+when the tests we introduce in the following can rule out all violations of a
+sSCoP. 
+
+
+
 
 
 \section{SPolly In A Nutshell}
@@ -38,6 +108,7 @@ other approaches facing similar situations.
 %\paragraph{Compile Time }~\\
 \begin{wrapfigure}[]{r}{0.4\textwidth}
   \centering
+  \vspace*{-2mm}
   \includegraphics[width=0.4\textwidth]{Figures/draftPaperCT.eps}
   \caption{Draft paper: \\SPolly at compile time}
   \vspace*{-5mm}
@@ -93,52 +164,6 @@ is promising, thus which region will be speculatively optimized and in the end
 executed in parallel. Because the impact on the performance might be worse than
 expected, maybe even worse than the sequential execution, the runtime part will
 continually monitor all exchanged functions and intervene if necessary.
-
-
-
-
-\section{Speculative Parallel Execution}
-\label{SpeculativeParallelExecution}
-Speculatively executing loops in parallel is one of the two major purposes of 
-SPolly. Several strategies have been considered and most of them have been 
-discarded as they would restrict the applicability to much. Even if the execution
-is secured by a STM it may not ne sound to successively execute N iterations of
-a loop nest in parallel because loop carried dependencies greater than N would 
-not be detected. As one great feature of Polly and the underlying polytope model
-is to detect and model loop carried memory dependencies, it sounds plausible to
-use this for speculative execution purposes as well. Unfortunately real speculative 
-extensions will compromise this ability. At this point the duality of SPolly 
-comes into the play. The first step will overestimating non computable 
-memory accesses as they arise from aliases we cannot check in beforehand or from
-function calls within a SCoP. The resulting polytope model is sound and may 
-reveal transformations for a better data-locality or vectorization. In the second
-step speculation is applied. The optimized loop nest is split into N
-identical ones but with adjusted lower and upper bounds. These loop nest are 
-now speculatively executed in parallel. As the ordering of the iterations is only
-changed by Polly and based on a sound overestimation conflicts may only arise
-between the loop nests. If the STM implementation provides a commit order it is
-ensured that the threads will commit theirs results in the order they have been
-started, which is in fact the initial ordering of the loop nest. 
-Possible conflicts between the loop nests will now be detected and the affected 
-first thread will restart the whole computation. In the worst case there are 
-dependencies between all loop nests and each thread may recompute its part 
-every time a former one committed its results. As countermeasure SPolly monitors
-all speculative parallelized sSCoPs and reverts the speculation for bad performing 
-ones. In contrast to the speculation free optimization approach, this one is also
-capable of parallelizing sSCoPs with almost arbitrary function calls. To do so the
-STM has to provide a special wait construct which enforces the executing thread
-to wait for all threads ahead in the commit order. Even if this is not the case for 
-the given STM, SPolly could introducing such wait calls right before each
-function call in the sSCoP with no further effort.
-
-
-
-
-
-
-
-\section{Speculation Free Optimizations}
-\label{SpeculationFreesSCoPs}
 
 
 
@@ -383,15 +408,15 @@ the modified source.
 
 
 
-\section{Irreversible Function Calls}
-Parallelizing loops containing function calls is a challenge on its own. 
-The called functions may have not computable side effects or they might just 
-print something on your screen. In both cases the ordering is important and 
-parallel execution becomes unlikely especially if these calls are placed on all
-execution paths. On the contrary there are loops which will execute such
-calls only rarely e.g., as part of error handling. SPolly locates all calls and
-allows loops which execute them only under certain conditions.
-[TODO gefaellt mir nich]
+%\section{Irreversible Function Calls}
+%Parallelizing loops containing function calls is a challenge on its own. 
+%The called functions may have not computable side effects or they might just 
+%print something on your screen. In both cases the ordering is important and 
+%parallel execution becomes unlikely especially if these calls are placed on all
+%execution paths. On the contrary there are loops which will execute such
+%calls only rarely e.g., as part of error handling. SPolly locates all calls and
+%allows loops which execute them only under certain conditions.
+%[TODO gefaellt mir nich]
 
 
 
@@ -403,19 +428,28 @@ allows loops which execute them only under certain conditions.
 Ruling out may aliases due to checks as described earlier is not feasible in every
 situation. Assuming the example in listing \ref{lst:NonComputableDependenciesSrc}
 we may check if \texttt{A} and \texttt{B} alias in front of the loop nest, but
-every array \texttt{A[i]} and \texttt{B[j]} may alias also. As introducing tests 
-within the loop nest is not what we want to do, another approach was needed to
-analyze and optimize the loop nest. Unfortunately it is not possible to rely on 
-the STM here, as conflicts may not be detected when executing the loop in parallel.
-Even if this is not very likely a situation like indicated in figure
-\ref{fig:NonComputableDependenciesSituation} would produce wrong results if used
-as input of a speculatively rescheduled and parallelized loop nest as the one 
-presented in listing \ref{lst:NonComputableDependenciesBad}.
-
-To enable optimizations or exploit parallelism for such cases, 
-there are two possible solutions which will be described in more detail 
-in the sections \ref{OverestimatingDependencies} and 
-\ref{SpeculativeParallelismBeyondThePolytopeModel}.
+every array \texttt{A[i]} and \texttt{B[i]} may alias also. Introducing tests 
+within the loop nest is possible, but it would reduce the possible parallelism
+to outermost loop not containing the aliases. As in the presented example type
+based alias analysis could lift the computation of \texttt{A[i]} and \texttt{B[i]} 
+to the outer loop, the innermost one would become a valid SCoP after checks are
+introduced. At the moment SPolly is not capable of detection and deciding if 
+such an approach could be profitable, but instead SPolly tries to optimize and 
+speculate on the whole loop nest. As described earlier SPolly will overestimate
+the data dependencies in order to apply sound transformations before it will 
+speculatively execute the splitted loop nest in parrallel. This example is well
+suited to illustrade why even an STM based approach cannot detect all conflicts
+when no commit order is available. Assuming we would 
+translate the loop to the pseudo parallelized version in listing 
+\ref{lst:NonComputableDependenciesBad} with the corresponding ParCFG as illustrated 
+by figure \ref{fig:NonComputableDependenciesParCFG}. An input such as the one 
+in figure \ref{fig:NonComputableDependenciesSituation} seems very unlikely but 
+nevertheless it could produce wrong results without causing an syncronizing 
+conflict. This will happen everytime the second transaction is commited and 
+therefor written first. This will cause the first one to recompute its results, 
+because they worked on the same memory locations, namely the array \texttt{A[0] = A[1]}.
+During this recomputation a wrong value for \texttt{A[0][j]} will be used without
+beeing reported as a conflict on the syncronization. 
 
 \lstset{frame=none}
 \begin{figure}[htbp]

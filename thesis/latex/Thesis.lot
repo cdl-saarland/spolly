@@ -1,18 +1,18 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {3.1}{\ignorespaces Scores for the sSCoPs presented in various listings\relax }}{13}{table.caption.87}
+\contentsline {table}{\numberline {3.1}{\ignorespaces Scores for the sSCoPs presented in various listings\relax }}{15}{table.caption.89}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Restrictions on sSCoPs\relax }}{21}{table.caption.185}
-\contentsline {table}{\numberline {4.2}{\ignorespaces Functionality of the SPolly Sambamba module\relax }}{26}{table.caption.275}
+\contentsline {table}{\numberline {4.1}{\ignorespaces Restrictions on sSCoPs\relax }}{22}{table.caption.184}
+\contentsline {table}{\numberline {4.2}{\ignorespaces Functionality of the SPolly Sambamba module\relax }}{27}{table.caption.274}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {5.1}{\ignorespaces The evaluation environment\relax }}{28}{table.caption.281}
-\contentsline {table}{\numberline {5.2}{\ignorespaces Results of running Polly and SPolly on SPEC 2000 benchmarks\relax }}{30}{table.caption.289}
-\contentsline {table}{\numberline {5.3}{\ignorespaces Reported bugs\relax }}{31}{table.caption.296}
+\contentsline {table}{\numberline {5.1}{\ignorespaces The evaluation environment\relax }}{29}{table.caption.280}
+\contentsline {table}{\numberline {5.2}{\ignorespaces Results of running Polly and SPolly on SPEC 2000 benchmarks\relax }}{31}{table.caption.288}
+\contentsline {table}{\numberline {5.3}{\ignorespaces Reported bugs\relax }}{32}{table.caption.295}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {6.1}{\ignorespaces Execution times for the different matrix multiplication examples. All data is provided in milliseconds for an input size of $1024 * 1024$ floats.\relax }}{35}{table.caption.375}
+\contentsline {table}{\numberline {6.1}{\ignorespaces Execution times for the different matrix multiplication examples. All data is provided in milliseconds for an input size of $1024 * 1024$ floats.\relax }}{36}{table.caption.374}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {B.1}{\ignorespaces Command line options to interact with SPolly\relax }}{40}{table.caption.434}
-\contentsline {table}{\numberline {B.2}{\ignorespaces Brief overview of Polly's optimization options\relax }}{41}{table.caption.435}
+\contentsline {table}{\numberline {B.1}{\ignorespaces Command line options to interact with SPolly\relax }}{41}{table.caption.433}
+\contentsline {table}{\numberline {B.2}{\ignorespaces Brief overview of Polly's optimization options\relax }}{42}{table.caption.434}

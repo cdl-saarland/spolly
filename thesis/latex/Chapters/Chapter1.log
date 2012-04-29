@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  29 APR 2012 05:41
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2012/dev/Arch Linux) (format=pdftex 2012.4.4)  29 APR 2012 07:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -104,7 +104,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.86 First Chapter \ref
+l.94 First Chapter \ref
                        {Chapter2} will provide information on the used tools...
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -113,7 +113,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.88 are stated in Chapter \ref
+l.96 are stated in Chapter \ref
                                {Chapter3}.
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -122,8 +122,8 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.89 ...ils about SPolly are given in Chapter \ref
-                                                  {Chapter4} followed by
+l.97 ...ils about SPolly are given in Chapter \ref
+                                                  {Chapter4}, followed by
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
@@ -131,7 +131,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.91 (Chapter \ref
+l.99 (Chapter \ref
                   {Chapter5}).
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -140,8 +140,8 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.92 While Chapter \ref
-                       {Chapter7} concludes the thesis and provides ideas for
+l.100 While Chapter \ref
+                        {Chapter7} concludes the thesis and provides ideas for
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
@@ -149,7 +149,7 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.94 ...ation example is presented in Chapter \ref
+l.102 ...tion example is presented in Chapter \ref
                                                   {Chapter6}.
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -158,55 +158,20 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 ! Undefined control sequence.
-l.96 \vspace
-            *{2cm}
+l.105 \paragraph
+                *{Note} ~ \\
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
 spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
-! Undefined control sequence.
-l.97 {\Large
-             \it Notes:\\}
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Argument of \\ has an extra }.
-<inserted text> 
-                \par 
-<to be read again> 
-                   }
-l.97 {\Large \it Notes:\\}
-                          
-I've run across a `}' that doesn't seem to match anything.
-For example, `\def\a#1{...}' and `\a}' would produce
-this error. If you simply proceed now, the `\par' that
-I've just inserted will cause me to report a runaway
-argument that might be the root of the problem. But if
-your `}' was spurious, just type `2' and it will go away.
-
 Runaway argument?
+ For simplicity source code is presented in a C like language only. 
 ! Paragraph ended before \\ was complete.
 <to be read again> 
                    \par 
-<to be read again> 
-                   }
-l.97 {\Large \it Notes:\\}
-                          
-I suspect you've forgotten a `}', causing me to apply this
-control sequence to too much text. How can we recover?
-My plan is to forget the whole thing and hope for the best.
-
-Runaway argument?
- 
-! Paragraph ended before \\ was complete.
-<to be read again> 
-                   \par 
-l.100 
+l.107 
       
 I suspect you've forgotten a `}', causing me to apply this
 control sequence to too much text. How can we recover?
