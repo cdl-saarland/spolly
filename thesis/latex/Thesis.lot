@@ -1,18 +1,30 @@
 \addvspace {10\p@ }
+\contentsline {xchapter}{Introduction}{1}{chapter.4}
 \addvspace {10\p@ }
+\contentsline {xchapter}{Background}{4}{chapter.8}
+\contentsline {table}{\numberline {2.1}{\ignorespaces Restrictions on SCoPs\relax }}{8}{table.caption.47}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {3.1}{\ignorespaces Scores for the sSCoPs presented in various listings\relax }}{15}{table.caption.89}
+\contentsline {xchapter}{Concept}{14}{chapter.64}
+\contentsline {table}{\numberline {3.1}{\ignorespaces Region scores for the sSCoPs presented in Figure \ref {fig:ScoredSCoPs}\relax }}{20}{table.caption.134}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Restrictions on sSCoPs\relax }}{22}{table.caption.184}
-\contentsline {table}{\numberline {4.2}{\ignorespaces Functionality of the SPolly Sambamba module\relax }}{27}{table.caption.274}
+\contentsline {xchapter}{Technical Details}{27}{chapter.228}
+\contentsline {table}{\numberline {4.1}{\ignorespaces Restrictions on sSCoPs\relax }}{30}{table.caption.235}
+\contentsline {table}{\numberline {4.2}{\ignorespaces Reported bugs\relax }}{32}{table.caption.293}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {5.1}{\ignorespaces The evaluation environment\relax }}{29}{table.caption.280}
-\contentsline {table}{\numberline {5.2}{\ignorespaces Results of running Polly and SPolly on SPEC 2000 benchmarks\relax }}{31}{table.caption.288}
-\contentsline {table}{\numberline {5.3}{\ignorespaces Reported bugs\relax }}{32}{table.caption.295}
+\contentsline {xchapter}{Evaluation}{34}{chapter.294}
+\contentsline {table}{\numberline {5.1}{\ignorespaces The evaluation environment\relax }}{34}{table.caption.295}
+\contentsline {table}{\numberline {5.2}{\ignorespaces Results of running Polly and SPolly on SPEC 2000 benchmarks\relax }}{35}{table.caption.297}
+\contentsline {table}{\numberline {5.3}{\ignorespaces Number of sSCoPs with complete checks\relax }}{36}{table.caption.301}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {6.1}{\ignorespaces Execution times for the different matrix multiplication examples. All data is provided in milliseconds for an input size of $1024 * 1024$ floats.\relax }}{36}{table.caption.374}
+\contentsline {xchapter}{Case Study}{40}{chapter.351}
+\contentsline {table}{\numberline {6.1}{\ignorespaces Execution times for the different matrix multiplication cases}}{45}{table.caption.438}
 \addvspace {10\p@ }
+\contentsline {xchapter}{Conclusion and Future Work}{46}{chapter.439}
 \addvspace {10\p@ }
+\contentsline {xchapter}{Case Study Evaluation Template}{50}{appendix.442}
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {B.1}{\ignorespaces Command line options to interact with SPolly\relax }}{41}{table.caption.433}
-\contentsline {table}{\numberline {B.2}{\ignorespaces Brief overview of Polly's optimization options\relax }}{42}{table.caption.434}
+\contentsline {xchapter}{Polly -- Optimization Options}{52}{appendix.489}
+\contentsline {table}{\numberline {B.1}{\ignorespaces Overview about the optimization options of Polly\relax }}{52}{table.caption.490}
+\addvspace {10\p@ }
+\contentsline {xchapter}{SPolly as Static Optimizer}{53}{appendix.491}
+\contentsline {table}{\numberline {C.1}{\ignorespaces Command line options to interact with SPolly\relax }}{53}{table.caption.492}

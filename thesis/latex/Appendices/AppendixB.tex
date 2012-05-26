@@ -1,37 +1,19 @@
 % Appendix A
 
-\chapter{SPolly As Static Optimizer Pass}
+\chapter{Polly -- Optimization Options}
 \label{AppendixB}
-\lhead{Appendix B. \emph{SPolly As Static Optimizer Pass}}
+\lhead{Appendix B. \emph{Polly -- Optimization Options}}
+
+Different options may yield different results. Since this simple truth holds for
+Polly too, the options, listend in the Table below, may yield improvements even
+for already well performing SCoPs.
+\\
 
 \begin{table}[htbp]
-  \caption{Command line options to interact with SPolly}
-  \begin{tabularx}{\textwidth}{ l p{1mm} X  }
-    Command line option     && Description  \\
-    \hline
-    -enable-spolly          && Enables SPolly during SCoP detection,\par
-                                (options containing spolly will not work without) \\ 
-    -spolly-replace         && Replaces all sSCoPs by optimized versions \par 
-                                (may not be sound)  \\
-    -spolly-replace-sound   && As spolly-replace, but sound due to runtime checks \par
-                                (iff sound checks can be introduced)\\
-    -spolly-extract-regions && Extracts all sSCoPs into their own sub function \\
-    -polly-forks=N          && Set the block size which is used when 
-                             polly-fork-join code generation is enabled\\
-    -enable-polly-fork-join && Extracts the body of the outermost,
-                             parallelizeable loop, performs loop blocking with
-                             block size N and unrolls the new introduced loop 
-                             completely \par
-                             (one loop with N calls in the body remains)\\
-    -polly-inline-forks     && Inline the call instruction in each fork \\
-  \end{tabularx}
-  \label{tab:CommandLineOptions}
-\end{table}
-
-\begin{table}[htbp]
-  \caption{Brief overview of Polly's optimization options}
+  \begin{framed}
+  \caption{Overview about the optimization options of Polly}
   \begin{tabularx}{\textwidth}{ l p{1mm} X}
-    Short or option name          && Description \\
+    Option         && Description \\
     \hline
     -polly-no-tiling              && Disable tiling in the scheduler  \\
     -polly-tile-size=N\footnotemark[1] && Create tiles of size N \\
@@ -50,7 +32,53 @@
      &&  \\ 
   \end{tabularx}
   \label{tab:PollyOptions}
-  \footnotemark[1] Not available from the command line \\
+  \end{framed}
 \end{table}
 
+
+\vfill
+\vfill
+\vfill
+\rule{\textwidth}{0.1mm}
+  \footnotemark[1] Not available from the command line \\
+
+\clearpage
+
+\chapter{SPolly as Static Optimizer}
+\label{AppendixC}
+\lhead{Appendix C. \emph{SPolly As Static Optimizer}}
+Table \ref{tab:CommandLineOptions} lists which non-speculative functionalities of
+SPolly can be used without the presence of Sambamba. 
+The new code generation options can be used exactly the same as the OpenMP and vecorizer backend options.
+However, the ``-spolly'' options are exclusively allowed with ``-polly-detect''.
+Optimizations and parallel code 
+generation are explicitly done by the region speculation, and the opt tool may
+break if they are used from the outside, too.
+\\
+
+\begin{table}[htbp]
+  \begin{framed}
+  \caption{Command line options to interact with SPolly}
+  \begin{tabularx}{\textwidth}{ l p{1mm} X  }
+    Command line option     && Description  \\
+    \hline
+    -enable-spolly          && Enables SPolly during SCoP detection,\par
+                                (options containing ``spolly'' will not work without) \\ 
+    -spolly-replace         && Replaces all sSCoPs by optimized versions \par 
+                                (may not be sound)  \\
+    -spolly-replace-sound   && As spolly-replace, but sound due to runtime checks \par
+                                (no effect if checks are not sound)\\
+    -spolly-extract-regions && Extracts all sSCoPs into their own sub function \\
+    -polly-forks=N          && Set the block size which is used when 
+                             polly-fork-join code generation is enabled\\
+    -enable-polly-fork-join && Extracts the body of the outermost,
+                             parallelizeable loop, performs loop blocking with
+                             block size N and unrolls the new introduced loop 
+                             completely \par
+                             (one loop with N calls in the body remains)\\
+    -polly-inline-forks     && Inline the call instruction in each fork \\
+  \end{tabularx}
+  \label{tab:CommandLineOptions}
+  \end{framed}
+\end{table}
 

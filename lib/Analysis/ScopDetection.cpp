@@ -104,7 +104,7 @@ AllowNonAffine("polly-allow-nonaffine",
 
 STATISTIC(ValidRegion, "Number of regions that a valid part of Scop");
 STATISTIC(SpeculativeValidRegion, 
-          "Number of regions that are a speculative valid part of Scop");
+          "Number of regions that are a speculative valid SCoPs (sSCoPs)");
 
 #define BADSCOP_STAT(NAME, DESC) STATISTIC(Bad##NAME##ForScop, \
                                            "Number of bad regions for Scop: "\

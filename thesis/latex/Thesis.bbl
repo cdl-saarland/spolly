@@ -1,19 +1,14 @@
-\begin{thebibliography}{18}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Grosser(2011{\natexlab{a}})]{Polly:Online}
-Tobias Grosser.
-\newblock Polly - polyhedral optimization in llvm, 2011{\natexlab{a}}.
-\newblock URL \url{http://polly.llvm.org}.
-
-\bibitem[Grosser(2011{\natexlab{b}})]{grosser:thesis}
+\bibitem[Grosser(2011{\natexlab{a}})]{grosser:thesis}
 Tobias Grosser.
 \newblock \emph{Enabling Polyhedral Optimizations in LLVM}.
-\newblock Diploma thesis, University of Passau, April 2011{\natexlab{b}}.
+\newblock Diploma thesis, University of Passau, April 2011{\natexlab{a}}.
 \newblock URL
   \url{http://polly.llvm.org/publications/grosser-diploma-thesis.pdf}.
 
@@ -101,15 +96,42 @@ C\'{e}dric Bastoul, Albert Cohen, Sylvain Girbal, Saurabh Sharma, and Olivier
   (LCPC'03)}, LNCS, pages 23--30, College Station, Texas, October 2003.
   Springer-Verlag.
 
+\bibitem[Bondhugula and Ramanujam(2007)]{Bondhugula07pluto:a}
+Uday Bondhugula and J.~Ramanujam.
+\newblock Pluto: A practical and fully automatic polyhedral parallelizer and
+  locality optimizer.
+\newblock Technical report, 2007.
+
 \bibitem[RAGHESH(2011)]{raghesh2011framework}
 A.~RAGHESH.
 \newblock \emph{A Framework for Automatic OpenMP Code Generation}.
 \newblock PhD thesis, INDIAN INSTITUTE OF TECHNOLOGY, MADRAS, 2011.
 
+\bibitem[Grosser(2011{\natexlab{b}})]{Polly:Online}
+Tobias Grosser.
+\newblock Polly - polyhedral optimization in llvm, 2011{\natexlab{b}}.
+\newblock URL \url{http://polly.llvm.org}.
+
 \bibitem[Verdoolaege(2004)]{ISL:Online}
 Sven Verdoolaege.
 \newblock {Integer Set Library}, 2004.
 \newblock URL \url{http://www.kotnet.org/~skimo/isl/}.
+
+\bibitem[Corporation(2008)]{Corporation_2008}
+Intel Corporation.
+\newblock Intel ( r ) threading building blocks.
+\newblock \emph{Intel Technology Journal}, 12\penalty0 (319872):\penalty0
+  27--38, 2008.
+\newblock URL \url{http://www.intel.com}.
+
+\bibitem[Streit et~al.(2012)Streit, Hammacher, Zeller, and
+  Hack]{DBLP:conf/cc/StreitHZH12}
+Kevin Streit, Clemens Hammacher, Andreas Zeller, and Sebastian Hack.
+\newblock Sambamba: A runtime system for online adaptive parallelization.
+\newblock In Michael F.~P. O'Boyle, editor, \emph{CC}, volume 7210 of
+  \emph{Lecture Notes in Computer Science}, pages 240--243. Springer, 2012.
+\newblock ISBN 978-3-642-28651-3.
+\newblock URL \url{http://www.sambamba.org}.
 
 \bibitem[Jimborean et~al.(2012)Jimborean, Mastrangelo, Loechner, and
   Clauss]{JIMBOREAN-2012-664345}
@@ -120,21 +142,5 @@ Alexandra Jimborean, Luis Mastrangelo, Vincent Loechner, and Philippe Clauss.
   Compiler Construction}}, volume 7210 of \emph{Lecture Notes in Computer
   Science}, pages 220--237, Tallinn, Estonia, March 2012. Springer.
 \newblock URL \url{http://hal.inria.fr/hal-00664345}.
-
-\bibitem[Streit et~al.(2012{\natexlab{a}})Streit, Hammacher, Zeller, and
-  Hack]{DBLP:conf/cc/StreitHZH12}
-Kevin Streit, Clemens Hammacher, Andreas Zeller, and Sebastian Hack.
-\newblock Sambamba: A runtime system for online adaptive parallelization.
-\newblock In Michael F.~P. O'Boyle, editor, \emph{CC}, volume 7210 of
-  \emph{Lecture Notes in Computer Science}, pages 240--243. Springer,
-  2012{\natexlab{a}}.
-\newblock ISBN 978-3-642-28651-3.
-
-\bibitem[Streit et~al.(2012{\natexlab{b}})Streit, Hammacher, Zeller, and
-  Hack]{StreitHZH12:Online}
-Kevin Streit, Clemens Hammacher, Andreas Zeller, and Sebastian Hack.
-\newblock Sambamba: A runtime system for online adaptive parallelization,
-  2012{\natexlab{b}}.
-\newblock URL \url{http://www.sambamba.org}.
 
 \end{thebibliography}

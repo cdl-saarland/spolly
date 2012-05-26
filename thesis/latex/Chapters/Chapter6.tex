@@ -8,40 +8,44 @@
 \section{Matrix Multiplication}
 \label{MatrixMultiplication}
 Matrix multiplication is a well known computational problem and part of many 
-algorithms and programs, e.g. ammp or mesa.
+algorithms and programs, e.g., ammp within the SPEC 2000 benchmark suite.
 If the data size grows, the runtime may have crucial impact on the
 overall performance. Tiling, vectorization and parallel execution yield an
-enormous speedups as different approaches already
+enormous speedup as different approaches already
 showed\cite{grosser:thesis, JIMBOREAN-2012-664345},
-still the question about applicability remains. A slightly modified source code 
-would not be optimized at all, even if the computation has not been changed. 
+still the question of applicability remains. A slightly modified source code 
+may not be optimized at all, even if the computation has not been changed. 
 
 \paragraph{Measurement} ~\\
-This section will compare different implementations of a simple 2d
+This Chapter will compare different implementations of a simple 2d
 matrix multiplication for a sample size of  $1024*1024$ floats.
-Each example is executed $10$ times and the geometric mean of the results 
-(without the best and worst one) is computed. With this strategy it was possible 
-to evaluate sequential executions with a maximal deviation of $5\%$. As this 
-did not hold for parallel executions we decided to use the geometric mean of 
-$100$ executions here. All numbers are generated on 
-the server described in table \ref{todo}. If not mentioned explicitly, the base
-algorithm stays the same for each case, so there is no hand made optimization 
-involved. Furthermore no hand made optimizations are applied on intermediate 
+Each example is executed $100$ times and the geometric mean of the results 
+(without the best and worst 10\%) is computed. All numbers are generated on 
+the machine described in Table \ref{tab:EvaluationEnvironment}. 
+If not mentioned explicitly, the base
+algorithm remains the same for each case, so there is no hand made optimization 
+involved. Furthermore, no hand made optimizations are applied on intermediate 
 results, thus the outcome is only dependent on the input and the presented 
-options. To prevent false optimizations the result is dumped after each matrix
-multiplication. 
+options. To prevent false optimizations the result is validated after each iteration.
 
 \paragraph{Notes} ~\\
 Even if the STM embedded into the Sambamba framework does
-not provide a commit order yet, SPolly will speculatively execution loops in
+not provide a commit order yet, SPolly will speculatively execute loops in
 parallel. For the matrix multiplication example with proper inputs 
-this is sound but it will obviously not reflect the overhead introduced by a
-commit order.
+this is sound. Furthermore, SPolly is able to create sound versions for the cases 
+A to C because the alias tests for these cases are complete. 
+
+%As the last problems during this evaluation have been originated
+%in the STM we turned it completely off for the whole case study. 
+%This will obviously not reflect the introduced overhead, but it provides the tenor
+%as well as for the
+%current implementation of the parallelizer. 
 
 
 \clearpage
 \lstset{frame=none}
-\subsection*{Case A}
+\subsection*{Case A} 
+\label{CaseStudyCaseA}
 \begin{wrapfigure}[]{r}{0.5\textwidth}
   \centering
     \hfill
@@ -53,19 +57,19 @@ commit order.
     \hfill
     \hfill
     \vspace*{-2mm}
-  \caption{Matmul case A}
+    \caption{Matrix multiplication case A}
    \label{lst:MatmulVersionA}
 \end{wrapfigure}
 
-Listing \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
+Figure \ref{lst:MatmulVersionA} shows the matrix multiplication as used in 
 many presentations and benchmarks. This case is quite grateful because the
-global arrays are distinct and fixed in size. Furthermore the loop nest is
+global arrays are disjoint and fixed in size. Furthermore, the loop nest is
 perfectly nested and all memory accesses can be computed statically.
 With this in mind the popularity of this case is hardly surprising,
-just as the outstanding results are.\\
+just as the outstanding results are.
 
 
-\subsection*{Case B}
+\subsection*{Case B} 
 \begin{wrapfigure}[]{l}{0.5\textwidth}
     \begin{minipage}[c]{0.4\textwidth}
     \vspace*{-7mm}
@@ -74,21 +78,30 @@ just as the outstanding results are.\\
     \hfill
     \hfill
     \vspace*{-2mm}
-    \caption{Matmul case B}
+    \caption{Matrix multiplication case B}
     \label{lst:MatmulVersionB}
+    \vspace*{-8mm}
 \end{wrapfigure}
 
-Case B (see listing \ref{lst:MatmulVersionB}) is very similar to the previous one.
+Case B (see Figure \ref{lst:MatmulVersionB}) is very similar to the previous one.
 The arrays are still fixed in size but now given as arguments. Even if the
 declaration is still global, common alias analysis can not prove the independence
 of each array anymore. Summarized aliasing between \texttt{A,B} and \texttt{C} 
-is possible.\\
-~\\
-\subsection*{Case C and D}
+is possible.  \\
 
+\subsection*{Cases C and D} 
+Cases C and D as presented in Figures \ref{lst:MatmulVersionC} and 
+\ref{lst:MatmulVersionD} are using pointers instead of fixed size arrays. 
+This common practice to generalize the computation suffers from the same 
+disadvantages as the second case. Common alias analyses will provide insufficient
+information to optimize the loop nest. In the context of this work case D is 
+of special interest as it does not allow conclusive alias tests in front of the
+loop nest.  
+
+\clearpage
 \begin{figure}[htpb]
   \centering
-  \subfloat[Matmul case C] {
+  \subfloat[Matrix multiplication case C] {
     \hfill
     \hfill
     \begin{minipage}[c][6cm]{0.4\textwidth}
@@ -99,7 +112,7 @@ is possible.\\
    \label{lst:MatmulVersionC}
   }
   \hfill
-  \subfloat[Matmul case D] {
+  \subfloat[Matrix multiplication case D] {
     \hfill
     \hfill
     \begin{minipage}[c][6cm]{0.4\textwidth}
@@ -109,19 +122,13 @@ is possible.\\
     \hfill
     \label{lst:MatmulVersionD}
   }
-  \caption{Matmul case C and D}
+  \caption{Matrix multiplication case C and D}
    \label{lst:MatmulVersionCD}
 \end{figure}
 
-Cases C and D as presented in listings \ref{lst:MatmulVersionC} and 
-\ref{lst:MatmulVersionD} are using pointers instead of fixed size arrays. 
-This common practice to generalize the computation suffers from the same 
-disadvantages as the second case. Common alias analyses will provide insufficient
-information to optimize the loop nest. In the context of this work case D is 
-of special interest as it does not allow conclusive alias tests in front of the
-loop nest. \\ ~\\
 
-\subsection*{Case E}
+\subsection*{Case E} 
+\label{CaseStudyCaseE}
 \begin{wrapfigure}[]{r}{0.5\textwidth}
     \hfill
     \hfill
@@ -131,58 +138,224 @@ loop nest. \\ ~\\
     \end{minipage}
     \hfill
     \hfill
-    \caption{Matmul case E, extracted from the ammp benchmark (SPEC 2000)}
-    \vspace*{-4mm}
+    \caption[Matrix multiplication case E]{Matrix multiplication case E, extracted from the ammp benchmark (SPEC 2000)}
+    \vspace*{-5mm}
     \label{lst:MatmulVersionE}
 \end{wrapfigure}
 The last case we will look at is the matrix multiplication within the ammp 
-benchmark. It is similar to case D but with hand made optimizations which could
-be performed by clang (and therefor by Polly and SPolly) too, if type based alias
-analysis is available. The particular differences between case D and
+benchmark. It is similar to case D but with manual optimizations which could
+be performed by clang (and therefore by Polly and SPolly) too, if type based alias
+information is available. The particular differences between case D and
 E are the lifted index computations and the strength reduction on the innermost
 loop.  A stripped version of the original source code is given in 
-listing \ref{lst:MatmulVersionE}.  \\
+Figure \ref{lst:MatmulVersionE}.  Even if the algorithm stays the same, 
+the accesses functions are substantially altered. Polly 
+will not recognize them as affine anymore, hence they will be overestimated. The resulting 
+polyhedral representation has loop carried dependencies between all iterations in 
+every loop. Polly cannot and SPolly will not parallelize a loop based on these 
+information. Future work on SPolly could allow to
+distinguish between encountered and overestimated 
+dependencies. This would allow more speculation but it remains to determine when this is useful. 
 
-\subsection*{Results and Discussion}
-Regarding the results in table \ref{tab:CaseStudyResults} both Polly and SPolly 
-achieved speedups up to 79 and , respectively. 
-Even if smaller input data will not reach such dimensions, the results
-attest SPolly to be nearly as effective as Polly but with much greater
-applicability. All 
+%\clearpage
+\subsection{Results and Discussion}
+\label{CaseStudyResults}
+Regarding the results in Table \ref{tab:CaseStudyResults}, SPolly 
+achieve up to 80 fold speedup compared to gcc and clang; Polly, with the
+default options, only 34 fold speedup. 
+Although smaller input data will not yield improvements in such dimensions, 
+the tenor remains. SPolly as presented here is at least as effective as
+Polly but with much wider applicability. 
+It is able to parallelize the cases A to C in a sound way 
+without manual interaction. 
+Case D is special, as speculation is needed to parallelize it. Nevertheless, 
+the execution with SPolly yields more than 8x speedup (without an STM).
+Polly, on the other hand, can only handle case A. With the assumption
+that no pointers alias it is able to optimize and parallelize cases B and C, too.
+As this is obviously not
+true in general, the source has to be reviewed manually to enable such optimizations. 
+Apart from the parallization, the cases A to C could benefit from the 
+polyhedral transformation, hence from improved data-locality. 
+Comparing, for example, the results of case C and D when parallelized with Sambamba, 
+this yields an addional 3 fold speedup.
+
+\paragraph*{Parallelized versions} ~\\
+Comparing the different parallelized versions of the cases A, B and C in terms of execution time,
+the OpenMP version created by SPolly performed  best, but only on large tile sizes. 
+The OpenMP versions almost always perform better than the ones parallelized by Sambamba, 
+likely because of the transaction queue approach still used for the evaluation of this work.
+We expect better results with the TBB\cite{Corporation_2008} implementation as 
+described earlier. Nevertheless, Sambamba and its parallelizer are needed to 
+handle case D in the first place. And once the commit order is 
+implemented, the STM will be used to secure the execution for arbitrary input.
+
+\paragraph*{SPollys sSCoP replacement} ~\\
+As SPolly utilizes only Polly functionalities (without any speculation)
+when the ``-replace-sound'' option is used, it is at first surprising that the 
+results for those cases differ compared to Pollys. To explain this we have to 
+look at the given options in more detail. Polly is designed to be used with O3 as 
+done here, but SPolly is not. It only utilizes the scheduling and code
+generation pass of Polly for optimizations. 
+When they are invoked by hand (without O3), 
+Polly yields the same results for case A, in fact the execution time will not
+differ. We may conclude that for this case 
+the introduced alias tests do not cause measurable overhead. 
+\\
+
+\paragraph*{Backend comparison} ~\\
+Except for a tile size of 256, there is almost no difference between the 
+execution times for both new code generation backends, but for this special 
+tile size only the splitting backend is currently able to exploit parallelism. 
+When the trip count of the first parallelizable loop is less than used 
+thread count, here 16,  the blocked and unrolled loop nest version
+will not be executed at all, instead the computation is done by the ``remaining iterations loop'' as indicated in Figure \ref{fig:CreateParCFG}. The reason is the single bounds check right 
+before the 16 forks/iterations which form the parallel section.
+Using the splitting backend, the first 4 of the 16 created loop nests 
+will be executed concurrently while the others are skipped. 
+Despite the fact that only one fourth of the possible parallelism was exploited, 
+we achieved a good result for this particular case. Even the version created by 
+the blocking backend was twice as fast as the gcc and clang versions. The reason
+is the improved data-locality for the two inner loops.
 
 
-\begin{table}[htpb]
-  \caption{Execution times for the different matrix multiplication examples. 
+\paragraph*{Summary} ~\\
+Even for this small case study it is hard to talk about ``the'' best parallelization method.
+Regarding only the tile size we can see an enormous impact on the runtime for 
+some of the cases (Polly case A or SPolly with ``replace sound'') but it is still
+unclear whether other, not yet tested values may yield better results. 
+In the general case many options and combinations could perform surprisingly well. 
+For long running programs it might be imaginable that SPolly internally 
+creates a table similar to the presented one. 
+Promising options and combinations to create fast versions could be tried 
+as well as specialized versions which are only intended for certain inputs.  
+
+%As described earlier, it would be possible to place several well performing versions
+%side by side in one CFG. The split block, currently used only for the introduced
+%tests, could additionally dispatch each input to  the most suitable version. 
+
+%\paragraph*{Open Work -- Case E} ~\\
+%The matrix multiplication extracted from ammp could not be optimized by Polly nor 
+%by SPolly because of the hand made optimizations. Even if SPolly detects a sSCoP
+%here, parallelization is not possible since Polly overestimates the memory accesses 
+%within the loop. Further work on the dependency detection would allow SPolly to 
+%extract parallelism for this case too. \\
+
+%less surprising is that polly, while ignoring
+%aliases, produces the same results as spolly with 
+%the ``sound replacement'' versions. as the produced code is, except a small 
+%alias check in front of the loop nest, identical, other results would have been
+%strange. 
+
+\clearpage
+
+~\\
+\vfill
+\vfill
+\vfill
+\vfill
+%\begin{table}[htpb]
+  %\begin{framed}
+    %\centering
+    %\caption[Execution times for the different matrix multiplication cases]{Execution times for the different matrix multiplication examples. 
+  %All data is provided in milliseconds for an input size of $1024 * 1024$ floats.}
+  %\label{tab:CaseStudyResults}
+  %\begin{tabular}{ c |  c | c | c | c | c | l | r}
+    %Optimizer & A & B & C &  D & E & Options & tile size\\
+    %\hline
+    %\hline
+    %gcc     & 9221 & 9130  & 9154 &  8917 & 8926 &  best of O1, O2, O3   \\ 
+    %clang   & 9268 & 9289  & 9180 &  9315 & 8376 &  best of O1, O2, O3   \\ 
+    %Polly   & 240 & "     & "    &  "  & " & 
+    %O3, polly\footnotemark[1] (tile-size=8) \\  
+    %Polly   & 264 & "     & "    &  " &  "  &  
+    %O3, polly\,\,\, (tile-size=16)  \\  
+    %Polly   & 269 & "     & "    &  " &  "  &
+    %O3, polly\,\,\, (tile-size=32)  \\  
+    %Polly   & 348 & "     & "    &  " &  "  &
+    %O3, polly\,\,\, (tile-size=64)  \\  
+    %Polly   & 926 & "     & "    &  " &  "  &
+    %O3, polly\,\,\, (tile-size=256)  \\  
+    %%Polly   &  "   &  1080 & 1077 &   Err\footnotemark[5]   &  "   &  OpenMP, ia\footnotemark[2]  \\  
+    %%Polly   &  114 &  115  & 115  &   Err &  "  &  isl, ts 256, OpenMP, ia   \\  
+    %%Polly   &  331 &  328  & 334  &   Err &  "  &  isl, ts 32,  OpenMP, ia  \\  
+    %SPolly  &  & 377 & 365  &  "  &  "  &  isl\footnotemark[2], OpenMP, rs\footnotemark[3], (tile-size=8)  \\  
+    %SPolly  &  & 370 & 349  &  "  &  "  &  isl,\,\: OpenMP, rs,\,\; (tile-size=16)   \\  
+    %SPolly  &  & 382 & 354  &  "  &  "  &  isl,\,\: OpenMP, rs,\,\; (tile-size=32)   \\  
+    %SPolly  &  & 520 & 473  &  "  &  "  &  isl,\,\: OpenMP, rs,\,\; (tile-size=64)   \\  
+    %SPolly  &  & 114 & 114  &  "  &  "  &  isl,\,\: OpenMP, rs,\,\; (tile-size=256)   \\  
+    %SPolly  & 364 & 369 & 351  & 1110 & "& spolly, sp,\,\, bb\footnotemark[4], (tile-size=8) \\  
+    %SPolly  & 371 & 365 & 342  & " &"& spolly, sp,\,\, bb,\,\; (tile-size=16) \\  
+    %SPolly  & 377 & 373  & 345 & " &"& spolly, sp,\,\, bb,\,\; (tile-size=32) \\  
+    %SPolly  & 514 & 510  & 458  & " &"& spolly, sp,\,\, bb,\,\;  (tile-size=64) \\  
+    %SPolly  & 4636 & 4630 & 4179 & " &"& spolly, sp,\,\, bb,\,\; (tile-size=256) \\  
+    %SPolly  & 363 & 363 & 350 & 1111 &  "  & spolly, sp\footnotemark[5], sb\footnotemark[6], (tile-size=8) \\  
+    %SPolly  & 359 & 362 & 344 & " &  "  & spolly, sp,\,\, sb,\:\; (tile-size=16) \\  
+    %SPolly  & 371 & 371 & 355 & " &  "  & spolly, sp,\,\, sb,\:\; (tile-size=32) \\  
+    %SPolly  & 509 & 503 & 460 & " &  "  & spolly, sp,\,\, sb,\:\;  (tile-size=64) \\  
+    %SPolly  & 584 & 541 & 456 & " &  "  & spolly, sp,\,\, sb,\:\; (tile-size=256) \\  
+    %%SPolly  &  405 &  406  & 418  &     &    & isl, tile size 64, speculative parallelization \\ 
+  %\end{tabular}
+   
+  %\end{framed}
+%\end{table}
+
+\begin{table}[h]
+  \begin{framed}
+    \centering
+    \caption[Execution times for the different matrix multiplication cases]{Execution times for the different matrix multiplication examples. 
   All data is provided in milliseconds for an input size of $1024 * 1024$ floats.}
   \label{tab:CaseStudyResults}
-  \begin{tabularx}{\textwidth}{| c | c | c | c | c | c | X |}
+  \begin{tabular}{ c |  c | c | c | c | c | c | c}
+    Optimizer & A & B & C &  D & E & Options & Tile Size\\
     \hline
-    Optimizer & Case A & Case B & Case C & Case D & Case E & Options \\
     \hline
+    gcc     & 9221 & 9130  & 9154 &  8917 & 8926 &  best of O1, O2, O3 &  \\ 
+    clang   & 9268 & 9289  & 9180 &  9315 & 8376 &  best of O1, O2, O3& \\ 
     \hline
-    gcc     & 9305 & 9130  & 9154 &     &    &  best of O1, O2, O3   \\ 
-    clang   & 9268 & 9289  & 9180 &     &    &  best of O1, O2, O3   \\ 
-    Polly   & 3718 & "     & "    &     &    &  isl, ts\footnotemark[1]  256  \\  
-    Polly   &  "   & "     & "    &     &    &  isl, ts 256, vectorized  \\  
-    Polly   & 1072 & "     & "    &     &    &  OpenMP  \\  
-    Polly   &  "   &  1080 & 1077 &     &    &  OpenMP, ia\footnotemark[2]  \\  
-    Polly   &  114 &  115  & 115  &     &    &  isl, ts 256, OpenMP, ia   \\  
-    Polly   &  331 &  328  & 334  &     &    &  isl, ts 32,  OpenMP, ia  \\  
-    SPolly  &  114 &  114  & 115  &     &    &  isl, ts 256,  OpenMP, rs\footnotemark[3]  \\  
-    SPolly  &  397 &  330  & 333  &     &    &  isl, ts 32,  OpenMP, rs  \\  
-    SPolly  &  763 &  618  & 664  &     &    & isl, ts 256, sp\footnotemark[4] \\  
-    SPolly  &  313 &  316  & 312  &     &    & isl, ts  32, sp \\  
+    Polly   & 240 & 9289  & 9180 & 9315 & 8376 & 
+    O3, polly\footnotemark[1] & 8\\  
+    Polly  & 264 & 9289 & 9180 & 9315 &  8376 &  
+    O3, polly\;\, & 16\\  
+    Polly   & 269 & 9289 & 9180 & 9315 &  8376 &
+    O3, polly\;\, & 32\\  
+    Polly   & 348 & 9289 & 9180 & 9315 & 8376  &
+    O3, polly\;\, & 64\\  
+    Polly   & 926 & 9289 &  9180& 9315 & 8376  &
+    O3, polly\;\, & 256 \\  
+    %Polly   &  "   &  1080 & 1077 &   Err\footnotemark[5]   &  "   &  OpenMP, ia\footnotemark[2]  \\  
+    %Polly   &  114 &  115  & 115  &   Err &  "  &  isl, ts 256, OpenMP, ia   \\  
+    %Polly   &  331 &  328  & 334  &   Err &  "  &  isl, ts 32,  OpenMP, ia  \\  
+    SPolly  & 377 & 377 & 365  & 9180 & 8376 & isl\footnotemark[2], OpenMP, rs\footnotemark[3] & 8\\  
+    SPolly  & 371 & 370 & 349  & 9180 & 8376 & isl,\,\: OpenMP, rs\;\,  & 16\\  
+    SPolly  & 378 & 382 & 354  & 9180 & 8376 & isl,\,\: OpenMP, rs\;\, & 32\\  
+    SPolly  & 517 & 520 & 473  & 9180 & 8376 & isl,\,\: OpenMP, rs\;\,   & 64\\  
+    SPolly  & 1044 & 114 & 114 & 9180 & 8376 & isl,\,\: OpenMP, rs\;\,  & 256\\  
+    SPolly  & 364 & 369 & 351  & 1110 & 8376 & spolly, sp\footnotemark[4], bb\footnotemark[5] & 8\\  
+    SPolly  & 371 & 365 & 342  & 1110 & 8376 & spolly, sp,\,\, bb\;\, & 16\\  
+    SPolly  & 377 & 373  & 345 & 1110 & 8376 & spolly, sp,\,\, bb\;\, &32\\  
+    SPolly  & 514 & 510  & 458  & 1110 & 8376 & spolly, sp,\,\, bb\;\,& 64\\  
+    SPolly  & 4636 & 4630 & 4179 & 1110 & 8376 & spolly, sp,\,\, bb\;\,& 256\\  
+    SPolly  & 363 & 363 & 350 & 1111 & 8376 & spolly, sp,\,\, sb\footnotemark[6]& 8\\  
+    SPolly  & 359 & 362 & 344 & 1111 & 8376 & spolly, sp,\,\, sb\;\,& 16\\  
+    SPolly  & 371 & 371 & 355 & 1111 & 8376 & spolly, sp,\,\, sb\;\, & 32\\  
+    SPolly  & 509 & 503 & 460 & 1111 & 8376 & spolly, sp,\,\, sb\;\,& 64\\  
+    SPolly  & 584 & 541 & 456 & 1111 & 8376 & spolly, sp,\,\, sb\;\, & 256\\  
     %SPolly  &  405 &  406  & 418  &     &    & isl, tile size 64, speculative parallelization \\ 
-    \hline
-  \end{tabularx}
-  ~\\
-  \footnotemark[1] tile size \\
-  \footnotemark[2] ignore aliasing \\
-  \footnotemark[3] replaced with parallel OpenMP version if checks were sound  \\
-  \footnotemark[4] speculatively parallelized with Sambamba \\
+  \end{tabular}
+   
+  \end{framed}
 \end{table}
 
-
+\vfill
+\vfill
+\vfill
+\rule{\textwidth}{0.1mm}
+\footnotemark[1] -polly -enable-polly-openmp -enable-polly-vector (isl\footnotemark[2] included)\\
+\footnotemark[2] -polly-opt-isl, enables isl based tiling and scheduling  \\
+\footnotemark[3] Replace sSCoPs with parallel OpenMP versions if checks were sound.  For this evaluation no alias analysis was used, instead alias tests are introduced each time.    \\
+\footnotemark[4] parallelized with Sambamba  \\
+\footnotemark[5]  blocking backend \\
+\footnotemark[6]  splitting backend  
 
 %\begin{figure}[htpb]
   %\centering

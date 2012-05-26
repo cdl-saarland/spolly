@@ -20,7 +20,7 @@ print "----------------------------------------\n"
 # some default values
 programs = []
 Nbars    = 1
-colors   = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', 
+colors   = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF', '#00FFFF', 
             '#339933', '#FF3333']
 
 while True:
@@ -155,9 +155,19 @@ while True:
   ax.set_xticks(locs + (Width * (Nbars / 2.0)))
   # adjust the limits
   ax.set_xlim(0, N * (Ngaps + Nbars) * Width + Ngaps)
-  maximum2 = maximum *1.1
+  maximum2 = maximum + 5
   print "\n",maximum2,"\n"
   ax.set_yticks(np.arange(0, maximum + stepping, stepping))
+  maximum2 = 115
+  rect =BarRects[2][7]
+  height=rect.get_height()
+  ax.annotate('276', xy = (rect.get_x()+rect.get_width()/2., 115), xycoords='data',
+                xytext=(-60, -20), textcoords='offset points',fontsize=18,arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=.3"))
+  rect =BarRects[3][7]
+  height=rect.get_height()
+  ax.annotate('208', xy = (rect.get_x()+rect.get_width()/2., 115), xycoords='data',
+                xytext=(30, -20), textcoords='offset points',fontsize=18,arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=-.3"))
+
   ax.set_ylim(0,maximum2)
   
   rot = int(options["rotation"])
@@ -173,7 +183,7 @@ while True:
     if BarNames[i]:
       legend[0].append(BarRects[i][0])
       legend[1].append(BarNames[i])
-  ax.legend(legend[0], legend[1])
+  ax.legend(legend[0], legend[1], loc=2)
 
   print "\nNow the size and dpi can be adjusted\n"
   dpi  = 100

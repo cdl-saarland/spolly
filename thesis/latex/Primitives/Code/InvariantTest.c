@@ -5,7 +5,7 @@ void f() {
   int c_tmp = c;
   for (i = 0; i < 1024; i++) {
     if (c != c_tmp) 
-      signalNonInvariancy();
+      signalNonInvariance();
     // function g may change c
     A[i] = g() + c; 
   }

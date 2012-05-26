@@ -1,8 +1,8 @@
 % Chapter 4
 
-\chapter{Implementation} % Write in your own chapter title
+\chapter{Technical Details} % Write in your own chapter title
 \label{Chapter4}
-\lhead{Chapter 4. \emph{Implementation}} % Write in your own chapter title to set the page header
+\lhead{Chapter 4. \emph{Technical Details}} % Write in your own chapter title to set the page header
 
 %\begin{wraptable}[]{r}{0.45\textwidth}
   %\caption{Lines of code for Polly, SPolly and Sambamba components}
@@ -34,10 +34,11 @@ At the moment the runtime part is far more evolved and the compile time componen
 plays only a minor role. Apart from SPolly itself, a basic profiler and a
 statistic module for Sambamba arose during this work. Both have been very helpful
 during the development and may become permanent features of Sambamba.
-   During the implementation various bugs occurred and even if most of them
-arose through my own fault I triggered some in the code base of Polly and 
-Sambamba too. A full table of reported bugs is listed in table 
-\ref{tab:Bugreports}. 
+
+%During the implementation various bugs occurred and even if most of them
+%arose by my own fault I triggered some in the code base of Polly and 
+%Sambamba too. A full list of reported bugs is given in Table 
+%\ref{tab:Bugreports}. 
 
 %Table \ref{tab:LinesOfCode} compares the work in a
 %quantitative manner as it lists the lines of code (LOC) added for SPolly as well
@@ -52,419 +53,442 @@ Sambamba too. A full table of reported bugs is listed in table
 %but to my understanding Polly could get a similar option in the near future. 
 
 
+\section{SPolly in a Nutshell}
+%SPolly, as presented here, is composed of a compile time and a runtime part. 
+%Their respective tasks are related but not the same. During both steps the, so
+%called, region speculation is used to interact with Polly. 
+%It is also the 
+%part of SPolly which is not integrated  into the Sambamba framework. As some
+%of the functionalities do not rely on speculation, it is possible to integrate
+%them into the main application of Polly anytime soon. 
+
+%\paragraph{Compile Time }~\\
+\begin{wrapfigure}[]{r}{0.4\textwidth}
+  \centering
+  %\vspace*{-4mm}
+  \includegraphics[width=0.4\textwidth]{Figures/draftPaperCT.eps}
+  \caption{Draft paper: \\SPolly at compile time}
+  \vspace*{-4mm}
+  \label{fig:draftPaperCT}  
+\end{wrapfigure}
+During \textbf{compile time} the main goal of SPolly is to simplify the runtime part,
+by reducing runtime overhead through preprocessing and even static method versioning.
+First the SCoP detection tries to find all valid regions within the given LLVM-IR
+(according to the SCoP definition; Table \ref{tab:SCoPRestrictions}).
+But instead of rejecting a region once a restriction is violated, 
+the region speculation is asked how to proceed. Rejection causes we want to speculate
+on namely aliasing, non-affine base pointers and function calls, 
+are gathered by the region speculation, but fully transparent to the SCoP detection.
+This proceeding allows to find all violations within a region and to treat valid and
+speculatively valid ones nearly the same. After all  
+speculatively valid SCoPs are encountered the Sambamba compile 
+time part takes action. It separates the sSCoPs as some of them do not need
+speculation at all. Those sSCoPs are optimized and exchanged, 
+while the others are currently only extracted. This means they are replaced by
+calls to functions only containing the speculatively valid region. 
+%(see \ref{RegionExtraction}).
+At the moment, no pre computation takes place and only sSCoPs with complete
+alias tests are considered to be optimized and exchanged immediately.  Future 
+work on SPolly could change this in order to reduce the workload during runtime.
+
+%Further details on
+%the ratings are given in section \ref{RegionScores} while 
+%section \ref{SpeculationFreesSCoPs} coveres the case of speculation free sSCoPs.
+
+
+
+
+%\paragraph{Runtime }~\\
+\begin{wrapfigure}[]{l}{0.5\textwidth}
+  \centering
+  \vspace*{-4mm}
+  \includegraphics[width=0.5\textwidth]{Figures/draftPaperRT.eps}
+  \caption{Draft paper: \\ SPolly at runtime}
+  \vspace*{-2mm}
+  \label{fig:draftPaperCT}  
+\end{wrapfigure}
+The \textbf{runtime} part of SPolly first retrieves the extracted sSCoPs and 
+precomputed versions from the data store. If not already done during  compile
+time, profiling versions will be created. It would be possible to restrict
+this to the highest rated sSCoPs only, but as the creation is cheap, only 
+a few additional instructions without traversing the code again, and the execution 
+overhead for most of them is non-existent it is feasible to do so for rather bad
+ranked sSCoPs as well.  Those profiling versions will now collect information
+not only about the time consumption of the sSCoP, but also about loop bounds,
+branch probabilities and the results of introduced checks. Except for the time
+consumption these values will affect the rating of the sSCoP which again is used
+to identify promising sSCoPs.
+
+%The next section will explain this rating and the effects of profiling in more 
+%detail, while section \ref{IntroducedTests} covers the test creation and theirs use. 
+%As explained above, the combined static and dynamic information determine which region
+%is promising, thus which region will be speculatively optimized and in the end
+%executed in parallel.
+
+
+
 
 
 
 \section{Speculative Polly}
-It would be feasible to look at SPolly as extension to Polly, especially designed
+You could look at SPolly as extension to Polly, especially designed
 to interact with Sambamba. As such it was crucial to preserve all functionality 
 of Polly and supplement it with new ones. Most of them are
 implemented in the region speculation, but there are some new options in the 
-code generation too. The bridge between the region speculation and Polly 
-is is ideally suited to serve as the 
+code generation too. Pollys SCoP detection was chosen to serve as a
 bridge between Polly and the speculative part as speculative valid regions 
 would be rejected here. The information currently needed for region speculation
 is also available at this point and can be directly reused. 
 
-As the architecture of Polly is nicely illustrated by figure 
-\ref{fig:PollyArchitecture}, it has been extended in figure 
-\ref{fig:SPollyArchitecture} to capture the changes introduced by SPolly. 
-In comparison the region speculation, the fork join backend and the sSCoP
-backend have been added as they can be used without Sambamba. 
+As the architecture of Polly was nicely illustrated in the thesis of Tobias 
+Grosser\cite{grosser:thesis}, we extended the Figure to capture the changes 
+introduced by SPolly, too (see Figure \ref{fig:SPollyArchitecture}). 
+In comparison to the original one, the region speculation, 
+the unrolling backend and the splitting backend have been added. 
 
+\clearpage
+~\\
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.9\textwidth]{SPollyArchitecture.eps}
-  \caption{SPolly architecture}
+  \includegraphics[width=0.85\textwidth]{SPollyArchitecture.eps}
+  \caption{SPolly - The Architecture ~\\ (Based on ``Polly - The Architecture''\cite{grosser:thesis})}
   \label{fig:SPollyArchitecture}  
 \end{figure}
-
+~\\
 
 
 \subsection{Region Speculation}
-The region speculation (RS) of SPolly has several tasks to fulfill. The first 
-one includes the communication with Polly or more precise, 
+The region speculation  of SPolly has several tasks to fulfill. The first 
+one includes the communication with Polly or, to be more precise, 
 with the SCoP detection. Each region analyzed by the SCoP detection needs to be
-considered as possibly speculative valid SCoPs, thus all information exposed 
-during the detection are stored. If the region contains a validation not 
-listed in \ref{tab:sSCoPConstraints} or if it is without any validation
-the information are discarded. Valid SCoPs are handled by Polly while for others
-a new sSCoP is created which initially validates itself. 
-These validation mainly computes information needed for later
-transformations but it maybe discards the sSCoP too. This is the case if 
-violating function calls, e.g., a ``printf'', occur on every execution path. 
-In the following these computations as well as the creation of 
-profiling and parallel versions for a sSCoP are explained briefly. 
-
+considered as possibly speculatively valid SCoP, thus
+all information exposed during the detection is stored.
+If the region contains a sSCoP violation, 
+listed in Table \ref{tab:sSCoPRestrictions}, or if it is without any validation,
+the information is discarded. In the latter case, the region is a valid 
+SCoP and will be handled by Polly and in the former one it is neither a SCoP nor 
+an sSCoP, hence we cannot optimize it any further.
+For all others regions a new sSCoP is created and initially validated. 
+This validation mainly computes information needed for later
+transformations but it may discard the sSCoP too. This is the case if 
+violating function calls, e.g., a \texttt{printf}, occur on every execution path.
+As the \textit{Concept} Chapter described how to handle such cases in general,
+we may include even those in later work. For now, violating calls
+are only allowed in conditionals as such cases provide much more speculation
+potential. \\
+%Despite the fact that both, rarely as well as always executed calls,
+%cannot be secured by the current STM implementation, we believe that the 
+%region score heuristic only suggests sSCoPs with high speculative potential and
+%low chance of misspeculation.  \\
 
 \begin{table}[htbp]
+\begin{framed}
   \centering
   \caption{Restrictions on sSCoPs}
     \begin{itemize}
-      \item Only perfectly nested loops and conditionals
-      \item No unsigned iteration variables \footnote{}
-      \item Only canonical PHI nodes and induction variables
-      \item Instructions may not be used in PHI nodes outside the region\footnote{}
-      \item Only speculatively ``non violating'' function calls
-      \item No PHI nodes in the region exit block
+      \renewcommand{\labelitemi}{$\triangleright$}
       \item Only simple regions not containing the entry block of the function
+      \item Only nested loops and conditionals
+      \item Only branches with affine conditions
+      \item No unsigned iteration variables
+      \item Only canonical PHI nodes and induction variables
+      \item No alloca or cast instructions within the region
+      \item Only affine trip counts for loops
+      \item Only guarded ``violating'' function calls
+      \item No PHI nodes in the region exit block
+      \item \textit{At least one loop contained}
     \end{itemize}
-    \flushleft{\footnotemark[1] open for further work of Polly}
-    \flushleft{\footnotemark[2] open for further work of SPolly}
+    %\flushleft{\footnotemark[2] open for future work of SPolly}
   \label{tab:sSCoPConstraints}
+  \label{tab:sSCoPRestrictions}
+  \label{sSCoPRestrictionsPage}
+\end{framed}
 \end{table}
 
+\subsection{Region Scores}
+Initial efforts to create region scores in order to rank sSCoPs 
+did not use any kind of memory, 
+thus the whole region was analyzed every time new information was available.
+To avoid these unnecessary computations the current score is a
+symbolic value which may contain variables for values not known statically, e.g.,
+branch probabilities or loop bounds.
+Evaluation of these symbolic values will take all profiling 
+information into account and yield a comparable integer value. 
+Only during the initial creation of the score expression the region needs to be
+traversed to find all used parameters and branches. 
 
-\subsubsection{sSCoP extraction}
+
+\subsection{sSCoP Extraction}
+\label{sSCoPExtraction}
 The sSCoP extraction was designed to simplify the method versioning for functions 
-containing several speculative valid SCoPs. It creates a new sub function for 
-every sSCoP and inserts a call in the former place. Later on this call could be
-inlined again but this is not implemented yet. On the one hand the creation 
+containing several speculatively valid SCoPs. It creates a new sub function for 
+every sSCoP and inserts a call in the respective place. On the one hand the creation 
 of profiling and parallel versions as well the later function exchanging becomes
 a lot easier and cheaper this way. On the other hand it is the first step to 
 multiple specialized versions, e.g., with constant instead of variable loop 
-bounds. Section \ref{FutureWorkSpecializedVersion} will cover this in more 
-detail.
+bounds. Another possible benefit of this strategy is that the transformations 
+applied to an sSCoP (or SCoP) would not affect other code regions anymore. 
+%In rarely occurring cases Polly rejects regions because transformations could
+%break outer constraints. 
 
 
 
-\subsubsection{sSCoP Versions}
-Method versioning is one of the great benefits of the Sambamba system and allows
-to adapt the execution at runtime. In the scope of this work two different 
-versions are created, a profiling one and a optimized one. As these two are 
-explained in the following.
+%\subsubsection{Method Versioning}
+%Method versioning is one of the great benefits of the Sambamba system and allows
+%to adapt the execution at runtime. In the scope of this work two different 
+%versions are created, a profiling one and an optimized one. 
+%Up to this point several suggestions for other possible, mainly specialized, 
+%versions have been mentioned (e.g., with constant instead of variable parameters or 
+%optimized with different tile sizes). 
+%Most of them would benefit from the SPolly infrastructure as 
+%profiling data is available and the extracted sSCoPs simplify cloning and
+%transformations. A full list of feasible versions as well as detailed thoughts 
+%on them is presented in the future work section of the last chapter.
 
 
-\paragraph{The Profiling Version\\}
-~\\
-Profiling is a powerful ability for just in time executed programs, like the ones
-produced by Sambamba. SPolly benefits not only from the introduced tests, but also
-from the monitored branch probabilities and loop trip counts. The retrieved 
-information are in the first place used to compute the region scores, thus to
-improve the heuristic which chooses sSCoPs for optimization. Later on,
-specialized versions may arise based on them. 
+%\paragraph{The Profiling Version}
+%~\\
+%Profiling is a powerful ability for just in time compiled programs, like the ones
+%produced by Sambamba. SPolly benefits not only from the introduced tests, but also
+%from the monitored branch probabilities and loop trip counts. The retrieved 
+%information are in the first place used to compute the region scores, thus to
+%improve the heuristic which chooses sSCoPs for optimization. Later on,
+%this information could help other analyses and transformations too.
 
 
+%\paragraph{The Optimized Version }
+%~\\
+%Optimized versions are in the first place those sSCoPs which have been 
+%optimized by Polly and parallelized by either Polly or Sambamba. As SPolly is  
+%currently not applying only optimizations without parallelization there is no
+%need to speak of parallelized versions explicitly. At the moment it is also true
+%that all sSCoPs chosen for optimization are feed into Polly. Even though Polly 
+%might not be able to apply transformations, 
+%it will certainly create the CFG structure already presented in 
+%figure \ref{fig:PollyCFG}. This proceeding is beneficial on two 
+%accounts. First it allows to reuse the Polly code generation which creates a  
+%normalized loop structure and nowadays also one of two easy parallelizable 
+%outer loop shapes (see next section for more details). The second benefit 
+%concerns the new CFG in its entirety. Tests, like the already implemented alias
+%test, can be easily placed in front of a speculatively optimized loop. 
+%Technically it is very similar to a runtime dispatcher which chooses between,
+%at the moment, two available versions. As this structure is always given, the
+%default behaviour of SPolly is to introduce as many alias tests as possible 
+%when a optimized version is created. Different additional tests or versions 
+%could use this structure as they would only need to modify the split block in front
+%of the sequential and parallel version. 
 
-\paragraph{The Optimized Version \\}
-~\\
-Just as valid SCoPs may valid sSCoPs be optimized by Polly, but there are also 
-differences. As Polly normally takes care of possible dependencies it cannot 
-do the same for all kinds of sSCoPs. As stated in section \ref{NonComputableDependencies}
-there is a safe way to overestimate all possible depenencies, thus to use Polly
-for optimizations. This way is very restrictive and therefor it does not yield
-a desired speedup that often. If SPolly can introduce complete checks, the 
-situation changes and 
-
-
-
-
-\subsubsection{Introduced tests}
-To reduce the overhead of misspeculation tests are introduced in front of
-each sSCoP. At the moment there are two different kinds available, 
-invariants and alias tests. Only the later one is used in optimized 
-versions because the former one needs to check the invariant
-every iteration, thus it produces a huge overhead. In contrast to profiling 
-versions which uses both tests to refine the score of a sSCoP.
-Placing the test section was quite easy, since
-Polly itself introduces a (constant) branch before the SCoP anyway. Figure
-\ref{fig:PollySCoPCFG} and \ref{fig:SPollySCoPCFG} shows the (simplified) 
-CFG introduced by Polly and SPolly, respectively. The dotted edge in the CFG
-produced by Polly is not taken (constant false), but remains in the CFG. As far
-as I know, SPolly is the first extension to Polly which uses the untouched 
-original SCoP.
-
-
-\begin{figure}[htbp]
-  \centering
-  \subfloat[Polly CFG]{
-    \begin{minipage}[c][1\width]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{Figures/PollySCoPCFG.eps}
-    \label{fig:PollySCoPCFG}
-    \end{minipage}
-  }
-  \subfloat[SPolly optimized CFG]{
-    \begin{minipage}[c][1\width]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{Figures/SPollySCoPCFG.eps}
-    \label{fig:SPollySCoPCFG}
-    \end{minipage}
-  }
-  \caption{CFG produced by Polly and SPolly, respectively}
-  \label{fig:SCoPCFG}  
-\end{figure}
-
-
-\paragraph{Alias tests \\} 
-~\\
-
-Testing for aliasing pointers in general would not be feasible so another way 
-was chosen. Only sSCoP invariant pointers are tested once before the sSCoP is
-entered. If the test succeeds, thus no aliases are found, the optimized version
-is executed. At compile time the accesses for each base pointer are collected and
-marked either as possible minimal, possible maximal or not interesting access. At 
-runtime all possible minimal and maximal, respectively, accesses are compared 
-and the minimal and maximal access for each base pointer is computed. The alias 
-test as such compares again the minimal access for a base pointer with the maximal 
-accesses for the others and vice versa. At the end of this comparison chain the 
-result replaces the constant guard in the split block right before the original SCoP 
-and the speculative optimized one. If all base pointers are invariant in the
-SCoP the test is complete, thus aliasing can be ruled out for the sSCoP at
-runtime. However, non invariant pointers are not tested at all, as it would 
-imply to perform all computation and testing within the loop. 
-Figure \ref{fig:AliastestConcept} illustrates the concept of the alias
-tests while listing \ref{lst:AliastestAccessesSrc} and figure
-\ref{fig:AliastestAccesses} provide an example with the derived accesses. 
-The alias test for this example would look like listing
-\ref{lst:AliastestAccessesOut}.
-
-
-
-\lstset{frame=none}
-\begin{figure}[htbp]
-  \centering
-  \subfloat[Alias test from a birds eye view]{
-  \includegraphics[width=0.9\textwidth]{Primitives/aliastest.eps}
-  \label{fig:AliastestConcept}  
-  }
-
-  \vspace*{5mm}
-  \subfloat[Aliasing accesses]{
-    \begin{minipage}[c][3cm]{0.5\textwidth}
-    \lstinputlisting{Primitives/Code/aliastestbsp.c}
-    \end{minipage}
-    \label{lst:AliastestAccessesSrc}  
-  }
-  \subfloat[Statically derived min/maximal accesses]{
-    \begin{minipage}[c][3cm]{0.4\textwidth}
-    \vspace*{-2mm}
-    \centering
-    \begin{tabular}{ c c c c }
-      Acc & bp & ma & Ma \\
-      \hline
-      I1 & C & 0 & N$ * $N$ - 1$ \\ 
-      I2 & C & 0 & N$ * $N$ - 1$\\ 
-      I3 & A & 0 & N$ * $N$ - 1$\\ 
-      I4 & B & 0 & N$ * $N$ - 1$\\ 
-    \end{tabular}
-    \end{minipage}
-    \label{fig:AliastestAccesses}  
-  }
-  
-  \subfloat[Introduced compare chain]{
-    \lstinputlisting{Primitives/Code/aliastestout.c}
-    \label{lst:AliastestAccessesOut}  
-  }
-  \caption{Alias tests concept}
-  \label{fig:Aliastest}  
-\end{figure}
-\resetlst
-
-\paragraph{Invariants tests \\}
-~\\
-Apart from alias tests, SPolly may introduce invariants tests if there are
-possibly invariant variables and a function call within a sSCoP. The key idea
-is to monitor possible changes in such variables during the execution of the 
-profiling version. As the results may introduce new dependencies 
-between loop iterations, the sSCoP could be discarded. If it does not, the sSCoP
-may be optimized, depending on its new region score. As this is a 
-disqualification test in the first place, the information gathered about the 
-variables could be used to create specialized sSCoP versions. 
-As mention earlier, the last chapter will discuss specialized versions 
-in more detail. Listing \ref{lst:InvariantTestSRC} gives an example of an sSCoP 
-for which invariant tests can be introduced and \ref{lst:InvariantTestOut} shows
-the modified source. 
-
-
-\lstset{frame=none}
-\begin{figure}[htbp]
-  \centering
-  \subfloat[source]{
-    \begin{minipage}[c][0.55\width]{0.45\textwidth}
-    \lstinputlisting{Primitives/Code/InvariantTestSRC.c}
-    \label{lst:InvariantTestSRC}
-    \end{minipage}
-  }
-  \hspace*{5mm}
-  \subfloat[source with invariant tests]{
-    \begin{minipage}[c][0.55\width]{0.45\textwidth}
-    \lstinputlisting{Primitives/Code/InvariantTest.c}
-    \label{lst:InvariantTestOut}
-    \end{minipage}
-  }
-  \caption{Invariant test introduced by SPolly}
-  \label{lst:InvariantTest}  
-\end{figure}
-\resetlst
-
-\paragraph{Complete Checks \\}
-~\\
-Alias tests may rule out aliasing in sSCoPs completely, thus some sSCoPs become
-valid SCoPs after this tests are introduced. Such non speculative optimizations
-are done by the compile time part of the Sambamba module and may be included in 
-Polly too. An example for such an sSCoP is given in figure 
-\ref{lst:AliastestAccessesSrc}. The presented code is the well known
-matrix multiplication example which is a valid SCoP if the arrays do not alias.
-For the sake of completeness it is to mention that this code could be
-rewritten as array of pointers which would also lead to a sSCoP but without
-complete checks. Chapter \ref{Chapter6} will discuss this example and the various
-implementations in detail.
 
 
 \subsection{Code Generation}
-As part of the extension of Polly a new code generation type was added. Apart 
-from sequential, vectorized and OpenMP annotated code generation SPolly is 
-capable of creating a unrolled and blocked loop, which can be easily 
-translated into an ParCFG, thus parallelized by a Sambamba module. Listing 
-\ref{lst:ForkJoinCodeGenerationOUT} presents this transformation. The special 
-case where lower and upper bound as well as the 
-stride are statically known constants, the second loop, which computes 
-remaining iterations, is completely unrolled.
-This kind of loop unrolling and blocking may find its 
-way into Polly in the near future. 
+\label{CodeGeneration}
+As part of the extension of Polly two new code generation backends were added. 
+Apart from sequential, vectorized and OpenMP code generation, SPolly is 
+capable of creating easily parallelizable loop shapes with regard to fork-join
+parallelism. The first one is an unrolled and blocked loop as denoted by the 
+translation from Figure \ref{lst:ForkJoinCodeGenerationSRC} to
+Figure \ref{lst:ForkJoinCodeGenerationOUT}. A parallel version of this loop will
+execute the N blocked and unrolled iterations concurrently, while there might 
+be remaining ones which are executed sequentially after the loop. 
+Figure \ref{lst:ForkJoinCodeGenerationSPLIT} shows the outcome if the other new
+backend is used. This time the whole loop nest was fragmented into N ``identical''
+ones but with adjusted loop bounds. The main difference between these two approaches 
+is the workload per transaction. While the former one will only execute one
+loop iteration at a time, the latter one will execute one N-th of the 
+iteration space (for N $\ll$ loop trip count). The main similarity is the
+simple CFG structure, which is easily convertible to a ParCFG.
+Figure \ref{fig:CreateParCFG} and \ref{fig:CreateParCFG2} illustrates such
+transformations for the blocking backend and the splitting backend respectively.  
 
-\subsubsection*{Parallelization}
+Since STM transactions will always cause synchronization overhead,
+the second approach has certain advantages over the first one; e.g., 
+if N is chosen as the number of available threads, the overhead is minimal, 
+compared to the achieved parallelism. This is the ``best case'' as long as no
+misspeculation takes place. If there are speculatively removed dependencies
+the former approach might perform better, but in the extrem case where all iterations
+depend on former ones, the second one has an advantage again. As this holds only
+in theory, Section \ref{Rollbacks} compares the maximal number of rollbacks 
+for both new code generation backends in more detail. 
+%It also shows that it is not yet clear 
+%which one will do better under different circumstances,
+%hence there are situations 
 
-In order to secure the speculative executions with Sambambas STM
-(see \ref{SambambaSTM}) the Sambamba parallelizer needs to be used.
-As this parallelizer does not yet support loop parallelization per se, some 
-transformation needed to be done first. The new code generation type was created
-to do the difficult one without recomputing information provided during by the
-polytope model (during the code generation) anyway. As these transformation
-yields code as in listing \ref{lst:ForkJoinCodeGenerationOUT} the creation of
-a ParCFG (see \ref{SambambaParCFG}) remains. Figures \ref{fig:ForkJoinCFG} and
-\ref{fig:ForkJoinParCFG} visualize these changes.
+%translated into an ParCFG, thus parallelized by a Sambamba module. Listing 
+%\ref{lst:ForkJoinCodeGenerationOUT} presents this transformation. The special 
+%case where lower and upper bound as well as the 
+%stride are statically known constants, the second loop, which computes 
+%remaining iterations, is completely unrolled.
+%This kind of loop unrolling and blocking may find its 
+%way into Polly in the near future. 
+
+
+
+%\subsubsection*{Parallelization}
+%In order to secure the speculative executions with Sambambas STM
+%(see \ref{SambambaSTM}) the Sambamba parallelizer needs to be used.
+%As this parallelizer does not yet support loop parallelization per se, some 
+%transformation needed to be done first. The new code generation type was created
+%to do the difficult one without recomputing information provided during by the
+%polytope model (during the code generation) anyway. As these transformation
+%yields code as in listing \ref{lst:ForkJoinCodeGenerationOUT} the creation of
+%a ParCFG (see \ref{SambambaParCFG}) remains. Figures \ref{fig:ForkJoinCFG} and
+%\ref{fig:ForkJoinParCFG} visualize these changes.
 
 
 \lstset{frame=none}
 \begin{figure}[htbp]
   \centering
   \subfloat[Initial loop nest]{
-    \begin{minipage}[c][1\width]{0.45\textwidth}
+    \begin{minipage}[c][0.7\width]{0.45\textwidth}
     \lstinputlisting{Primitives/Code/ForkJoinCodeGenerationSRC.c}
     \label{lst:ForkJoinCodeGenerationSRC}
     \end{minipage}
   }
-  \subfloat[Listing \ref{lst:ForkJoinCodeGenerationSRC} after N-fork creation]{
-    \begin{minipage}[c][1\width]{0.45\textwidth}
+  \subfloat[Figure \ref{lst:ForkJoinCodeGenerationSRC} after N iterations have been blocked and unrolled (Unrolling backend)]{
+    \begin{minipage}[c][0.7\width]{0.45\textwidth}
     \lstinputlisting{Primitives/Code/ForkJoinCodeGenerationOUT.c}
     \label{lst:ForkJoinCodeGenerationOUT}
     \end{minipage}
   }
 
-  \subfloat[SPolly forked CFG]{
-    \begin{minipage}[c][8cm]{0.40\textwidth}
-    \includegraphics[width=0.7\textwidth]{Figures/ForkJoinCFG.eps}
+  \subfloat[Figure \ref{lst:ForkJoinCodeGenerationSRC} after loop splitting (Splitting backend)]{
+    \begin{tabular}{c}
+      \lstinputlisting{Primitives/Code/ForkJoinCodeGenerationSPLIT.c} \\
+      \label{lst:ForkJoinCodeGenerationSPLIT}
+    \end{tabular}
+  }
+  \caption{Outcome of the new code generation backends}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \subfloat[CFG after blocking and unrolling]{
+  \centering
+    \begin{minipage}[c][7cm]{0.5\textwidth}
+    \centering
+      \begin{tabular}{c}
+    \includegraphics[height=6cm]{Figures/ForkJoinCFG.eps}
     \label{fig:ForkJoinCFG} 
+  \end{tabular}
     \end{minipage}
   }
-  \subfloat[SPolly ParCFG]{
-    \begin{minipage}[c][8cm]{0.50\textwidth}
-    \includegraphics[width=\textwidth]{Figures/ForkJoinParCFG.eps}
+  \subfloat[ParCFG created from Figure \ref{fig:ForkJoinCFG}]{
+  \centering
+    \begin{minipage}[c][7cm]{0.5\textwidth}
+    \centering
+      \begin{tabular}{c}
+    \includegraphics[height=6cm]{Figures/ForkJoinParCFG.eps}
     \label{fig:ForkJoinParCFG}
+  \end{tabular}
     \end{minipage}
   }
-  \caption{Forked CFG produced by SPolly and resulting ParCFG}
+  \caption{Forked (Par)CFG after the blocking backend was used}
   \label{fig:CreateParCFG}  
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \subfloat[CFG after loop splitting]{
+    \begin{minipage}[c][7cm]{0.5\textwidth}
+    \centering
+      \begin{tabular}{c}
+    \includegraphics[height=6cm]{Figures/ForkJoinCFG2.eps}
+    \label{fig:ForkJoinCFG2} 
+  \end{tabular}
+    \end{minipage}
+  }
+  \subfloat[ParCFG created from Figure \ref{fig:ForkJoinCFG2}]{
+    \begin{minipage}[c][7cm]{0.5\textwidth}
+    \centering
+      \begin{tabular}{c}
+    \includegraphics[height=6cm]{Figures/ForkJoinParCFG2.eps}
+    \label{fig:ForkJoinParCFG2}
+  \end{tabular}
+    \end{minipage}
+  }
+  \caption{Forked (Par)CFG after the splitting backend was used}
+  \label{fig:CreateParCFG2}  
 \end{figure}
 \resetlst
 
-\section{Sambamba Compile Time Module}
-The compile time part of the Sambamba module locates all sSCoPs
-within the given input module and transfers each one afterwards in a separated 
-function. These extracted sSCoPs are stored within the created Sambamba 
-bitcode or respectively executable file. Extracting every single sSCoP 
-decreases the performance but allows to easily change and combine different 
-optimized sSCoPs, even if they originated from the same function.   
-At the moment there is one exception implemented which will be applied on sSCoPs
-with complete checks, thus valid SCoPs after the tests are passed. All of those
-are optimized in place without consulting the region scores or any other heuristic.
-The functionality of the compile time part is minimal but it helps to focus 
-on profiling and execution during runtime, without analysis overhead. 
-Further work could heavily improve this part, beginning by compile time 
-preparation of the sSCoPs, but imaginable is more than just a precomputed
-profiling or optimized version of a sSCoP.
-As there are a lot of parameters which could have significant impact 
-on the performance, several optimized versions of an sSCoP could be created
-and stored, in order to choose the best depending on the system and the actual
-run, thus depending on runtime information.
-While table \ref{tab:PollyOptions} gives a brief
-overview of available options for Polly, it is not clear which ones will
-fit best for a particular environment and sSCoP. 
-As the method versioning system of Sambamba evolves, the compile time part 
-should, in order to reduce the workload at runtime and increase the ability to
-adapt. 
-
-\section{Sambamba Runtime Module}
-
-In addition to the compile time parts, which only rely on static analyses,
-the runtime part uses different kinds of runtime information to decide. 
-To take advantage of this extra knowledge, most of the decisions, thus most of
-the program logic, is implemented in the runtime module. 
+%\section{Sambamba Compile Time Module}
+%The compile time part of the Sambamba module locates all sSCoPs
+%within the given input. Those sSCoPs are extracted if the applicable tests are 
+%not complete. All extracted sSCoPs are stored within the created Sambamba 
+%bitcode or respectively executable file. Extracting every single sSCoP 
+%decreases the performance as it introduced new call instructions, 
+%but it also allows to easily change and combine different optimized sSCoPs, 
+%even if they originated from the same function.   
+%The functionality of the compile time part is minimal but it helps to focus 
+%on profiling and execution during runtime. 
+%Further work could heavily improve this part, beginning by compile time 
+%preparation of the sSCoPs, up to precomputed profiling and optimized versions.
 
 
-Table \ref{}[TODO] gives an overview of the functionalities.
+
+%\section{Sambamba Runtime Module}
+
+%In addition to the compile time parts, which only rely on static analyses,
+%the runtime part uses different kinds of runtime information to decide. 
+%To take advantage of this extra knowledge, most of the decisions, thus most of
+%the program logic, is implemented in the runtime module. 
 
 
-\begin{table}[htbp]
-  \caption{Functionality of the SPolly Sambamba module}
-  \begin{tabular}{| l |}
-    \hline
+%Table \ref{}[TODO] gives an overview of the functionalities.
+
+
+%\begin{table}[htbp]
+  %\caption{Functionality of the SPolly Sambamba module}
+  %\begin{tabular}{| l |}
+    %\hline
     
-    \hline
-    \hline
+    %\hline
+    %\hline
 
-    \hline
-  \end{tabular}
+    %\hline
+  %\end{tabular}
+%\end{table}
+
+
+
+\section{Profiling for Sambamba}
+
+Sambamba, as research project under heavy development, was not capable of any kind
+of profiling at the beginning of this work. 
+By now, there are two profilers available.
+The first one, implemented by the authors of Sambamba, 
+is used for exact time measuring, while the other one was created considering
+the needs of SPolly. It is capable of collecting execution counts for arbitrary
+program locations and offers an interface to measure and compute
+branch probabilities as well as loop trip counts. Apart from profiling executions
+it can also be used to monitor variables at given program locations, useful 
+in the context of specialization as it might
+provide hints on ``quasi constant'' parameters. If such parameters are encountered,
+specialized versions may yield additional speedups. 
+
+
+
+
+% ID | description | status | patch included | tool
+\begin{table}[htbp]
+\begin{framed}
+  %\vspace*{10mm}
+  \centering
+  \caption{Reported bugs}
+  \begin{tabularx}{\textwidth}{ c | X | c | c | c }
+   Bug-ID & Description & Status & Patch provided  & Component \\
+  \hline \hline
+  12426 & Wrong argument mapping in OpenMP subfunctions & FIXED & partially & Polly \\
+   \hline
+  12427 & Invariant instruction use in OpenMP subfunctions & NEW & yes & Polly \\
+   \hline
+  12428 & Wrong PHInode use in OpenMP subfunctions & NEW & no & Polly \\
+   \hline
+    N/A & Wrong computations of STM guarded code & FIXED & no & Sambamba \\
+  \end{tabularx}
+  \label{tab:Bugreports}
+\end{framed}
 \end{table}
 
 
-
-\subsection{Profiling}
-
-
-\section{Profiling For Sambamba}
-
-Sambamba, as heavily developed research project, was not capable of any kind
-of profiling when I started my work. By now, there are two profilers available.
-The first one, implemented by the authors of Sambamba, 
-is used for exact time measuring, while I created the second one to profiles
-executions and data.
-[TODO if first is used later on, write it here] Both were
-developed during the same time to fulfill different needs and could be
-[TODO will be ?]  merged anytime soon. 
-As most of SPollys parts are unrelated, to both of them, 
-the profiling versions, as their name indicates, would become useless without.
-This will definitely increase the number of unnecessary created (parallel) 
-functions, but it would not render SPolly redundant.
-There a sSCoPs which a guarded by sound checks, thus they can be used with the
-overhead of only the check. As the use of other sSCoPs could increase the 
-performance too, a heuristic could look for promising candidates, even without
-any runtime information. This heuristic could be part of future work since even
-with a profiler by hand, there are cases where the gathered information
-(see [TODO]) are not helpful at all.
-
-
-
-\section{Region Scores}
-Initial efforts to create these scores did not use any kind of 
-memory, thus the whole region was analysed every time new information was available.
-To avoid this unnecessary computations the current score is a
-symbolic value which may contain variables for values not known statically, e.g.,
-branch probabilities or loop bounds.
-Evaluation of these symbolic values will take all profiling 
-information into account and yield a comparable integer value. 
-Only during the initial score creation the region will be traversed to find
-parameters and branches for later annotation. 
-
-All instructions will be scored and the violating ones
-will be checked for their speculative potential.
-As memory instructions are 
-guarded by the STM for the case the speculation failed, calls may not be
-reversible, thus without any speculative potential at all. Such function calls
-are not checked earlier since the region speculation needs the information about
-possible other branches within this region. 
-Listing \ref{lst:sSCoPprintf} 
-provides such an example but these cases will be revisited in the next 
-two chapters too. Table \ref{tab:Scores} lists the scores for the examples in 
-figure \ref{fig:ScoredSCoPs}.
 

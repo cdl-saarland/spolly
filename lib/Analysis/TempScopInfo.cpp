@@ -106,23 +106,23 @@ void TempScopInfo::buildAccessFunctions(Region &R, BasicBlock &BB) {
                                    BasePointer->getValue());
 
       Value *BPValue = BasePointer->getValue();
-      if (!BPValue->hasName()) {
-        if (!val)
-          val = BPValue;
+      //if (!BPValue->hasName()) {
+        //if (!val)
+          //val = BPValue;
 
-        Functions.push_back(std::make_pair(IRAccess(Type,
-                                                  val,
-                                                  AccessFunction, Size,
-                                                  IsAffine),
-                                         &Inst));
-      } else {
+        //Functions.push_back(std::make_pair(IRAccess(Type,
+                                                  //val,
+                                                  //AccessFunction, Size,
+                                                  //IsAffine),
+                                         //&Inst));
+      //} else {
 
       Functions.push_back(std::make_pair(IRAccess(Type,
                                                   BPValue,
                                                   AccessFunction, Size,
                                                   IsAffine),
                                          &Inst));
-      }
+      //}
 
     }
   }

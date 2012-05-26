@@ -4,63 +4,70 @@
 \label{Chapter1}
 \lhead{Chapter 1. \emph{Introduction}} % Write in your own chapter title to set the page header
 
-%\section{Motivation}
+%\vspace\fill%
+%\clearpage
 
-Nowadays multiprocessors became ubiquitous even in the area of personal and 
+%\section{Introduction}
+
+Nowadays multi-core processors became ubiquitous even in the area of personal and 
 mobile computing; however, automatic parallelization did not. 
 Programmers still write sequential code which will be
 translated to sequential binaries and executed by a single thread using only
 one of many cores. % This kind of execution is still normality. 
-Benefits of modern multiprocessors are still unused because neither programmers 
-nor compilers may utilize their potential to the full.
+Benefits of modern multi-core processors are widely unused because neither programmers 
+nor compilers may utilize their potential to the fullest.
 Even if legacy applications would be amenable to parallelization, it is unclear 
-how to find and exploit theirs potential automatically.  
+how to find and exploit their potential automatically.  
 Apart from the retrieval, parallelism faces the same problems as sequential
-code does. Cache invalidation and subsequently cache misses 
+code does. Cache invalidation and subsequent cache misses 
 caused by poor data-locality is a well known one. 
 Heavy research is going on to improve parallelism as well as  data-locality 
-but the results may differ.
+but the results vary in their impact.
 As there are promising approaches suffering from poor applicability on general 
 purpose code, the real problem becomes more and more applying optimizations, not
 developing them. 
 
 
-Techniques using the so called polyhedral model become increasingly popular.
+Lately, techniques using the so called polyhedral model grow in popularity.
 The underlying model is a mathematical description of loop nests with 
-their data dependencies. Optimal solutions in terms of e.g., locality or 
-parallelism can be derived using this model while it implicitly applies 
-traditional optimizations as loop blocking and unrolling. 
+their loop carried data dependencies. Optimal solutions in terms of, e.g.,
+locality or parallelism can be derived using this model while it implicitly
+applies traditional optimizations such as loop blocking and unrolling. 
 Various preliminary results reveal the potential but also the
 limits of this technique. Enormous speedups are possible, 
-but only for very restricted and therefor few locations.
+but only for very restricted and therefore few cases.
 
 
 
 \section{Related Work}
-Research on parallelism and data locality is very popular nowadays, as is the 
-polytope model to tackle these problems. With or without speculation, there are
-promising attempts all using the polytope model, but the wide range 
-impact on general purpose code is still missing.
+Research on parallelism and data locality is very popular nowadays, just like the 
+polyhedral model to tackle these problems is. There are
+promising attempts, all using a non speculative polyhedral model. Yet,
+the wide range impact on general purpose code is still missing.
 
 Tobias Grosser describes in his thesis\cite{grosser:thesis} a speedup of up to
-$8$ for the matrix multiplication benchmark, archived by his polyhedral optimizer 
+8x for the matrix multiplication benchmark, achieved by his polyhedral optimizer 
 Polly\cite{grosser.11.impact}. He also produced similar results for other
 benchmarks of the Polybench\cite{Polybench:Online} benchmark suite. 
 Other publications on this 
 topic\cite{Bondhugula:2008:PAP:1379022.1375595,BCBPR10,Pradelle:2012:PPB:2086696.2086718} 
-show similar results, but they are also limited to the Polybench benchmark suite.
-Admittedly, Polybench is well suited for comparative studies, between these 
+show similar results, but their evaluation is also limited to well suited benchmarks,
+e.g., linear algebra kernels as the ones in the Polybench benchmark suite.
+Admittedly, Polybench is well suited for comparative studies of these 
 approaches, but it has less significance for general applicability. 
-Baghdadi et. al.\cite{BCBPR10} revealed a huge potential for speculative loop 
-optimizations. They state that aggressive loop nest optimizations (including 
-parallel execution) are profitable and possible, even though data and flow 
-dependencies would statically prevent them. 
-Theirs hand made tests also showed 
-the impact when different kinds of conflict management are used. 
-The results differ from loop to loop as the availability of such conflict 
-management systems does. But even if the choice is restricted to one or two, 
-their results indicate a general speedup. 
 
+Baghdadi et al.\cite{BCBPR10} revealed a huge potential for speculative loop 
+optimizations as an extension to the former described techniques.
+They state that aggressive loop nest optimizations (including 
+parallel execution) are profitable and possible, even though overestimated 
+data and flow dependencies would statically prevent them. 
+Their manually crafted tests also show the impact of different kinds of 
+conflict management. Overhead and therefore speedup differs from loop to loop,
+as the applicability of such conflict management systems does,
+but a trend was observable. 
+The best conflict management system has to be determined per loop and per input,
+but all can provide speedup, even if they are not that well suited for the
+situation.
 
 
 
@@ -69,20 +76,28 @@ their results indicate a general speedup.
 SPolly, short for speculative Polly, is an attempt to combine two recent research 
 projects in the context of compilers. 
 There is Polly, an LLVM project to increase data-locality
-and parallelism of regular loop nests and Sambamba, which 
-pursues a new, adaptive way of compiling and offers features like method 
+and parallelism of regular loop nests, and Sambamba, which 
+pursues a new, adaptive way of compiling. It offers features like method 
 versioning, speculation and runtime adaption. As an extension of the former one
-and with the capabilities offered by the later one,
-SPolly can perform state-of-the-art loop optimizations on a wide range of loops,
-even in general purpose benchmarks as the SPEC 2000 benchmark suite. It is also
-capable of detection promising loops for parallel execution even if they contain 
-irreversibel function calls or non computable dependencies.
-This thesis will explain under what circumstances speculation is possible,
-how static and dynamic information are used to minimize the amount of
+and with the capabilities offered by the latter one,
+SPolly can perform state-of-the-art loop optimizations and speculative but sound
+loop parallelization on a wide range of loops,
+even in general purpose benchmarks as the SPEC 2000 benchmark suite. 
+In this context, candidate loops for speculative parallelization may
+contain non-computable data dependencies (including possible aliases) 
+as well as observable side effects which prohibit  parallelization at first.
+The speculative potential of such a candidate loop depends not only on the size and the trip
+count, but also on the execution probability of these dependencies and function calls.
+Summarized, SPolly detects promising candidate loops, speculatively parallelizes
+them and monitors the result to tackle possible misspeculation. 
+
+This thesis will explain under which circumstances speculation is possible,
+how static and dynamic information is used to minimize the amount of
 misspeculation and how this is integrated into the existing environment of 
 Polly and Sambamba. To substantiate the improvements of this work an evaluation on 
 SPEC 2000 benchmarks and a case study on different versions of
 the matrix multiplication benchmark is presented at the end.
+
 
 %The key idea is to enable more loop optimizations by speculation.
 %To demarcate this from guessing, profiling is used and combined with 
@@ -90,20 +105,20 @@ the matrix multiplication benchmark is presented at the end.
 %as well as the restrictions  which are weakened or even removed. 
 
 
-The rest of the thesis will be organised as follows. 
-First Chapter \ref{Chapter2} will provide information on the used tools and techniques,
+The rest of the thesis is organised as follows:
+Chapter \ref{Chapter2} will provide information on the used tools and techniques,
 especially Polly and Sambamba. Afterwards the concept as well as the key ideas 
 are stated in Chapter \ref{Chapter3}. 
 Technical details about SPolly are given in Chapter \ref{Chapter4}, followed by 
-an evaluation on the SPEC 2000 and Polybench 3.2 benchmark suites 
-(Chapter \ref{Chapter5}). 
-While Chapter \ref{Chapter7} concludes the thesis and provides ideas for
-future work, a detailed case study on different versions of the matrix 
-multiplication example is presented in Chapter \ref{Chapter6}. 
+an evaluation on the SPEC 2000 benchmark suite (Chapter \ref{Chapter5}). 
+Chapter \ref{Chapter6} presents a detailed case study on different 
+versions of the matrix multiplication example and in the end 
+a conlusion and ideas for future work are provided (Chapter \ref{Chapter7}).
 
+%\vfill
 %\vspace*{5mm}
 \paragraph*{Note} ~ \\
-For simplicity source code is presented in a C like language only.
+For reasons of simplicity, source code is presented in a C like language only.
 
 
 

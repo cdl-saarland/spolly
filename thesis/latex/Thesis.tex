@@ -18,6 +18,7 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{amsthm}
+\usepackage{framed}
 
 %% ----------------------------------------------------------------
 \begin{document}
@@ -31,7 +32,7 @@
             {Johannes Rudolf Doerfert}
             }
 \addresses  {\groupname\\\deptname\\\univname}  % Do not change this here, instead these must be set in the "Thesis.cls" file, please look through it instead
-\date       {\today}
+\date       {May 23, 2012}
 \subject    {}
 \keywords   {}
 
@@ -114,7 +115,44 @@ Brian Kernighan, professor at Princeton University
 \clearpage  % Funny Quote page ended, start a new page
 %% ----------------------------------------------------------------
 
+%\newcommand{\Abstract}{Zusammenfassung}
+%% The Abstract Page German
+%%\addtotoc{Zusammenfassung}  % Add the "Abstract" page entry to the Contents
+%\abstract{
+%%\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+
+%SPolly, kurz f\"ur spekulatives Polly, ist ein Versuch zwei aktuelle 
+%Forschungsprojekte aus dem Bereich des \"Ubersetzerbaus zu kombinieren. 
+%Genauer w\"aren das Polly, ein LLVM Projekt um r\"aumliche Datenlokalit\"at und Parallelit\"at
+%von regul\"aren Schleifen zu steigern, und Sambamba, welches adaptive Programm\"ubersetzung  erm\"oglicht. Desweiteren geh\"oren Versionsverwaltung, Spekulation
+%und Laufzeit Anpassungen zu den Besonderheiten von Sambamba. Als Erweiterung 
+%von Polly und mit den M\"oglichkeiten von Sambamba ist SPolly im Stande neuste 
+ %Optimierungen und spekulative Parallelisierung auf eine Vielzahl von Schleifen 
+ %anzuwenden, sogar bei allgemeinen Anwendungen wie sie zum Beispiel 
+ %in der SPEC 2000 Testsammlung zu finden sind. 
+ %In solchen Kontexten beinhalten Schleifen
+  %nicht (statisch) analysierbare Abh\"angigkeiten und beobachtbare Funktionsaufrufe. 
+%Das Potential f\"ur Spekulation h\"angt in solchen F\"allen nicht nur von der 
+%Gr\"o\ss{}e der Schleife und der Anzahl der Iterationen ab, sondern auch von der
+%Warscheinlichkeit das Abh\"angigkeiten und Funktionsaufrufe auftreten.
+%Zusammengefasst findet SPolly vielversprechende Schleifen, parallelisiert diese
+%spekulativ und beobachtet das Ergebnis um m\"oglichen Fehlspekulationen entgegenzuwirken.
+
+%Diese Arbeit beschreibt unter welchen Umst\"anden Spekulation m\"oglich ist, 
+%wie statische und dynamische Informationen genutzt werden k\"onnen um Fehlspekulationen
+%zu vermeiden und wie SPolly sich in die vorhandene Infrastruktur integriert.
+%Eine Evaluation mit der SPEC 2000 Testsammlung und verschiedenen
+%Versionen des Matrix Multiplikation wird die Ergebnisse und die Vorteile darlegen.
+
+%Diese Arbeit ist in englischer Sprache verfasst.
+
+%}
+
+%\clearpage  % Abstract ended, start a new page
+
+%% ----------------------------------------------------------------
 % The Abstract Page
+\newcommand{\Abstract}{Abstract}
 \addtotoc{Abstract}  % Add the "Abstract" page entry to the Contents
 \abstract{
 \addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
@@ -122,20 +160,46 @@ Brian Kernighan, professor at Princeton University
 SPolly, short for speculative Polly, is an attempt to combine two recent research 
 projects in the context of compilers. 
 There is Polly, an LLVM project to increase data-locality
-and parallelism of regular loop nests and Sambamba, which 
-pursues a new, adaptive way of compiling and offers features like method 
+and parallelism of regular loop nests, and Sambamba, which 
+pursues a new, adaptive way of compiling. It offers features like method 
 versioning, speculation and runtime adaption. As an extension of the former one
-and with the capabilities offered by the later one,
-SPolly can perform state-of-the-art loop optimizations on a wide range of loops,
-even in general purpose benchmarks as the SPEC 2000 benchmark suite. It is also
-capable of detection promising loops for parallel execution even if they contain 
-irreversibel function calls or non computable dependencies.
-This thesis will explain under what circumstances speculation is possible,
-how static and dynamic information are used to minimize the amount of
+and with the capabilities offered by the latter one,
+SPolly can perform state-of-the-art loop optimizations and speculative but sound
+loop parallelization on a wide range of loops,
+even in general purpose benchmarks as the SPEC 2000 benchmark suite. 
+In this context, candidate loops for speculative parallelization may
+contain non-computable data dependencies (including possible aliases) 
+as well as observable side effects which prohibit  parallelization at first.
+The speculative potential of such a candidate loop depends not only on the size and the trip
+count, but also on the execution probability of these dependencies and function calls.
+Summarized, SPolly detects promising candidate loops, speculatively parallelizes
+them and monitors the result to tackle possible misspeculation. 
+
+This thesis will explain under which circumstances speculation is possible,
+how static and dynamic information is used to minimize the amount of
 misspeculation and how this is integrated into the existing environment of 
 Polly and Sambamba. To substantiate the improvements of this work an evaluation on 
 SPEC 2000 benchmarks and a case study on different versions of
 the matrix multiplication benchmark is presented at the end.
+
+%SPolly, short for speculative Polly, is an attempt to combine two recent research 
+%projects in the context of compilers. 
+%There is Polly, an LLVM project to increase data-locality
+%and parallelism of regular loop nests and Sambamba, which 
+%pursues a new, adaptive way of compiling and offers features like method 
+%versioning, speculation and runtime adaption. As an extension of the former one
+%and with the capabilities offered by the later one,
+%SPolly can perform state-of-the-art loop optimizations on a wide range of loops,
+%even in general purpose benchmarks as the SPEC 2000 benchmark suite. 
+%[CHANGED removed sentence about irreversible function calls an detection of promising loops, added TODO]
+%[TODO Should I say something about the ideas for future work ?]
+%This thesis will explain under what circumstances speculation is possible,
+%how static and dynamic information are used to minimize the amount of
+%misspeculation and how this is integrated into the existing environment of 
+%Polly and Sambamba. 
+%To substantiate the improvements of this work an evaluation on 
+%SPEC 2000 benchmarks and a case study on different versions of
+%the matrix multiplication benchmark is presented too.
 
 
 }
@@ -144,24 +208,29 @@ the matrix multiplication benchmark is presented at the end.
 %% ----------------------------------------------------------------
 
 \setstretch{1.3}  % Reset the line-spacing to 1.3 for body text (if it has changed)
-
+\null\vfil
 % The Acknowledgements page, for thanking everyone
 \acknowledgements{
 \addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
 
-  Although I have no ``Loving Wife'' I could thank for keeping the children away 
+  Although I have no ``Loving Wife'' I could thank for keeping the children away,
   there were many friends which helped me to bear the brunt of the work. Especially 
   during the last, indeed frantic days they did their utmost.
-  When the only concern is the verging 
-  deadline you may consider yourself lucky if you can pass on all other matters. 
+  When the only concern is the verging  deadline you may consider yourself lucky
+  if you can pass on nearly all other matters. With this in mind it remains to 
+  say: Joshua, Ruben and Sarah; Thank you!
+
   As the daily living is important but not everything when you write your first
-  academic contribution I have to extend special thanks to my advisors. Both of
+  academic contribution, I have to extend special thanks to my advisors. Both of
   them did a heck of a job and endured all my moods and quirks. 
-  Not only that they were always accessible for questions but they also 
-  encouraged me to structure my work, something I am admittedly not that good at. 
+  They were always accessible for questions and helped me in the best possible way 
+  during all stages of this work. Furthermore (and in my opinion even more important),
+  they encouraged me to structure my work,  something I am admittedly not that good at. 
   From my present view I know it was the best supervision possible.
-  I also owe special thanks to my supervising professor for the freedom of 
-  this thesis and the content. 
+
+  Last but not least, I owe special thanks to my supervising professor for the
+  liberty he granted me. Even if it took some time to find (or to define) 
+  the topic, it was a great experience I would not like to miss. 
 
 
 }
@@ -171,38 +240,15 @@ the matrix multiplication benchmark is presented at the end.
 \pagestyle{fancy}  %The page style headers have been "empty" all this time, now use the "fancy" headers as defined before to bring them back
 
 
+
 %% ----------------------------------------------------------------
 \lhead{\emph{Contents}}  % Set the left side page header to "Contents"
+\dominitoc
 \tableofcontents  % Write out the Table of Contents
 \clearpage
 
 
 
-%% ----------------------------------------------------------------
-\setstretch{1.5}  % Set the line spacing to 1.5, this makes the following tables easier to read
-\clearpage  % Start a new page
-\lhead{\emph{Abbreviations}}  % Set the left side page header to "Abbreviations"
-\listofsymbols{ll}  % Include a list of Abbreviations (a table of two columns)
-{
-% \textbf{Acronym} & \textbf{W}hat (it) \textbf{S}tands \textbf{F}or \\
-\textbf{AA} & \textbf{A}lias \textbf{A}nalysis \\
-\textbf{CFG} & \textbf{C}ontrol \textbf{F}low \textbf{G}raph   \\
-\textbf{cloog} & \textbf{C}hunky \textbf{Loo}p \textbf{G}enerator \\
-\textbf{isl} & \textbf{i}nteger \textbf{s}et \textbf{l}ibrary \\
-\textbf{LOC} & \textbf{l}ines \textbf{o}f \textbf{c}ode   \\
-\textbf{LLVM} & \textbf{L}ow \textbf{L}evel \textbf{V}irtual \textbf{M}achine \\
-\textbf{LLVM-IR} & LLVM \textbf{I}ntermediate \textbf{R}epresentation  \\
-\textbf{OpenMP} & \textbf{Open} \textbf{M}ulti-\textbf{P}rocessing   \\
-\textbf{Polly} & \textbf{Poly}hedral \textbf{LL}VM   \\
-\textbf{SCoP} & \textbf{S}tatic \textbf{Co}ntrol \textbf{P}art \\
-\textbf{sSCoP} & \textbf{s}peculative \textbf{S}tatic \textbf{Co}ntrol \textbf{P}art \\
-\textbf{SIMD} & \textbf{S}ingle \textbf{I}nstruction \textbf{M}ultiple \textbf{D}ata   \\
-\textbf{SPolly} & \textbf{S}peculative \textbf{P}olly \\
-\textbf{ParCFG} & \textbf{Par}allel \textbf{CFG}   \\
-  
-
-
-}
 
 %% ----------------------------------------------------------------
 %\clearpage  % Start a new page
@@ -243,7 +289,7 @@ the matrix multiplication benchmark is presented at the end.
 
 % Include the chapters of the thesis, as separate files
 % Just uncomment the lines as you write the chapters
-
+\setcounter{mtc}{4}
 \input{./Chapters/Chapter1} % Introduction
 
 \input{./Chapters/Chapter2} % Background Theory 
@@ -274,6 +320,28 @@ the matrix multiplication benchmark is presented at the end.
 \listoftables  % Write out the List of Tables
 \clearpage
 
+%\addtocontents{toc}{\vspace{1em}} % Add a gap in the Contents, for aesthetics
+%%% ----------------------------------------------------------------
+%\setstretch{1.5}  % Set the line spacing to 1.5, this makes the following tables easier to read
+%\clearpage  % Start a new page
+%\lhead{\emph{Abbreviations}}  % Set the left side page header to "Abbreviations"
+%\listofsymbols{ll}  % Include a list of Abbreviations (a table of two columns)
+%{
+%% \textbf{Acronym} & \textbf{W}hat (it) \textbf{S}tands \textbf{F}or \\
+%\textbf{AA} & \textbf{A}lias \textbf{A}nalysis \\
+%\textbf{CFG} & \textbf{C}ontrol \textbf{F}low \textbf{G}raph   \\
+%\textbf{cloog} & \textbf{C}hunky \textbf{Loo}p \textbf{G}enerator \\
+%\textbf{isl} & \textbf{i}nteger \textbf{s}et \textbf{l}ibrary \\
+%\textbf{LOC} & \textbf{l}ines \textbf{o}f \textbf{c}ode   \\
+%\textbf{LLVM-IR} & LLVM \textbf{I}ntermediate \textbf{R}epresentation  \\
+%\textbf{OpenMP} & \textbf{Open} \textbf{M}ulti-\textbf{P}rocessing   \\
+%\textbf{Polly} & \textbf{Poly}hedral \textbf{LL}VM   \\
+%\textbf{SCoP} & \textbf{S}tatic \textbf{Co}ntrol \textbf{P}art \\
+%\textbf{sSCoP} & \textbf{s}peculative \textbf{S}tatic \textbf{Co}ntrol \textbf{P}art \\
+%\textbf{SIMD} & \textbf{S}ingle \textbf{I}nstruction \textbf{M}ultiple \textbf{D}ata   \\
+%\textbf{SPolly} & \textbf{S}peculative \textbf{P}olly \\
+%\textbf{ParCFG} & \textbf{Par}allel \textbf{CFG}   \\
+%}
 %% ----------------------------------------------------------------
 %\lhead{\emph{List of Listings}}  % Set the left side page header to "List of Listings"
 %\renewcommand*{\lstlistingname}{List of Listings}
@@ -281,7 +349,7 @@ the matrix multiplication benchmark is presented at the end.
 %\clearpage
 
 
-\addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{1em}} % Add a gap in the Contents, for aesthetics
 
 \appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
 

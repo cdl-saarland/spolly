@@ -1,7 +1,82 @@
 % Chapter 7
 
-\chapter{Conclusion} % Write in your own chapter title
+\chapter{Conclusion and Future Work} % Write in your own chapter title
 \label{Chapter7}
-\lhead{Chapter 7. \emph{Conclusion}} % Write in your own chapter title to set the page header
+\lhead{Chapter 7. \emph{Conclusion and Future Work}} % Write in your own chapter title to set the page header
+%As this work was only the first step towards speculative polyhedral optimization
+%there is still open work and ideas not implemented yet. Nevertheless, we think 
+%that SPolly, as presented here, already provides sufficient evidences for the
+%benefits of this approach.
+
+%The approach benefits not only from the underlying polyhedral model but also from
+%the concepts presented in chapter \ref{Chapter3}. 
+%The widened applicability and the features offered by Sambamba 
+%might be reasons to think about more aggressive specializations at this point in time.
 
 
+\section{Future Work}
+The preceding Chapters already mentioned several possible approaches for future work 
+but it is worth to summarize and supplement the list. 
+
+The Sambamba framework and especially the method versioning is designed for 
+multiple specialized versions of a single function.
+Up to this point there is still open work in this context,
+both on the side of Sambamba and of SPolly. For the latter one 
+preparations have already been made to catch up when the method versioning 
+implementation of Sambamba proceeds. 
+The sSCoP extraction explained in Section \ref{sSCoPExtraction} allows multiple
+loop nest optimizations and specializations with minimal costs in terms of space
+as well as for analyses and transformations. Once a SCoP is extracted, the 
+new created function is well suited for local transformations.
+Parameters,  e.g., for loop trip counts, could be replaced by constants if
+profiling information indicated a certain probability for such a case.
+Furthermore, SPolly could create multiple optimized versions of the same sSCoP
+using  different options and values e.g., for the tile size.
+The case study indicated  that changes for just this particular value may have
+significant impact on the performance (3.35x faster compared to the default value).
+Considering now the vector width or the fusion strategy, it is unclear whether 
+changes could yield similar speedups for certain, not yet investigated, situations. 
+Apart from specialization, future work could allow SPolly to differentiate between
+real and overestimated dependencies or, to be more precise, it could allow SPolly 
+to remove the overestimated dependencies during the code generation. This 
+approach would certainly exploit more parallelism but still restrict
+the level of speculation. Furthermore, all speculative approaches could benefit 
+from improved profiling, especially dependency profiling seems plausible in this context. 
+
+
+
+%\begin{table}[htpb]
+  %\begin{framed}
+    %\centering
+    %\caption{Possible specializations for sSCoPs}
+  %\label{tab:FutureWork1}
+  %\begin{tabular}{l | c | }
+    
+  %\end{tabular}
+  %\end{framed}
+%\end{table}
+
+
+\section{Conclusion}
+SPolly is a speculative extension for the polyhedral optimizer Polly which 
+improves the applicability and provides first specialization approaches. The
+key concepts are not fully usable yet, but still effective. 
+Compared to Polly, SPolly reveals 1.5x more parallelizable loops 
+on the SPEC 2000 benchmarks and it is able to exploit more parallelism,
+even in the absence of Sambamba and an STM.
+Used as a non-speculative optimizer SPolly utilizes the functionality of 
+Polly and combines it with complete alias checks to secure the parallel execution.
+As this behaviour is only a spin-off, the real strength of SPolly lies in the speculation. 
+Region scores, the heuristic used to rank detected sSCoPs, combine static information
+with profiling data and the results of the introduced checks. Based on these ranks,
+SPolly will not only create a speculatively parallelized version for promising 
+sSCoPs but also utilize the strength of the polyhedral model to improve their 
+data-locality. 
+
+In the context of the case study, SPolly shows that both parallelization and 
+polyhedral optimization can be effectively combined with speculation to improve 
+their applicability and the performance for more realistic versions of the 
+matrix multiplication example. Based on these results it is eligible to state 
+SPolly as an effective extension to the polyhedral optimizer Polly, but
+with wider applicability on general purpose code and even better results for the 
+matrix multiplication.

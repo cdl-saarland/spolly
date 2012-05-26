@@ -1510,6 +1510,8 @@ void ClastStmtCodeGen::codegenForChunks(const clast_for *f) {
 
   unsigned chunk  = 0;
   UpperBound = Builder.CreateAdd(LowerBound, ChunkSize);
+  UpperBound = Builder.CreateSelect(Builder.CreateICmpSLE(UpperBound, UpperBoundOrig),
+                                      UpperBound, UpperBoundOrig);
   do {
      
     IV = createLoop(LowerBound, UpperBound, Stride, Builder, P, AfterBB);
@@ -2147,8 +2149,8 @@ void ClastStmtCodeGen::codegenForVector(const clast_for *F) {
 void ClastStmtCodeGen::codegen(const clast_for *f) {
   bool enabled = (Vector || OpenMP || ForkJoin);
   bool isParallelFor = P->getAnalysis<Dependences>().isParallelFor(f);
-  //(dbgs() << "Codegen: " << enabled << " && " 
-        //<< isParallelFor << "\n");
+  (dbgs() << "Codegen: " << enabled << " && " 
+        << isParallelFor << "\n");
   if ( enabled && isParallelFor ) {
     //(dbgs() << "   InnermostLoop: " << isInnermostLoop(f) << "\n");
     int ni = getNumberOfIterations(f);
@@ -2189,14 +2191,14 @@ void ClastStmtCodeGen::codegen(const clast_for *f) {
   DEBUG(dbgs() << "parallelCodeGeneration : " << parallelCodeGeneration
         << "  SPOLLY_CHUNKS " << SPOLLY_CHUNKS << "\n");
 
-  if (SPOLLY_CHUNKS && !parallelCodeGeneration) {
-    DEBUG(dbgs() << "\t Call codegen for Cunks \n");
-    parallelCodeGeneration = true;
-    parallelLoops.push_back(f->iterator);
-    codegenForChunks(f);
-    parallelCodeGeneration = false;
-    return;
-  }
+  //if (SPOLLY_CHUNKS && !parallelCodeGeneration) {
+    //DEBUG(dbgs() << "\t Call codegen for Cunks \n");
+    //parallelCodeGeneration = true;
+    //parallelLoops.push_back(f->iterator);
+    //codegenForChunks(f);
+    //parallelCodeGeneration = false;
+    //return;
+  //}
 
   DEBUG(dbgs() << "\t Call codegen for Sequential \n");
   codegenForSequential(f);

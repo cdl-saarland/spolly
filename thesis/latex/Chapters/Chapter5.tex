@@ -4,178 +4,508 @@
 \label{Chapter5}
 \lhead{Chapter 5. \emph{Evaluation}} % Write in your own chapter title to set the page header
 
-\red
-\begin{shaded}
-
-The evaluation, as essential part of this thesis, allows to compare the this 
-work with others which share the same goals. Since it is hard to put effort in
-figures, the evaluation may provide information about the results of them.
-Correctness, applicability and speedup have been the stated goals which were 
-tested using the SPEC 2000 and Polybench 3.2 benchmark suites. While the former
-one contains general benchmarks used to evaluate most new optimizations, the 
-later one is especially designed for polyhedral optimizations as done by SPolly.
-These benchmarks might not reflect the reality in everyday optimization but
-they might be used to compare SPolly and Polly 
-(as presented in the diploma thesis of Tobias Grosser \cite{grosser:thesis}).
-
-
-\section{The Environment}
-
-(more details in table \ref{tab:EvaluationEnvironment}). 
-\begin{wraptable}[]{r}{0.42\textwidth}
+\begin{wraptable}[]{r}{0.36\textwidth}
+  \vspace*{-6mm}
+  \begin{framed}
   \caption{The evaluation environment}
-  \begin{center}
-    \begin{tabular}{ r | c c }
-      & A & B \\
+    \begin{tabular}{ r | c }
+      & Machine \\
       \hline
-            CPU & i5 M560 & X5570 \\ 
-    clock speed & 2.67GHz & 2.93GHz \\
-    smart cache & 3MB & 8MB \\
-        \#cores & 2 & 8 \\
-      \#threads & 4 & 16 \\
-            RAM & 6GB & 24 GB \\
-           LLVM & 3.0 debug & 3.0 \\
-             OS & Arch  & Gentoo R7 \\
+            CPU &  X5570 \\ 
+    clock speed & 2.93GHz \\
+    L2 cache &  8MB \\
+        \#cores &  8 \\
+      \#threads &  16 \\
+            RAM &  24 GB \\
+           LLVM &  3.0 \\
+            OS &  Gentoo R7 \\
     \end{tabular}
-  \end{center}
   \label{tab:EvaluationEnvironment}
+  \end{framed}
+  \vspace*{-9mm}
 \end{wraptable}
-running Arch linux with an
-\textit{Intel(R) Core(TM) i5 CPU M 560 @ 2.67GHz} and 6GB RAM. Parallel versions
-could use up to four simultaneous running threads. 
-The second one ... TODO ... 
-As the compile time evaluation is machine independent, it was 
-performed on the general purpose machine only. Contrary, the runtime evaluation 
-has been performed twice, once on each machine. 
+SPolly is based on Sambamba and Polly, both research tools under heavy development.
+It is hardly surprising that during the implementation of SPolly, 
+but also during the evaluation,  problems occurred. 
+Even if some of them could be fixed without incurring too much delay, there are still
+open problems. On the one hand there are reported bugs (see Table \ref{tab:Bugreports})
+which will be resolved in future releases. And on the other hand there is the
+current STM implementation in the Sambamba framework which does neither provide
+a commit order nor a wait construct, as most general STM implementations do not.
+Because of those problems it is currently not possible to handle arbitrary general 
+purpose code. Even non-speculative parallelization for SPEC benchmarks will 
+certainly cause Polly to crash or to produce invalide code.
+Nevertheless, we provide quantitative results on the applicability of 
+SPolly on SPEC 2000 benchmarks as well as 
+%performance data for the matrix multiplication
+%example (in the next Chapter).
+%As mentioned, the current state of Polly and Sambamba did not allow us to evaluate SPolly 
+%in a proper way, so we provide 
+a discussion on the shape and characteristics 
+of the detected sSCoPs. For performance data we refere to the next Chapter as it 
+contains a detailed evaluation for several versions of the  matrix multiplication example. 
 
-The work and thus the evaluation is based on an LLVM 3.0 build 
-with enabled assertions and disabled optimization. All source files have been 
-converted by clang to LLVM-IR files, optimized by opt and ... TODO linked TODO
+%all detected sSCoPs, we only provide a discussion on (some of the) sSCoPs with complete
+%checks detected in the 300.twolf benchmark. 
+%In this context ``some'' means exactly three, as for all others Polly will create 
+%invalid code according to the reported bugs.  
+%We looked only at sSCoPs with complete checks as we can guarantee a sound result 
+%with no need of an (extended) STM implementation. 
 
-\begin{center}TODO picture of the chain\end{center}
+%As the STM implementation 
+%is no problem, Polly is. 
+%Furthermore, a detailed case study and evaluation on several versions of the matrix 
+%multiplication example is given in the next Chapter.
 
+Information about the environment used for the evaluation but also for the case study 
+is given in Table \ref{tab:EvaluationEnvironment}.
 
-\section{Compile Time Evaluation}
-The main part of the compile time evaluation aims to get quantitative results 
-about valid and invalid sSCoPs. These results correspond with the applicability 
-of this work, as they both outline how many regions can be taken into account now
-and which work is needed to increase this number. 
-As mentioned earlier this part is mainly machine independent, since the quantitative
-results are. There is one case where compile time transformation can improve the
-program with no need of speculation at all. 
-These cases are explained and evaluated separately in section 
-\ref{soundCTtransformations}.
-
-
-\subsection{Preperation}
-TODO
- -basicaa -indvars -mem2reg -polly-independent -polly-region-simplify -polly-prepare 
+%As this  includes the SPEC 2000 benchmark suite, 
+%we will shift the evaluation such that most of the runtime evaluation 
+%is done for a simpler example. The chosen matrix multiplication has a major benefit. 
+%Its popularity allows us to compare the results with related. Due to the 
 
 
-\subsection{Quantitative Results}
+%\begin{wraptable}[]{r}{0.42\textwidth}
+  %\caption{The evaluation environment}
+  %\begin{center}
+    %\begin{tabular}{ r | c c }
+      %& A & B \\
+      %\hline
+            %CPU & i5 M560 & X5570 \\ 
+    %clock speed & 2.67GHz & 2.93GHz \\
+    %smart cache & 3MB & 8MB \\
+        %\#cores & 2 & 8 \\
+      %\#threads & 4 & 16 \\
+            %RAM & 6GB & 24 GB \\
+           %LLVM & 3.0 debug & 3.0 \\
+             %OS & Arch  & Gentoo R7 \\
+    %\end{tabular}
+  %\end{center}
+  %\label{tab:EvaluationEnvironment}
+%\end{wraptable}
 
-\subsubsection{SPEC2000}
-TODO why not all spec2000 benchmarks ? \\
-TODO 
 
-\end{shaded}
+\section{Quantitative Results}
+%The presented quantitative results can be divided into several parts.
+%First of all, Polly and SPolly are compared or, to be more precise, 
+%the number of detected SCoPs and sSCoPs.
+%These results correspond to the applicability of SPolly, 
+%as they outline how many additional regions can be speculatively 
+%optimized and at least partially parallelized now. 
+%Even if the number of speculative SCoPs does not correspond to the amount 
+%of exploitable parallelism, future work on Polly, especially 
+%the dependency analysis, could allow more SCoPs and sSCoPs (e.g., case E of 
+%the case study) to be parallelized.
+%Afterwards, the ``quantity'' of the detected sSCoPs is described. Even if we cannot 
+%provide a full performance evaluation, this should give hints on the expected 
+%results. 
 
+%\subsection{Polly Versus SPolly}
 
-\begin{figure}[htbp]
-	\centering
-        \includegraphics[width=0.9\textwidth]{SPEC2000CT.pdf}
-		\rule{35em}{0.5pt}
-	\caption{Numbers of valid and speculative valid SCoPs}
-	\label{fig:SPEC2000CT}
-\end{figure}
+Speculative SCoPs are an extension to ordinary SCoPs, thus we may compare them 
+in terms of quantity and the amount of parallelism we can exploit. 
+Absolute numbers together with general  
+information about the benchmarks are listed in Table 
+\ref{tab:TAB}, while a graphical representation is given by Figure \ref{fig:ParallelizableSCoPs}. 
+First note that the \textbf{SCoPs} (\textbf{sSCoPs}) column in Table \ref{tab:TAB} contains the 
+number of detected SCoPs (sSCoPs) as well as the number of \textit{parallelizable} SCoPs 
+(sSCoPs). The other columns provide the number of instructions 
+(\textbf{\#instr}), functions (\textbf{\#func}) and simple regions (\textbf{\#sr})
+for a particular benchmark.  \\
 
-\subsubsection{Polybench 3.2}
-\begin{figure}[htbp]
-	\centering
-        \includegraphics[width=0.9\textwidth]{polybenchCT.pdf}
-		\rule{35em}{0.5pt}
-	\caption{Numbers of valid and speculative valid SCoPs}
-	\label{fig:polybenchCT}
-\end{figure}
+%The average running time of SPolly is of special interest,
+%because the current implementation always computes the initial region score and 
+%all  possible tests when an sSCoP is created. A plain comparison with the SCoP detection of 
+%Polly. With the exception of the twolf benchmark, SPolly seams to be 
+%proportional in the number, but also in the size of the detected scops.
+%The number of detected sSCoP has been more than doubled in comparison to Polly,
+%a good ratio for the first try to weaken the requirements on SCoPs.
 
 \begin{table}[htbp]
+  \centering
+  \begin{framed}
   \caption{Results of running Polly and SPolly on SPEC 2000 benchmarks}
-  \begin{tabular}{| l | r | r | r | r | r | r | r |}
-    \hline
+  \begin{tabularx}{0.81\textwidth}{l | r | r | r | X | X }
+    %\hline
     %\multirow{2}{*}{\textbf{Benchmark}} & \multirow{2}{*}{\textbf{\#func}} & \multicolumn{2}{c|}{\textbf{\#simple regions}} & \multirow{2}{*}{\textbf{\#instr}} &  \multicolumn{2}{c|}{\textbf{valid SCoPs}} &  \multicolumn{2}{c|}{\textbf{Avg detection time}} \\
-    \multirow{2}{*}{\textbf{Benchmark}} & \multirow{2}{*}{\textbf{\#instr}} & \multicolumn{2}{c|}{\textbf{\#simple regions}} &  \multicolumn{2}{c|}{\textbf{valid SCoPs}} &  \multicolumn{2}{c|}{\textbf{Avg detec. time}} \\
+    \textbf{Benchmark} &\textbf{\#instr} & \textbf{\#func} &\textbf{\#sr} &\centering \textbf{SCoPs}& \textbf{\ sSCoPs} \\
     %\cline{6-9} \cline{3-4}
-    \cline{3-8} 
-    & & \textbf{initial} & \textbf{prepared} & \textbf{Polly} & \textbf{SPolly} & \textbf{Polly} & \textbf{SPolly} \\
+    %\cline{3-6} 
     \hline
     \hline
-    188.ammp   & 19824  & 205 & 208 & 12 & 45 & &  \\
-    179.art    &  1667  & 66  &  66 &  5 & 16 & &  \\
-    256.bzip2  &  3585  & 114 & 116 & 13 &  7 & &  \\
-    186.crafty & 25541  & 305 & 310 & 23 & 23 & &  \\
-    183.equake &  2585  &  70 &  71 & 10 & 15 & &  \\
-    164.gzip   &  4773  &  92 &  95 &  6 &  0 & &  \\
-    181.mcf    &  1663 &  33 &  33  &  0 &  0 & &  \\
-    177.mesa   & 80952 & 816 & 832  & 94 &247 & &  \\
-    300.twolf  & 35796 & 679 & 716  &  6 &  0 & &  \\
-    175.vpr    & 19547 & 319 & 329  & 17 & 33 & &  \\
-    \hline
-  \end{tabular}
-\end{table}
-TODO numbers can be produced via /home/johannes/git/sambamba/testdata/spec2000/timeAnalysis.py
-
-
-\red
-\begin{shaded}
-\subsubsection{Available tests}
-
-\paragraph{Alias tests}
-
-
-\paragraph{Invariant tests}
-
-
-
-
-\subsection{Sound Transformations}
-\label{soundCTtransformations}
-As described earlier, region speculation collects violations within a SCoP 
-and can introduce tests for some of them. There are cases when these tests will
-suffice to get a sound result, thus there is no need for a runtime system at all.
-Although this hold in respect to the soundness of a program, this does not mean 
-performance will rise when these transformations are used.  \\
-TODO scores -- heuristic / statistics 
-
-
-\section{Runtime Evaluation}
-
-
-\section{Problems}
-During the work with LLVM 3.0 and a corresponding version of Polly a few
-problems occurred. Some of them could not be reproduced in newer versions
-they were just be tackled with tentative fixes, as they will be resolved as soon
-as Sambamba and SPolly will be ported to a newer version.
-Others, which could be reproduced in the current trunk versions,
-have been reported and listed in figure \ref{tab:bugreports}. All bugs were 
-reported with a minimal test case and a detailed description why they occur.
-
-\end{shaded}
-
-% ID | description | status | patch included | tool
-\begin{table}[htbp]
-  \caption{Reported bugs}
-  \begin{tabularx}{0.9\textwidth}{ c | X | p{2cm} | c | c }
-   ID & Description & Status & Patch provided  & Component \\
-  \hline \hline
-  12426 & Wrong argument mapping in OpenMP subfunctions & RESOLVED FIXED & yes & Polly \\
-   \hline
-  12427 & Invariant instruction use in OpenMP subfunctions & NEW & yes & Polly \\
-   \hline
-  12428 & PHInode use in OpenMP subfunctions & NEW & no & Polly \\
-   \hline
-  12489 & Speed up SCoP detection & NEW & yes & Polly \\
-  TODO & add the others to bugzilla & & & \\
-  TODO & PollybenchC2 gemver , 2mm & & & \\
+  188.ammp   & 19824 & 161 &  208 & 16 \hfill \textit{12}  & 73 \hfill \textit{34}  \\
+  179.art    &  1667 &  22 &   66 & 5 \hfill \textit{0}    & 17 \hfill \textit{5}   \\
+  256.bzip2  &  3585 &  59 &  116 & 31 \hfill \textit{22}  & 76 \hfill \textit{46}  \\
+  186.crafty & 25541 & 105 &  310 & 42 \hfill \textit{30}  & 67 \hfill \textit{52}  \\
+  183.equake &  2585 &  24 &   71 & 10 \hfill \textit{9}   & 40 \hfill \textit{36}  \\
+  164.gzip   &  4773 &  59 &   95 & 9 \hfill \textit{5}    & 10 \hfill \textit{6}   \\
+  181.mcf    &  1663 &  24 &   33 & 2 \hfill \textit{2}    & 2  \hfill \textit{2}   \\
+  177.mesa   & 80952 & 769 &  832 & 107 \hfill \textit{79} & 276 \hfill \textit{208}\\
+  300.twolf  & 35796 & 166 &  716 & 8 \hfill \textit{4}    & 39 \hfill \textit{20}  \\
+  175.vpr    & 19547 & 294 &  329 & 17 \hfill \textit{8}   & 56 \hfill \textit{31}  \\
+    %\hline
   \end{tabularx}
-  \label{tab:bugreports}
+  \label{tab:TAB}
+  \end{framed}
 \end{table}
+
+Regarding only the amount of detected SCoPs and sSCoPs respectively, SPolly is 
+able to handle 1.5 times more regions than Polly. Even if this does not
+correspond to amount of exploitable parallelism in general, 
+it indicates that the applicability of SPolly is very much bigger on general
+purpose code. For the particular benchmarks, the number of parallelizable sSCoPs 
+is actually 1.5 times greater than the number of parallelizable SCoPs, too.
+In this context a SCoP (or sSCoP) is considered as parallelizable if it contains
+a loop without loop carried dependencies (modulo the applied speculations; Section \ref{SpeculativeParallelExecution}).
+
+\section{Detected sSCoPs} 
+The ``quality'' of  the detected sSCoPs is unfortunately not as desired;  
+except three of them, all contain only a single loop and in the majority 
+less than 30 LLVM-IR instructions. Even if this is 
+comparable to the size of the matrix multiplication example,
+the loop trip counts are much smaller. Due to these facts, parallelization causes
+more overhead than speedup for most of them. Unsound 
+tests (without an STM) substantiate this statement as the performance worsens 
+when each sSCoP is speculatively parallelized. 
+Even though parallelizing all sSCoPs has negative effects on the overall 
+performance, 
+the highest ranked sSCoPs are promising candidates for speculation after all. 
+Examples for such high ranked candidates are given in Figure \ref{fig:ExampleCandidates}. 
+Parts {\footnotesize A}  and {\footnotesize B} present loops with statically 
+unknown trip counts, while parts {\footnotesize C} 
+and {\footnotesize D} have a statically known iteration counts (64 and 1024, respectively).
+All four loops contain possibly aliasing pointers, but only the last one also 
+function calls. Note that the function calls in this sSCoP are not guarded by a conditional, 
+thus SPolly would currently discard this sSCoP during the initial validation.  
+As future work could include (basic) analysis on the called functions, 
+the \texttt{exp} function called here could be classified as non-violating,
+hence there would be no need to discard this sSCoP. With or without such an analysis, it is 
+worth to emphasize that SPolly detects the presented loops automatically 
+and ranks them far beyond the average. 
+
+
+%Even though, we tried to find sSCoPs which can be parallelized 
+%(despite the mentioned problems) and yet yield better performance. 
+%The picked functions and the results are described in Section \ref{RuntimeResults}. 
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Figures/parallelizableSCoPs.pdf}
+  \caption{Quantity of detected and parallelizable SCoPs and sSCoPs}
+  \label{fig:ParallelizableSCoPs}
+\end{figure}
+
+
+
+
+\section{Sound Transformations}
+\label{soundCTtransformations}
+\begin{wraptable}[]{l}{0.4\textwidth}
+  \vspace*{-9mm}
+  \begin{framed}
+  \caption{Number of \\sSCoPs with complete checks}
+  \centering
+    \begin{tabular}{ l | r }
+    \textbf{Benchmark} &  \\
+      \hline \hline
+  188.ammp   & 6 \\
+  183.equake & 5  \\
+  177.mesa   & 109  \\
+  300.twolf  & 26  \\
+  175.vpr    & 3  \\
+    \end{tabular}
+  \vspace*{-1mm}
+  \label{tab:soundTransformations}
+  \end{framed}
+  \vspace*{-13mm}
+\end{wraptable}
+For sSCoPs with complete checks, as described earlier, 
+there is no need for a runtime system, especially an STM, in order 
+to allow sound optimization and parallelization. 
+Within the SPEC 2000 benchmarks, SPolly detected 149 sSCoPs with complete checks 
+(see Table \ref{tab:soundTransformations}), but attempts to compute performance 
+data failed. In the case of e.g., 300.twolf, Polly created valid parallelized code for
+3 of the 26 sSCoPs, hence the result is not very representative. As cases B and C
+of the matrix multiplication example are sSCoPs with complete checks it is worth 
+to look at the case study results when the ``-replace-sound'' option is used. 
+A discussion of these results is given in the third paragraph of 
+Section \ref{CaseStudyResults}. Also note here that the best result was achieved 
+that way.
+\\
+
+\lstset{frame=none}
+\begin{figure}[htbp]
+  \centering
+  \vspace*{5mm}
+  \subfloat[{ Benchmark: 177.mesa  Function: copy\_tex\_sub\_image}]{
+    \begin{minipage}[c]{0.9\textwidth}
+    \begin{tabular}{c}
+      \lstinputlisting{Primitives/Code/ctsi.c}
+    \end{tabular}
+  \end{minipage}
+  }  
+  \vspace*{5mm}
+
+  \subfloat[{Benchmark: 177.mesa  Function: apply\_texture }]{
+    \begin{minipage}[c]{0.9\textwidth}
+    \begin{tabular}{c}
+      \lstinputlisting{Primitives/Code/at.c}
+    \end{tabular}
+    \end{minipage}
+  }
+  \vspace*{5mm}
+
+  \subfloat[{Benchmark: 186.crafty Function: InitializeMasks}]{
+    \begin{minipage}[c]{0.9\textwidth}
+    \begin{tabular}{c}
+      \lstinputlisting{Primitives/Code/ia.c}
+    \end{tabular}
+  \end{minipage}
+  } 
+  \vspace*{5mm}
+
+  \subfloat[{Benchmark: 300.twolf Function: utemp }]{
+    \begin{minipage}[c]{0.9\textwidth}
+    \begin{tabular}{c}
+      \lstinputlisting{Primitives/Code/utemp.c}
+    \end{tabular}
+  \end{minipage}
+  } 
+
+  \vspace*{5mm}
+  \caption{Selection of the highest ranked sSCoPs within the SPEC benchmarks}
+  \label{fig:ExampleCandidates}
+\end{figure}
+\resetlst
+%Despite this fact, the approach may yield improvements similar to
+%Polly, e.g., for cases B and C of the matrix multiplication case study. 
+%Furthermore, a better dependency analysis could allow more parallelism for the 
+%detected sSCoPs, as it would allow parallelization of case E in Section \ref{CaseStudyCaseE}.
+
+\clearpage
+
+%\section{Problems}
+%During the work with LLVM 3.0 and a corresponding version of Polly a few
+%problems occurred. Some of them could not be reproduced in newer versions
+%they were just be tackled with tentative fixes, as they will be resolved as soon
+%as Sambamba and SPolly will be ported to a newer version.
+%Others, which could be reproduced in the current trunk versions,
+%have been reported and listed in figure \ref{tab:bugreports}. All bugs were 
+%reported with a minimal test case and a detailed description why they occur.
+%\clearpage
+\section{Backend Evaluation}
+\label{Rollbacks}
+In the last Chapter we described the two new backends added
+to Pollys code generation and we mentioned that both have theirs eligibility.
+To substantiate this statement we compared the number of rollbacks for different
+loop trip and thread counts when dependencies between iterations occur.
+For trip counts of 64 and 1024 we assumed 2 and 16 executing threads respectively.
+The dependencies were generated and distributed randomly
+with a probability from 0 to 100 percent and last over 1,2 or 16 iterations.
+Figures \ref{fig:f64} and \ref{fig:f1024} provide the curves for the geometric mean 
+of 1000 iterations without the best and worst 10\%.
+The insight gained is the relation between workload per transaction 
+(in terms of iterations) and possible amount of needed recomputations. 
+The solid line denotes always the blocking backend where each transaction
+computes one iteration at a time and the dashed lines denote the splitting backend 
+where a transaction computes $\frac{\#iterations}{\#threads}$ iterations. 
+In the former case, only one iteration has to be recomputed once a dependency occurs, 
+but in the latter case it would be $\frac{\#iterations}{\#threads}$.  Regarding parts 
+{\footnotesize A} and {\footnotesize C} of the Figures 
+\ref{fig:f64} and \ref{fig:f1024}, we can see that dependencies over only one 
+iteration do affect both versions nearly the same. This is hardly 
+surprising as the probability to recompute a transaction in the splitted version
+is decreased by the factor $\frac{\#iterations}{\#threads}$ and once it is rolled
+back exactly the same number of iterations have to be recomputed. For such cases,
+the preferred version would be the splitted one, because the additional overhead
+due to e.g., synchronization, is far less 
+(again by a factor of $\frac{\#iterations}{\#threads}$). 
+The situation changes as the dependencies last over more iterations, as indicated
+by the parts {\footnotesize B} and {\footnotesize D}. The overhead for the
+blocked and unrolled version stays the same but the splitted version suffers from
+more rollbacks as now each dependency forces a transaction to recompute. The 
+factor decreasing the probability was $\frac{\#iterations}{\#threads}$,
+hence the curves in the Figures \ref{fig:ff6422} and \ref{fig:ff102422} 
+are, at the beginning, shifted up by 2 and the ones in Figures \ref{fig:ff641616}
+and \ref{fig:ff10241616} by 16. As the asymptotic behaviour of both versions 
+is the same, the graphs will always converge with increasing dependency probability.
+In the presented examples, this behaviour only matters after the probability for dependencies
+reached about 90\%. Beyond this limit, the distance between the two graphs is rapidly 
+decreasing. 
+
+Summarized, both versions have advantages and drawbacks which needed to be considered
+for speculative execution. A blocked and unrolled version might not provide
+the desired speedup but nevertheless hints on the probability of occurring dependencies
+and even their ``size''. Such information could suggest a second parallelized 
+version e.g., with more workload per transaction, if it would exceed the first
+one in terms of speedup but with a acceptable probability of overhead.
+%if the expected speedup would exceed the probability 
+
+\begin{figure}[htbp]
+      \vspace*{-5mm}
+  \centering
+  \subfloat[64 iterations, 2 threads, dependencies over 1 iteration]{
+    \begin{minipage}[c]{0.43\textwidth}
+      \includegraphics[width=\textwidth]{Figures/missesUnique6421.eps}
+      \label{fig:ff6421}
+      \vspace*{-5mm}
+    \end{minipage}
+  }
+  \subfloat[64 iterations, 2 threads, dependencies over 2 iteration]{
+    \begin{minipage}[c]{0.43\textwidth}
+      \includegraphics[width=\textwidth]{Figures/missesUnique6422.eps} 
+      \vspace*{-5mm}
+      \label{fig:ff6422}
+    \end{minipage}
+  }
+
+      \vspace*{-5mm}
+  \subfloat[64 iterations, 16 threads, dependencies over 1 iteration]{
+    \begin{minipage}[c]{0.43\textwidth}
+      \includegraphics[width=\textwidth]{Figures/missesUnique64161.eps}
+      \label{fig:ff64161}
+      \vspace*{-5mm}
+    \end{minipage}
+  }
+  \subfloat[64 iterations, 16 threads, dependencies over 16 iteration]{
+    \begin{minipage}[c]{0.43\textwidth}
+      \includegraphics[width=\textwidth]{Figures/missesUnique641616.eps}
+      \label{fig:ff641616}
+      \vspace*{-5mm}
+    \end{minipage}
+  }
+  \caption{Backend evaluation with 64 iterations}
+  \label{fig:f64}
+\end{figure}
+
+%\begin{figure}[htbp]
+  %\centering
+  %\subfloat[128 iterations and 2 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses1282.eps}
+      %\label{lst:ff1282}
+    %\end{minipage}
+  %}
+  %\subfloat[128 iterations and 4 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses1284.eps} 
+      %\label{lst:ff1284}
+    %\end{minipage}
+  %}
+
+  %\subfloat[128 iterations and 8 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses1288.eps}
+      %\label{lst:ff1288}
+    %\end{minipage}
+  %}
+  %\subfloat[128 iterations and 16 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses12816.eps}
+      %\label{lst:ff12816}
+    %\end{minipage}
+  %}
+  %\caption{Backend evaluation with 128 iterations}
+  %\label{fig:f128}
+%\end{figure}
+
+
+%\begin{figure}[htbp]
+  %\centering
+  %\subfloat[256 iterations and 2 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses2562.eps}
+      %\label{lst:ff2562}
+    %\end{minipage}
+  %}
+  %\subfloat[256 iterations and 4 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses2564.eps} 
+      %\label{lst:ff2564}
+    %\end{minipage}
+  %}
+
+  %\subfloat[256 iterations and 8 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses2568.eps}
+      %\label{lst:ff2568}
+    %\end{minipage}
+  %}
+  %\subfloat[256 iterations and 16 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses25616.eps}
+      %\label{lst:ff25616}
+    %\end{minipage}
+  %}
+  %\caption{Backend evaluation with 256 iterations}
+  %\label{fig:f256} 
+%\end{figure}
+
+%\begin{figure}[htbp]
+  %\centering
+  %\subfloat[512 iterations and 2 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses5122.eps}
+      %\label{lst:ff5122}
+    %\end{minipage}
+  %}
+  %\subfloat[512 iterations and 4 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses5124.eps} 
+      %\label{lst:ff5124}
+    %\end{minipage}
+  %}
+
+  %\subfloat[512 iterations and 8 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses5128.eps}
+      %\label{lst:ff5128}
+    %\end{minipage}
+  %}
+  %\subfloat[512 iterations and 16 threads]{
+    %\begin{minipage}[c]{0.45\textwidth}
+      %\includegraphics[width=\textwidth]{Figures/misses51216.eps}
+      %\label{lst:ff51216}
+    %\end{minipage}
+  %}
+  %\caption{Backend evaluation with 512 iterations}
+  %\label{fig:f512}
+%\end{figure}
+
+\begin{figure}[htbp]
+      \vspace*{-5mm}
+  \centering
+  \subfloat[1024 iterations, 2 threads, dependencies over 1 iteration]{
+    \begin{minipage}[c]{0.43\textwidth}
+      \includegraphics[width=\textwidth]{Figures/missesUnique102421.eps}
+      \label{fig:ff102421}
+      \vspace*{-5mm}
+    \end{minipage}
+  }
+  \subfloat[1024 iterations, 2 threads, dependencies over 2 iteration]{
+    \begin{minipage}[c]{0.43\textwidth}
+      \includegraphics[width=\textwidth]{Figures/missesUnique102422.eps} 
+      \label{fig:ff102422}
+      \vspace*{-5mm}
+    \end{minipage}
+  }
+
+      \vspace*{-5mm}
+  \subfloat[1024 iterations, 16 threads, dependencies over 1 iteration]{
+    \begin{minipage}[c]{0.43\textwidth}
+    \includegraphics[width=\textwidth]{Figures/missesUnique1024161.eps}
+      \label{fig:ff1024161}
+      \vspace*{-5mm}
+    \end{minipage}
+  }
+  \subfloat[1024 iterations, 16 threads, dependencies over 16 iteration]{
+    \begin{minipage}[c]{0.43\textwidth}
+      \includegraphics[width=\textwidth]{Figures/missesUnique10241616.eps}
+      \label{fig:ff10241616}
+      \vspace*{-5mm}
+    \end{minipage}
+  }
+  \caption{Backend evaluation with 1024 iterations}
+  \label{fig:f1024}
+\end{figure}

@@ -115,7 +115,7 @@
 \usepackage{lstpatch}
 \usepackage{color}
 \usepackage[usenames,dvipsnames]{xcolor}
-\usepackage{titlesec}
+%\usepackage{titlesec}
 \usepackage[subfigure]{tocloft}
 
 \newcommand{\green}{
@@ -136,7 +136,8 @@
 }
 
 \renewcommand{\@makechapterhead}[1]{%
-  %\vspace*{10\p@}%
+  \vspace*{60\p@}%
+  %\vspace\fill%
   {\parindent \z@ \raggedright \normalfont
     \hrule                                           % horizontal line
     \vspace{5pt}%                                    % add some vertical space
@@ -156,7 +157,8 @@
 % Unnumbered chapter heading style:
 
 \renewcommand{\@makeschapterhead}[1]{%
-  %\vspace*{10\p@}%
+  %\vspace*{60\p@}%
+  %\vspace*{60\p@}%
   {\parindent \z@ \raggedright
     \normalfont
     \hrule                                           % horizontal line
@@ -170,7 +172,8 @@
   }}
 
 \newcommand{\chapterhead}[1]{%
-  %\vspace*{10\p@}%
+  %\vspace*{60\p@}%
+  %\vspace*{60\p@}%
   {\parindent \z@   
     \normalfont
     \hrule                                           % horizontal line
@@ -217,6 +220,10 @@
    bookmarksopenlevel=0,bookmarksnumbered=true,hypertexnames=false,
    colorlinks,linkcolor={black},citecolor={Maroon},urlcolor={red},
    pdfstartview={FitV},unicode,breaklinks=true,bookmarksopen=true]{hyperref}
+\usepackage{minitoc}
+\mtcsetdepth{minitoc}{3}
+
+
 \pdfstringdefDisableCommands{
    \let\\\space
 }
@@ -308,11 +315,11 @@
       \bigskip
       {\large Supervisor: Prof. Dr. Sebastian Hack \par}
       \smallskip
-      {\large Advisors: Clemens Hammacher and Kevin Streit \par}
+      {\large Advisors: Clemens Hammacher\par}
+      {\large \hspace*{1.8mm} Kevin Streit\par} 
       \smallskip
-      \smallskip
-      {\large Reviewers: Prof. Dr. Sebastion Hack \par}
-      {\large \hspace*{18mm} Prof. Dr. Andreas Zeller \par}
+      {\large Reviewers: Prof. Dr. Sebastian Hack \par}
+      {\large \hspace*{18.45mm} Prof. Dr. Andreas Zeller \par}
       \smallskip
       \bigskip
       {\large Submitted: \@date \par}
@@ -348,7 +355,7 @@
     \setlength{\parskip}{0pt}
     {\normalsize \UNIVNAME \par}
     \bigskip
-    {\huge{\textit{Abstract}} \par}
+    {\huge{\textit{\Abstract}} \par}
     \bigskip
     {\normalsize \groupname \par}
     {\normalsize \deptname \par}
@@ -460,7 +467,7 @@
 \newcommand\acknowledgements[1]{
 \btypeout{Acknowledgements}
 \addtotoc{Acknowledgements}
-\thispagestyle{plain}
+\thispagestyle{empty}
 \begin{center}{\huge{\textit{Acknowledgements}} \par}\end{center}
 {\normalsize #1}
 \vfil\vfil\null
