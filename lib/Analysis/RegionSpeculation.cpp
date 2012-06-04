@@ -67,7 +67,6 @@ using namespace llvm;
 using namespace polly;
 
 
-polly::RegionSpeculation *RS2 = 0;
 bool polly::SPollyExtractRegions;
 bool polly::SPOLLY_CHUNKS = false;
 
@@ -138,473 +137,6 @@ static int  FunctionCall2, FunctionCallIndirect, FunctionCallNoReturn,
             UnsizedPointer, NonVectorizable, LoopProfilingCheap, CrucialCall,
             LoopProfilingExpensive, LoopCount2, CrucialBranch, NonCrucialBranch; 
 
-#if 0
-
-
-bool polly::RegionSpeculationPrepareRegion;
-static cl::opt<bool, true>
-SPollyPrepareRegions("spolly-prepare-regions",
-       cl::desc("Prepare speculative valid regions to enable codegeneration"), cl::Hidden,
-       cl::location(RegionSpeculationPrepareRegion), cl::init(false));
-
-static cl::opt<bool>
-SPollyDisabled("spolly-disable",
-       cl::desc("Disable speculative polly"),
-       cl::Hidden,
-       cl::value_desc("Disable speculative polly"),
-       cl::init(false));
-
-
-static cl::opt<bool>
-SPollyReplaceViolatingInstructions("spolly-replace-violating-instructions",
-       cl::desc("Replace all violating instructions"),
-       cl::Hidden,
-       cl::value_desc("Replace all violating instructions"),
-       cl::init(true));
-
-
-static cl::opt<bool>
-SPollyRemoveViolatingInstructions("spolly-remove-violating-instructions",
-       cl::desc("Remove all violating instructions"),
-       cl::Hidden,
-       cl::value_desc("Remove all violating instructions"),
-       cl::init(false));
-
-
-static cl::opt<bool>
-SPollyDumpCandidates("spolly-dump",
-       cl::desc("Dump all speculative candidates"),
-       cl::Hidden,
-       cl::value_desc("Dump all speculative candidates"),
-       cl::init(true));
-
-static cl::opt<bool>
-SPollyBranchWorst("spolly-branch-worst",
-       cl::desc("Assume the worst branch is taken most of the time"),
-       cl::Hidden,
-       cl::value_desc(""),
-       cl::init(false));
-
-static cl::opt<bool>
-SPollyBranchBest("spolly-branch-best",
-       cl::desc("Assume the best branch is taken most of the time"),
-       cl::Hidden,
-       cl::value_desc(""),
-       cl::init(true));
-
-
-static cl::opt<bool>
-SPollyViolationProbabilityHigh("spolly-violation-high",
-       cl::desc("Assume a hight probability for violations"),
-       cl::Hidden,
-       cl::value_desc(""),
-       cl::init(false));
-
-static cl::opt<bool>
-SPollyViolationProbabilityLow("spolly-violation-low",
-       cl::desc("Assume a low probability for violations"),
-       cl::Hidden,
-       cl::value_desc(""),
-       cl::init(true));
-
-
-// Variable to mark that we are within a branch and thus possibly
-//  not executing some Blocks
-static unsigned withinBranch = 0;
-
-
-
-namespace {
-  
-  /* 
-   *===  FUNCTION  ============================================================
-   *        Name:  getFileName 
-   * Description:  
-   *===========================================================================
-   */
-  static std::string getFileName(Region *R) {
-    std::string FunctionName =
-      R->getEntry()->getParent()->getName();
-    std::string FileName = "spolly_" + FunctionName + ".score";
-    return FileName;
-  }
-
-}
-
-
-/* 
- *===  FUNCTION  ==============================================================
- *        Name:  insertInvariantCheck
- *   Arguments:  
- *     Returns:  
- *=============================================================================
- */
-void RegionSpeculation::insertInvariantChecks(BasicBlock *testBlock,
-                                              BasicBlock *invariantProfilingBlock) {
-  // If the region does not contain a call we can skip the placement of 
-  // invariant checks
-  DEBUGDEBUG(dbgs() << "@\t InsertInvariantChecks " << containsCalls << "\n");
-  assert(containsCalls && "No need to insert invariant checks without calls");
-
-  // Insert tmp variables in the predecessor pred of the regions entry block 
-  // They save the values of the read variables befor we enter the loop
-  // Insert a check within the loop for, thus test the tmp variables against the
-  // current values
-  assert(DT && "No dominatorTree available");
-  
-  std::map<Value*, Value*> temporaries;
-  for (std::set<Value*>::iterator loads = loadInstructions.begin(); 
-       loads != loadInstructions.end(); loads++) {
-    
-    if (Instruction *I = dyn_cast<Instruction>(*loads)) {
-      if (!DT->dominates(I->getParent(), testBlock)) {
-        continue;
-      }
-    }
-
-    IRBuilder<> builder(testBlock, --((testBlock)->end())); 
-
-    DEBUGDEBUG(dbgs() << "@\t\t INVARIANT load " << (*loads)->getName() << " " 
-         << (*loads) << "\n");
-
-    Value *tmp = builder.CreateLoad(*loads, (*loads)->getName() + "_tmp"); 
-    temporaries[*loads] = tmp;
-  } 
-  
-  BasicBlock *ITB = SplitBlock(testBlock, testBlock->begin(), SD);
-  BasicBlock *ITBpost = SplitBlock(ITB, ITB->begin(), SD);
-
-  StringRef entryName = testBlock->getName();
-  testBlock->setName(entryName + "_new");
-  ITB->setName(entryName + "_spolly_cmp");
-  ITBpost->setName(entryName + "_old");
-
-  DEBUGDEBUG(dbgs() << "@\t ITB: " << ITB->getName() << "\n"); 
-   
-  IRBuilder<> builder(ITB, --((ITB)->end())); 
-  
-  // The integer 64 type the pointers are converted to
-  LLVMContext &llvmContext = ITB->getContext();
-  IntegerType *t64 = Type::getInt64Ty(llvmContext);
-
-  Value *result = 0;
-  for (std::map<Value*, Value*>::iterator ltp = temporaries.begin();
-       ltp != temporaries.end(); ltp++) {
-    Value *ltpf = ltp->first;
-    Value *ltps = ltp->second;
-    
-    Value *load = builder.CreateLoad(ltpf, ltpf->getName() + "_load"); 
-    Type *type = load->getType();
-    Value *cmp;
-    if (type->isFloatingPointTy()) {
-      DEBUGDEBUG(dbgs() << "@\t Inserting float invariant compare \n");
-      cmp = builder.CreateFCmpOEQ(load, ltps,
-                                  ltpf->getName() + "_cmp");
-    } else if (type->isIntegerTy()) {
-      DEBUGDEBUG(dbgs() << "@\t Inserting integer invariant compare \n");
-      cmp = builder.CreateICmpEQ(load, ltps,
-                                 ltpf->getName() + "_cmp");
-      
-    } else if (type->isPointerTy()) {
-      DEBUGDEBUG(dbgs() << "@\t Inserting integer to pointer \n");
-      Value *loadAsInt = builder.CreatePtrToInt(load, t64,
-                                                ltpf->getName() +"_64");
-      DEBUGDEBUG(dbgs() << "@\t Inserting integer to pointer \n");
-      Value *tmpAsInt  = builder.CreatePtrToInt(ltps, t64,
-                                                ltps->getName() +"_64");
-      DEBUGDEBUG(dbgs() << "@\t Inserting integer (pointer) invariant compare \n");
-      cmp = builder.CreateICmpEQ(loadAsInt, tmpAsInt,
-                                 loadAsInt->getName() + "_cmp");
-    } else {
-      assert(0 && "Found unknown type while inserting invariant tests");
-    }
-
-    if (result)
-      result = builder.CreateAnd(result, cmp, result->getName());
-    else
-      result = cmp;
-  }
-
-  assert(result && "Could not compute a result for the invariant check");
-  Instruction *I = dyn_cast<Instruction>(result);
-  assert(I && "Could not get result Instruction");
-
-  // This is a hack
-  // Polly wants the condition to be either constant or an ICmp instruction
-  // so if the condition is a AND we just create an ICmp instruction afterwards
-  if (I->isBinaryOp()) {
-    result = builder.CreateIsNotNull(result, result->getName() + "_icmp");
-  }
-  
-  // First erase the old branch from ITB to ITBpost
-  ITB->getTerminator()->eraseFromParent();
-  
-  BranchInst::Create(ITBpost, invariantProfilingBlock);
-
-  // Use the result to jump to the ITBpost (invariant) or NIB (not invariant)
-  BranchInst::Create(ITBpost, invariantProfilingBlock,
-                     result, ITB);
-  
-  DT->addNewBlock(invariantProfilingBlock, ITB);
-
-}		/* -----  end of function insertInvariantCheck  ----- */
-
-
-
-
-
-
-
-
-
-/* 
- *===  FUNCTION  ==============================================================
- *        Name:  createCall
- *   Arguments:  
- *     Returns:  
- *=============================================================================
- */
-CallInst *RegionSpeculation::createCall(Instruction *I) {
-  
-  FunctionType *FT; 
-  Function *FN = 0;
-  CallInst *callInst = 0;
-
-  // The IRBuilder for the basic block with the violating instruction
-  //IRBuilder<> builder(context);
-  //Module *M = builder.GetInsertBlock()->getParent()->getParent();
-  Module *M = I->getParent()->getParent()->getParent();
-  
-  DEBUG(dbgs() << "@\t\t" << *I->getType() << "\t" << I->getNumOperands() << "\n");
-  
-  unsigned argsC = I->getNumOperands();
-  std::vector<Type *> argsT(argsC);
-  std::vector<Value *> argsV(argsC);
-
-  unsigned i = 0;
-  if (I->getOpcode() == Instruction::Call) {
-    CallInst *C = dyn_cast<CallInst>(I);
-    DEBUGDEBUG(dbgs() 
-          << "@\t\t Found call => using the called function as last argument\n");
-    argsV[argsC - 1] = C->getCalledFunction();
-    argsT[argsC - 1] = C->getCalledFunction()->getType();
-    argsC--;
-  }
-
-  for (; i < argsC; i++) {
-    argsV[i] = I->getOperand(i);
-    argsT[i] = I->getOperand(i)->getType();
-  }
-  
-  // Create the function which has the same return type as the instruction
-  // and uses the same operands as the instruction (as arguments)
-  FT = FunctionType::get(I->getType(), argsT, false);
-  FN = Function::Create(FT, Function::ExternalLinkage,
-                        "_spolly_call", M);
-
-  ArrayRef<Value*> Args(argsV);
-  //callInst = builder.CreateCall(FN, Args); 
-  callInst = CallInst::Create(FN, Args, "", I);
-
-  // Set some attributes to allow Polly to handle this function
-  FN->setDoesNotThrow(true);
-  FN->setDoesNotReturn(false);
-
-  // TODO see ScopDetection::isValidCallInst
-  //FN->setOnlyReadsMemory(true);
-  //FN->setDoesNotAccessMemory(true);
-
-
-
-  assert(callInst && "Call Instruction was 0");
-
-  return  callInst;
-
-}		/* -----  end of function createCall  ----- */
-
-
-
-/* 
- *===  FUNCTION  ==============================================================
- *        Name:  replaceScopStatements
- *   Arguments:  
- *     Returns:  
- *=============================================================================
- */
-void RegionSpeculation::replaceScopStatements(ScopStmt *Statement){
-
-  std::map<Instruction*, Instruction*>::iterator it, end;
-  for (it = accessStatements.begin(), end = accessStatements.end();
-       it != end; it++) {
-    DEBUGDEBUG(dbgs() << "@###$### Set access statement for " << *(it->first)
-          << " with " << *(it->second) << "\n");
-
-    Statement->setAccessFor(it->first, it->second); 
-    it->first->eraseFromParent();
-  }
-
-  accessStatements.clear();
-
-}		/* -----  end of function replaceScopStatements  ----- */
-
-
-
-
-/* 
- *===  FUNCTION  ==============================================================
- *        Name:  replaceViolatingInstructions
- *   Arguments:  
- *     Returns:  
- *=============================================================================
- */
-void RegionSpeculation::replaceViolatingInstructions() {
-  if (!SPollyReplaceViolatingInstructions) return;
-
-  DEBUGDEBUG(dbgs() << "@\t Replace violating instructions "
-               << violatingInstructions.size()  << "\n");
-  std::set<Instruction*>::iterator vIit;
-
-  CallInst *callInst;
-  
-  // foreach violating instruction
-  for (vIit = violatingInstructions.begin(); vIit != violatingInstructions.end();
-       vIit++) {
-    // create the corresponding call instruction and add it to
-    // the replacementInstructions list
-    DEBUGDEBUG(dbgs() << "@\t\t replace " << ((*vIit)) << "\n");
-    DEBUGDEBUG(dbgs() << "@\t\t replace " << (*(*vIit)) << "\n");
-  
-    if (SPollyRemoveViolatingInstructions) {
-      (*vIit)->eraseFromParent();
-      continue;
-    } else if ((*vIit)->getOpcode() == Instruction::PHI) {
-      // Skip Phi nodes since they dominate theirself 
-      continue;
-    }
-   
-    // vIit is not a PHI instruction and we should not remove it, so we 
-    // create a call instruction which will be used to replace vIit  
-    callInst = createCall(*vIit);
-    
-    assert(callInst && "Replacement call is 0");
-
-    DEBUGDEBUG(dbgs() << "@\t\t with " << (*callInst) << "\n");
-    
-    
-    violatingInstructionsMap[callInst] = (*vIit)->getOpcode();
-    
-    (*vIit)->replaceAllUsesWith(callInst);
-    (*vIit)->eraseFromParent(); 
-    
-    DEBUGDEBUG(dbgs() << "@$$$\t "<< callInst << " " << callInst->getParent()  << "\n"); 
-    DEBUGDEBUG(dbgs() << "@$$$\t "<< *callInst << " " << *callInst->getParent() << "\n"); 
-    
-  
-  } /* -----  end foreach violating instruction  ----- */
-  
-
-}		/* -----  end of function replaceViolatingInstruction ----- */
-
-
-
-
-
-/* 
- *===  FUNCTION  ==============================================================
- *        Name:  postPrepareRegion
- * Description:  
- *=============================================================================
- */
-void RegionSpeculation::postPrepareRegion(BasicBlock *testBlock,
-                                          Region *region) {
-  DEBUG(dbgs() << "\n@@@@# postPrepareRegion " << region << "  "
-        << " TB: "  << testBlock << "  "<< testBlock->getName() 
-        << " " << aliasingValues.size() << "  \n");
-
-  insertChecks(testBlock, 0, region->getEntry());
-
-  IRBuilder<> builder(testBlock->getContext());
-  DEBUG(dbgs() << "@$$$\n@$$$\n@$$$\n");
-
-
-  DEBUG(dbgs() << "@\t Replace dummy instructions with original ones: \n"); 
-  // Replace the dummy call instructions with the violating ones again
-  std::map<Instruction*, unsigned>::iterator it;
-
-  if (violatingInstructionsMap.size() == 0) 
-    return;
-
-  for (it = violatingInstructionsMap.begin(); it != violatingInstructionsMap.end(); 
-       it++) {
-    DEBUG(dbgs() << "@$$$\t "<< it->first << " " << it->first->getParent() << "  with  " 
-          << it->second << "\n"); 
-    DEBUG(dbgs() << "@$$$\t "<< *it->first << "\n"); 
-    
-    Instruction *original;
-    CallInst *I = dyn_cast<CallInst>(it->first);
-    builder.SetInsertPoint(it->first->getParent(), it->first);
-
-    // Use the original opcode to determine what kind of instruction should be
-    // created
-    switch (it->second) {
-      default:
-        DEBUG(dbgs()  << "@\t OpCode: " << it->second << "\n");
-        assert(false && "Found unknown opcode during postPreperation");
-
-      case Instruction::Store:
-        //continue;
-        original = builder.CreateStore(I->getOperand(0), 
-                                       I->getOperand(1));
-        break;
-
-      case Instruction::Load:
-        original = builder.CreateLoad(I->getOperand(0));
-        break;
-
-      case Instruction::Call:
-        unsigned argsC = I->getNumArgOperands();
-        DEBUG(dbgs() << "@\t Instruction call " << argsC << "\n");
-        std::vector<Value *> argsV(argsC - 1);
-        for (unsigned i = 0; i < argsC - 1; i++) {
-          argsV[i] = I->getOperand(i);
-        }
-        ArrayRef<Value*> Args(argsV);
-        original = builder.CreateCall(I->getOperand(argsC - 1), Args);
-        break;
-
-    }
-
-    // Replace the dummy with the orinigal instruction
-    
-    DEBUG(dbgs() << "@\t\t Replace " << *I << " by " );
-    I->replaceAllUsesWith(original);
-    original->takeName(I);
-    DEBUG(dbgs() << *original <<"\n");
-    
-    accessStatements[I] = original;
-  }
-  
-  DEBUG(dbgs() << "@$$$\n@$$$\n@$$$\n");
-  DEBUG(dbgs() << "\n@@@@# postPreparedRegion " << region << "  \n");
-
-}		/* -----  end of function postPrepareRegion  ----- */
-
-
-
-
-#endif
-
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
 
 /// Helper functions, most of them will be used only once, thus can be inlined 
 namespace {
@@ -951,11 +483,6 @@ namespace polly {
 
           }
 
-          if ("a_inactive_f_zero_for.cond" == originalVersion->getNameStr()) {
-                originalVersion->dump();
-                parallelVersion->dump();
-                assert(0);
-          }
 
           createParallelVersion(useOriginal, forks);
         }
@@ -1067,7 +594,6 @@ namespace polly {
       void insertInvariantTestingCode(BasicBlock *BB, ValueToValueMapTy *VMap) {
         assert(BB && invariantLoadBlock && VMap && "Bad invariant test block");
 
-        //invariantLoadBlock->dump();
 
         Instruction *I = BB->getTerminator(), *cloneI;
         BasicBlock::iterator it = invariantLoadBlock->begin(),
@@ -1130,11 +656,6 @@ namespace polly {
       Instruction *insertAliasTestingCode(BasicBlock *BB, ValueToValueMapTy *VMap) {
         assert(BB && aliasTestBlock && "Bad alias test block");
 
-        DEBUG(dbgs() << "\n\n\n#################################################\n");
-        DEBUG(aliasTestBlock->dump());
-        DEBUG(dbgs() << "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK\n");
-
-
         Instruction *I = BB->getTerminator(), *cloneI;
         BasicBlock::iterator it = aliasTestBlock->begin(),
                             end = aliasTestBlock->end();
@@ -1188,8 +709,6 @@ namespace polly {
 
       /// @brief TODO
       void insertProfilingCode(BasicBlock *testBlock, Value *testValue) {
-        //dbgs() << "Insert profiling code " << testBlock <<  "  " << testValue << "\n";
-        //dbgs() << "Insert profiling code " << *testBlock <<  "  " << *testValue << "\n";
         BasicBlock *profilingBlock = 
                 BasicBlock::Create(testBlock->getContext(),
                                    testBlock->getNameStr() + "_pr",
@@ -1202,29 +721,11 @@ namespace polly {
         assert(testBlockTerm && testBlockTerm->isUnconditional() 
                && "Unexpected testBlock");
 
-        // Register the profilingBlock 
-        //if (RS->DT)
-          //RS->DT->addNewBlock(profilingBlock, testBlock);
         IRBuilder<> profilingBlockBuilder(profilingBlock);
 
         BasicBlock *nextBlock = testBlockTerm->getSuccessor(0);
         profilingBlockBuilder.CreateBr(nextBlock);
 
-        //dbgs() << "    \n\n\n\n\n\nTestBlock:";
-        //testBlock->dump();
-        //dbgs() << "    \n\n\n\n\n\nNextBlock:";
-        //nextBlock->dump();
-        //dbgs() << "    \n\n\n\n\n\n";
-        //dbgs() << invariantCompareValue << "\n";
-        //dbgs() << "    \n\n\n\n\n\n";
-        //dbgs() << *invariantCompareBlock << "\n";
-        //dbgs() << "    \n\n\n\n\n\n";
-        //dbgs() << *invariantLoadBlock << "\n";
-        //dbgs() << "    \n\n\n\n\n\n";
-        //dbgs() << nextBlock << "  " << *nextBlock << "\n";
-        //dbgs() << profilingBlock << "  " << *profilingBlock << "\n";
-        //dbgs() << testValue << "  " << *testValue << "\n";
-        //dbgs() << testBlock << "  " << *testBlock << "\n";
         BranchInst::Create(nextBlock, profilingBlock, testValue, testBlock);
         testBlockTerm->eraseFromParent();
         
@@ -1239,10 +740,6 @@ namespace polly {
           InstIt++;
         }
 
-        //Constant *GV0 = Constant::getNullValue(profilingBlockBuilder.getInt64Ty());
-        //Value *GV0 = new Argument(profilingBlockBuilder.getInt64Ty(),
-                                  //testBlock->getName() +"_fail_prob");
-        //DeleteVals.push_back(GV0);
         GlobalValue *GV0 = new GlobalVariable(profilingBlockBuilder.getInt64Ty(), 
                                               false,
                                               GlobalValue::LinkerPrivateLinkage, 0,
@@ -1252,8 +749,6 @@ namespace polly {
         
         ProfilingValues.insert(PB0); 
 
-        //const SCEV *failProb = SE->getMulExpr(SE->getSCEV(GV0), SE->getConstant(APInt(64,100)));
-        //const SCEV *divisor  = SE->getUDivExpr(failProb, SE->getSCEV(GV1))
         
         // SS = SS / (max(1, failProb)) * 2
         // failProb  |  SS
@@ -1365,7 +860,6 @@ namespace polly {
         EnablePollyForkJoin = !useOriginal && !SPOLLY_CHUNKS;
         PollyForks = forks;
         sSCoP = this;
-        RS2 = RS;
         //
         Module *M = parallelVersion->getParent();
 
@@ -1388,17 +882,12 @@ namespace polly {
         // Reset the state of the OnlyFunction argument        
         IgnoreOnlyFunction = false;
         sSCoP = 0;
-        RS2 = 0;
 
         Function *parallelVersionSubfn = 
           M->getFunction(parallelVersion->getNameStr() + ".omp_subfn"); 
         if (RS->SD && parallelVersionSubfn) 
           RS->SD->markFunctionAsInvalid(parallelVersionSubfn);
         
-        if (parallelVersionSubfn) {
-          (dbgs() << "\n\nParallel version Subfunction:");
-          (parallelVersionSubfn->dump());
-        }
         EnableSpolly = true;
         SpeculativeRegionNameStr = "";
         
@@ -1497,10 +986,6 @@ namespace polly {
           const SCEVAddRecExpr *AddRec = cast<SCEVAddRecExpr>(scev);
           const Loop *loop = AddRec->getLoop();
           // else, create a placeholder and use the profiler (later) 
-          //Value *GV = new Argument(Ty, loop->getHeader()->getNameStr() 
-                                   //+ "_loop_ex_prob");
-          //DeleteVals.push_back(GV);
-          //Constant *GV = Constant::getNullValue(Ty);
 
           GlobalValue *GV = new GlobalVariable(Ty, false,
                                                GlobalValue::LinkerPrivateLinkage, 0,
@@ -1592,7 +1077,6 @@ namespace polly {
           case scConstant: {
             const SCEVConstant *Constant = cast<SCEVConstant>(scev);
             const ConstantInt *C = Constant->getValue();
-            //dbgs() << "\tReturn " << C->getSExtValue() << "\n";
             return C->getSExtValue();
           }
           case scUnknown: {
@@ -1602,16 +1086,12 @@ namespace polly {
             ProfiledValue *PV = 0;
             for (ProfilingValuesT::iterator it = ProfilingValues.begin(),
              end = ProfilingValues.end(); it != end; ++it) {
-             //dbgs() << "val: " << value << "  " << (*it)->value << "\n";
-             //dbgs() << "val: " << *value << "  " << *(*it)->value << "\n\n";
               if ((*it)->value == value) {
                 PV = *it;
                 break;
               }
             }
             
-            //dbgs() << "Unknown value to evaluate " << value << "\n";
-            //dbgs() << "Unknown value to evaluate " << *value << "\n";
             assert(PV && "Could not evaluate scoreSCEV with unknown value!");
 
             if (PV->key) {
@@ -1629,8 +1109,6 @@ namespace polly {
 
                 assert((uint64_t) tripCount == tripCountU 
                        && "Not supported yet (to large tripCount)");
-                //dbgs() << "\t\t -- Use " << tripCount << " instead of 16\n"; 
-                //dbgs() << "\tReturn " << tripCount << "\n";
                 return tripCount;
 
               } else {
@@ -2169,11 +1647,6 @@ namespace polly {
                                               GlobalValue::LinkerPrivateLinkage, 0,
                                               branch1BB->getName() +"_ex_prob");
 
-        //DeleteVals.push_back(GV0); 
-        //DeleteVals.push_back(GV1); 
-        
-        //Constant *GV = Constant::getNullValue(Int64Ty);
-
         ProfiledValue *PB0 = new ProfiledValue(entry, 0, true, GV0);
         ProfiledValue *PB1 = new ProfiledValue(entry, 1, true, GV1);
 
@@ -2483,17 +1956,13 @@ namespace polly {
           
           ArrayRef<BasicBlock *> code(blocks);
 
-          //dbgs() << "OLD ORIG: \n";
-          //dbgs() << *originalVersion << "\n\n";
           RS->SD->removeValidRegion(R);
           std::string oldName = originalVersion->getNameStr();
           originalVersion = ExtractCodeRegion(*RS->DT, code, false);
           DEBUG(dbgs() << "\n\t========= Extracted: " << originalVersion->getNameStr()
                   << "\n\t               from: " << oldName << "\n\n");
           RS->SD->markFunctionAsInvalid(originalVersion);
-          //dbgs() << "NEW ORIG: \n";
-          //dbgs() << *originalVersion << "\n\n";
-          //dbgs() << *(originalVersion->getParent());
+
           // The new entry is the block after the function entry
           BasicBlock *entry = 
             originalVersion->getEntryBlock().getTerminator()->getSuccessor(0);
@@ -2529,9 +1998,7 @@ namespace polly {
             StringRef name = caller->getArgOperand(u)->getName();
             if (name.empty())
               name = "Arg" + llvm::utostr(u);
-            //dbgs() << "\tOLD NAME: " << Arg->getName() << "\n";
             Arg->setName(name);
-            //dbgs() << "\tNEW NAME: " << Arg->getName() << "\n\n";
             ++Arg;
           }
 
@@ -2560,12 +2027,6 @@ namespace polly {
         ScoreSCEV = profileValueIfAny(ScoreSCEV, SE, 
                                       &originalVersion->getEntryBlock());
  
-        // Collect all predecessors of entry which do not belong to the region
-        //for (pred_iterator itPred = pred_begin(RMK.first),
-             //end = pred_end(RMK.first); itPred != end; itPred ++) {
-          //if ( R->contains(*itPred) ) continue;
-            //entryPreds.push_back(*itPred);
-        //}
 
 
         // Some Statistics
@@ -2753,17 +2214,9 @@ void RegionSpeculation::storeTemporaryRegion(CRegionT R, AliasSetTracker &AST) {
   if (ReplaceByParallelVersion 
       || (ReplaceByParallelVersionSound && checksAreSound(TemporaryRegion))) {
 
-      Function *orig = getOriginalVersion(TemporaryRegion);
-      //DEBUG(dbgs() << I->second->getNameStr() << "  in  " << orig->getName() << "\n");
-      Module   *M = orig->getParent();
-      Function *F = getParallelVersion(TemporaryRegion, M, true);
-      assert(orig == F && "Use original did not work");
       if (SPollyExtractRegions)
         TemporaryRegion->changeCalledVersion(F);
-      if(llvm::verifyModule(*M, PrintMessageAction)) {
-        dbgs() << "\n\n\n\n";
-        TemporaryRegion->print(dbgs());
-      }
+      
       assert(!llvm::verifyModule(*M, PrintMessageAction));
   }
 
@@ -3031,15 +2484,6 @@ bool StatisticPrinter::runOnFunction(Function &F) {
 
 bool StatisticPrinter::doFinalization(Module &M) {
     PrintStatistics();
-    std::string error;
-    DEBUG(dbgs() << "\n\n Write Module to "
-          << (M.getModuleIdentifier() +".ll").c_str() << "\n\n");
-    raw_fd_ostream file ((M.getModuleIdentifier() +".ll").c_str(), error, 0);
-    DEBUG(dbgs() << "\t Error: " << error << "\n");
-    M.print(file, 0);
-    file.close();
-    assert(error.empty());
-    assert(!llvm::verifyModule(M, PrintMessageAction));
     return false;
 }
 

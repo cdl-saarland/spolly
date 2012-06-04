@@ -73,7 +73,6 @@ using namespace polly;
 
 bool polly::EnableSpolly;
 bool polly::IgnoreOnlyFunction = false;
-//std::string polly::SpeculativeRegionNameStr = "for.body => for.end";
 std::string polly::SpeculativeRegionNameStr = "";
 
 
@@ -150,7 +149,6 @@ BADSCOP_STAT(Alias,           "Found base address alias");
 BADSCOP_STAT(SimpleRegion,    "Region not simple");
 BADSCOP_STAT(Other,           "Others");
 BADSCOP_STAT(Phi,             "non canonical phi node");
-//BADSCOP_STAT(PHIOps,          "PHInode user inside SCOP");
 BADSCOP_STAT(BadMemoryAccess, "Bad memory access");
 
 
@@ -195,8 +193,6 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
   if (isa<UndefValue>(Condition)) {
     DEBUG(dbgs() << "-=-| STATSCOP AffFunc 1 |-=-\n");
     DEBUG(dbgs() << "-=-| END AffFunc 1 |-=-\n");
-    // SPOLLY 
-    // we shouldn't allow this either
     INVALID(AffFunc, "Condition based on 'undef' value in BB: "
                      + BB.getName());
   }
@@ -205,9 +201,6 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
   if (!(isa<Constant>(Condition) || isa<ICmpInst>(Condition))) {
     DEBUG(dbgs() << "-=-| STATSCOP AffFunc 2 |-=-\n");
     DEBUG(dbgs() << "-=-| END AffFunc 2 |-=-\n");
-    // SPOLLY
-    // allow this (I'm not sure if this is needed for our purpose)
-    //spolly_hit = true;
     INVALID(AffFunc, "Condition in BB '" + BB.getName() + "' neither "
                      "constant nor an icmp instruction");
   }
@@ -235,22 +228,9 @@ bool ScopDetection::isValidCFG(BasicBlock &BB, DetectionContext &Context) const
       INVALID(AffFunc, "undef operand in branch at BB: " + BB.getName());
     }
 
-    DEBUG(dbgs() << "is affine ICmp : " << *ICmp << "\n\n");;
 
     const SCEV *LHS = SE->getSCEV(ICmp->getOperand(0));
     const SCEV *RHS = SE->getSCEV(ICmp->getOperand(1));
-    DEBUG(dbgs() << *LHS << "   " << *RHS << "\n");;
-
-    DEBUG(
-    bool a0 = isAffineExpr(&Context.CurRegion, LHS, *SE);
-    bool a1 = isAffineExpr(&Context.CurRegion, RHS, *SE);
-    dbgs() << "|| branch in BB '" << BB.getName() << "\n"
-                 << "\t with LHS: " << *ICmp->getOperand(0) << "\n"
-                 << "\t  and RHS: " << *ICmp->getOperand(1) << "\n"
-                 << "\t scev LHS: " << *LHS << "\n"
-                 << "\t  and RHS: " << *RHS << "\n"
-                 << "\t affine: " << a0 << "  " << a1 << "\n"; 
-    );
 
     if (!isAffineExpr(&Context.CurRegion, LHS, *SE) ||
         !isAffineExpr(&Context.CurRegion, RHS, *SE)) {
@@ -323,12 +303,10 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     DEBUG(dbgs() << "-=-| STATSCOP AffFunc 5 |-=-\n");
     DEBUG(dbgs() << "No base pointer " << "\n");
     DEBUG(dbgs() << "-=-| END AffFunc 5 |-=-\n");
-    //STATSCOP(AffFunc);
     // SPOLLY
     // we allow non affine memory accesses, but we have to stop here
     //return false;
     if (RS) {
-      //assert(0 && "Afffunc 5");
       DEBUG(dbgs() << "-=-| AffFunc 5 disabled |-=-\n");
       spolly_hit = true;
 
@@ -348,40 +326,14 @@ bool ScopDetection::isValidMemoryAccess(Instruction &Inst,
     DEBUG(dbgs() << "-=-| STATSCOP AffFunc 6 |-=-\n");
     DEBUG(dbgs() << "Bad base values " << *BaseValue << "\n");
     DEBUG(dbgs() << "-=-| END AffFunc 6 |-=-\n");
-    //STATSCOP(AffFunc);
-    // SPOLLY
-    // we allow non affine memory accesses, but we have to stop here
-    //return false;
-    //assert(0 && "Afffunc 6");
-    if (RS && false) {
-      DEBUG(dbgs() << "-=-| AffFunc 6 disabled |-=-\n");
-      spolly_hit = true;
-      
-      return RS->registerViolatingInstruction(&Inst, RegionSpeculation::AffineFunction);
-      
-    } else {
-      DEBUG(dbgs() << "-=-| AffFunc 6 enabled |-=-\n");
-      INVALID(AffFunc, "Undefined base pointer");
-    }
+
+    DEBUG(dbgs() << "-=-| AffFunc 6 enabled |-=-\n");
+    INVALID(AffFunc, "Undefined base pointer");
   }
 
-  //DEBUG(dbgs() << "Base value " << BaseValue << " " << *BaseValue << "\n");
-  //DEBUG(dbgs() << "Instruction " << &Inst << " " << Inst << "\n");
 
   AccessFunction = SE->getMinusSCEV(AccessFunction, BasePointer);
   
-  //DEBUG(dbgs() << "AccessFunction " << *AccessFunction << " " 
-               //<< Context.CurRegion  << " " << SE << "\n");
-  
-  DEBUG(
-  bool a0 = isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue);
-  dbgs() << "|| memory access in BB '" << Inst.getParent()->getName() << "\n"
-               << "\t at: " << Inst << " \n" 
-               << "\t  with AF: " << *AccessFunction << "\n"
-               << "\t  with BV: " << *BaseValue << "\n"
-               << "\t affine: " << a0 << "\n"; 
-  );
-
   if (!isAffineExpr(&Context.CurRegion, AccessFunction, *SE, BaseValue) && !AllowNonAffine)
     INVALID(AffFunc, "Bad memory address " << *AccessFunction);
 
@@ -488,19 +440,9 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       DEBUG(dbgs() << "-=-| STATSCOP Phi 1 |-=-\n");
       DEBUG(dbgs() << "Non canonical PHI node found: "<< Inst);
       DEBUG(dbgs() << "-=-| END Phi 1 |-=-\n");
-      //STATSCOP(Phi);
-      // Spolly
-      // we need to allow this 
-      if (RS && false) {
-        DEBUG(dbgs() << "-=-| Phi 1 disabled |-=-\n");
-        spolly_hit = true;
-        
-        //RS->addViolatingInstruction(&Inst, RS->VIOLATION_PHI);
-      
-      } else {
-        DEBUG(dbgs() << "-=-| Phi 1 enabled |-=-\n");
-        INVALID(Phi, "non canonical PHI node found");
-      }//return false;
+
+      DEBUG(dbgs() << "-=-| Phi 1 enabled |-=-\n");
+      INVALID(Phi, "non canonical PHI node found");
     }
 
   // Scalar dependencies are not allowed.
@@ -545,14 +487,6 @@ bool ScopDetection::isValidInstruction(Instruction &Inst,
       DEBUG(dbgs() << "-=-| END Other 3 |-=-\n");
       INVALID(Other, "Alloca instruction: " << Inst);
     }
-
-    //if (hasPhiOperatorsOutsideScop(Inst, Context.CurRegion)) {
-      //DEBUG(dbgs() << "-=-| STATSCOP PHI OPS |-=-\n");
-      //DEBUG(dbgs() << "-=-| END PHI OPS |-=-\n");
-      //INVALID(PHIOps, Inst << " depends on PHIs outside the SCOP");
-    //}
-    DEBUG(dbgs() << " abcdefghj INSTRUCTION " << Inst << "\n\n");
-
     return true;
   }
 
@@ -659,13 +593,6 @@ Region *ScopDetection::expandRegion(Region &R) {
       ExpandedRegion = TmpRegion;
     }
   }
-
-  DEBUG(
-  if (LastValidRegion)
-    dbgs() << "\tto " << LastValidRegion->getNameStr() << "\n";
-  else
-    dbgs() << "\tExpanding " << R.getNameStr() << " failed\n";
-  );
 
   return LastValidRegion;
 }
@@ -947,7 +874,6 @@ void ScopDetection::print(raw_ostream &OS, const Module *) const {
   OS << "\n";
 }
 
-#define RegionMapKeyForRegion(R) std::make_pair((R)->getEntry(), (R)->getExit())
 void ScopDetection::releaseMemory() {
   ValidRegions.clear();
   InvalidRegions.clear();

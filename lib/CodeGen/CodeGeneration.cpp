@@ -104,7 +104,6 @@ GroupedUnrolling("enable-polly-grouped-unroll",
                           "instuctions"), cl::Hidden, cl::init(false),
                  cl::ZeroOrMore);
 
-
 static cl::opt<bool, true>
 ForkJoin("enable-polly-fork-join",
        cl::desc("Generate fork-join parallelizable code"), cl::Hidden,
@@ -1747,8 +1746,7 @@ void ClastStmtCodeGen::codegenForForkJoinParallelism(const clast_for *f) {
 
   ConstantInt *LB = dyn_cast<ConstantInt>(LowerBound);
   ConstantInt *UB = dyn_cast<ConstantInt>(UpperBound);
-  //dbgs() << "LB: " << *LowerBound << "\n"; 
-  //dbgs() << "UB: " << *UpperBound << "\n"; 
+
   if (LB && UB && (APIStrideForks != APInt(64, 0))) {
     WhileHeader->eraseFromParent();
 
@@ -1763,12 +1761,7 @@ void ClastStmtCodeGen::codegenForForkJoinParallelism(const clast_for *f) {
     APInt Cur = APILB + Qot.smul_ov(APIStrideForks, Overflow) 
                 + APIStrideForks - APInt(64,1);
     assert(!Overflow && "Got an Overflow during the IV computations");
-    //dbgs() << "APILB: " << APILB << "\n";
-    //dbgs() << "APIUB: " << APIUB << "\n";
-    //dbgs() << "Dif: " << Dif << "\n";
-    //dbgs() << "Qot: " << Qot << "\n";
-    //dbgs() << "Cur: " << Cur << "\n";
-    //dbgs() << "APIStride: " << APIStrideForks << "\n";
+
 
     if (Cur.slt(APIUB)) {
 
@@ -1840,19 +1833,6 @@ void ClastStmtCodeGen::codegenForForkJoinParallelism(const clast_for *f) {
     
     NextIVClone->replaceUsesOfWith(Stride, Stride = Builder.getInt(APIStride));
 
-    // Repair the cloned WhileHeader
-    //BinaryOperator *NextIVMinusOneClone = dyn_cast<BinaryOperator>(VMap[NextIVMinusOne]);
-    //assert(NextIVMinusOneClone && "NextIVMinusOneClone not found");
-    //BinaryOperator *Add = dyn_cast<BinaryOperator>(NextIVMinusOneClone->getOperand(0));
-    //assert(Add);
-    //assert(Add->getOperand(0) == Stride || Add->getOperand(1) == Stride);
-    //Add->replaceUsesOfWith(Stride, OldStride);
-    
-    //ICmpInst *ICmpClone = cast<ICmpInst>(VMap[ICmp]);
-    //assert(ICmpClone);
-    //ICmpClone->replaceUsesOfWith(NextIVMinusOneClone, VMap[IV]);
-
-    //NextIVMinusOneClone->eraseFromParent();
   }
 
 
@@ -1864,52 +1844,10 @@ void ClastStmtCodeGen::codegenForForkJoinParallelism(const clast_for *f) {
       inlineSingleCall(*cI, ForkFn);
   }
 
-  //
-#if 0 
-  Blocks.clear();
-  Code.clear();
-  ToDo.clear();
-  ToDo.insert(Header);
-  
-
-  pred_iterator pollyStart = pred_begin(Header);
-  if ((*pollyStart) == ForkJoin) 
-    pollyStart++;
-
-  while (!ToDo.empty()) {
-    BasicBlock *current = *ToDo.begin();
-    ToDo.erase(current);
-    assert (!Blocks.count(current) && "ToDo Block already contained in Blocks");
-    Code.push_back(current);
-    Blocks.insert(current);
-    
-    for (succ_iterator I = succ_begin(current), E = succ_end(current); 
-         I != E; I++) {
-      BasicBlock *succ = *I;
-      // Skip Blocks we've seen or which should not be extracted
-      if (   Blocks.count(succ)
-          || ToDo.count(succ) 
-          || succ == AfterBB) continue;
-
-      ToDo.insert(succ); 
-    }
-  }
-
-  Function *ParallelLoopFn = ExtractCodeRegion(DT, Code, false);
-  ParallelLoopFn->setName(F->getName() + ".fj_subfn");
- 
-  DT.addNewBlock(*succ_begin(*pollyStart), *pollyStart);
-#endif
-
   // Loop is finished, so remove its iv from the live symbols.
   ClastVars.erase(f->iterator);
   Builder.SetInsertPoint(AfterBB->begin());
 
-  DEBUG(
-  dbgs() << "\n\n\n";
-  F->dump();
-  dbgs() << "\n\n\n";
-  );
 }
 
 
@@ -1953,24 +1891,6 @@ SetVector<Value*> ClastStmtCodeGen::getOMPValues() {
     }
   }
       
-    Region &R = S->getRegion();
-    Function *F = R.getEntry()->getParent();
-  //if ( F->getName() == "gl_alpha_test" || F->getName() == "horner_bezier_curve"
-       //|| F->getName() == "gl_flush_pb" || F->getName() == "apply_texture") {
-  dbgs() << "FIX \n";
-    /// FIX 4 
-    /// Hack to include arguments PolybenchC 2mm and others
-    /// 
-    for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E; I++) {
-     if (Values.count(I)) continue;
-      
-      //if (I->getName() == "ctx" || I->getName() == "t" || I->getName() =="order") {
-        dbgs() << " FIX FIX FIX Insert " << *I << "\n";
-        Values.insert(I);
-      }
-    //}
-  //}
-
   return Values;
 }
 
@@ -2149,19 +2069,16 @@ void ClastStmtCodeGen::codegenForVector(const clast_for *F) {
 void ClastStmtCodeGen::codegen(const clast_for *f) {
   bool enabled = (Vector || OpenMP || ForkJoin);
   bool isParallelFor = P->getAnalysis<Dependences>().isParallelFor(f);
-  (dbgs() << "Codegen: " << enabled << " && " 
-        << isParallelFor << "\n");
   if ( enabled && isParallelFor ) {
-    //(dbgs() << "   InnermostLoop: " << isInnermostLoop(f) << "\n");
+    
     int ni = getNumberOfIterations(f);
-    //(dbgs() << "   NumberOfInstructions: " << ni << "\n");
+    
     if (Vector && isInnermostLoop(f) && (1 < ni && ni <= 16)) {
       codegenForVector(f);
       DEBUG(dbgs() << "\t Call codegen for Vector \n");
       return;
     }
 
-    //(dbgs() << "     ParallelCodeGeneration: " << parallelCodeGeneration << "\n");
     if (!parallelCodeGeneration) {
       if (SPOLLY_CHUNKS) {
         DEBUG(dbgs() << "\t Call codegen for Cunks \n");
@@ -2188,19 +2105,6 @@ void ClastStmtCodeGen::codegen(const clast_for *f) {
     }
   }
 
-  DEBUG(dbgs() << "parallelCodeGeneration : " << parallelCodeGeneration
-        << "  SPOLLY_CHUNKS " << SPOLLY_CHUNKS << "\n");
-
-  //if (SPOLLY_CHUNKS && !parallelCodeGeneration) {
-    //DEBUG(dbgs() << "\t Call codegen for Cunks \n");
-    //parallelCodeGeneration = true;
-    //parallelLoops.push_back(f->iterator);
-    //codegenForChunks(f);
-    //parallelCodeGeneration = false;
-    //return;
-  //}
-
-  DEBUG(dbgs() << "\t Call codegen for Sequential \n");
   codegenForSequential(f);
 }
 
@@ -2460,9 +2364,6 @@ class CodeGeneration : public ScopPass {
     parallelLoops.insert(parallelLoops.begin(),
                          CodeGen.getParallelLoops().begin(),
                          CodeGen.getParallelLoops().end());
-
-    //ScopDetection *SD = &getAnalysis<ScopDetection>();
-    //SD->addInvalidRegion(RI->);
 
     return true;
   }
